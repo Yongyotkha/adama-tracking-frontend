@@ -449,4 +449,9 @@ export const paths = {
   pathPointCampaignCustomer: "campaign/customer",
   pathPointCampaignDelete: "campaign/delete",
   pathPointCampaignClone: "campaign/clone",
+
+  pathDraftCampaignList: "draft-campaign/list",
+  pathDraftCampaignDetail: "draft-campaign/detail",
+  pathDraftCampaignDelete: "draft-campaign/delete",
+  pathDraftCampaignUserInfo: "draft-campaign/user-info",
 };

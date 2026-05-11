@@ -1,5 +1,6 @@
-import React, { useMemo, useState } from "react";
-import { Dropdown } from "antd";
+import React, { useContext, useEffect, useState } from "react";
+import { Dropdown, Modal } from "antd";
+import { ExclamationCircleFilled } from "@ant-design/icons";
 import { useNavigate } from "react-router-dom";
 import MainLayout from "../../../../layouts/MainLayout";
 import Filter from "../../../../components/filter/Filter";
@@ -7,209 +8,213 @@ import TableComponent from "../../../../components/table/TableComponent";
 import BoxPrimary from "../../../../components/box_primary/BoxPrimary";
 import ActionButton from "../../../../components/button/ActionButton";
 import ItemDropDown from "../../../../components/dropdown/ItemDropDown";
-import BadgeStatus from "../../../../components/badge/BadgeStatus";
-import {
-  draftCampaignCategoryOptions,
-  draftCampaignDealerOptions,
-  draftCampaignFarmerOptions,
-  draftCampaignList,
-  draftCampaignSalesOptions,
-  draftCampaignStatusOptions,
-  draftCampaignSubDealerOptions,
-} from "./mockDraftCampaignData";
-
-const statusColorMap = {
-  draft: { bg: "#B6AEAB", color: "#FFFFFF", label: "Draft" },
-  pending: { bg: "#F89E18", color: "#FFFFFF", label: "Pending" },
-  active: { bg: "#00783F", color: "#FFFFFF", label: "Active" },
-};
-
-const findName = (options, id) =>
-  options.find((option) => String(option.id) === String(id))?.name || "-";
-
-const formatNumber = (value, digits = 0) =>
-  Number(value || 0).toLocaleString("en-US", {
-    minimumFractionDigits: digits,
-    maximumFractionDigits: digits,
-  });
+import useServiceAPI from "../../../../services/CorsService";
+import { paths } from "../../../../services/CorsPath";
+import { AuthContext } from "../../../../contexts/AuthContext";
+import { formatDate, formatNumber, getListPayload } from "./draftCampaignUtils";
 
 export default function DraftCampaignList() {
   const navigate = useNavigate();
-  const [filtersValue, setFiltersValue] = useState({});
+  const { showNotification, userInfo } = useContext(AuthContext);
+
+  const [loading, setLoading] = useState(false);
+  const [tableLoading, setTableLoading] = useState(false);
+  const [dataSource, setDataSource] = useState([]);
+  const [filterValues, setFilterValues] = useState({});
+  const [canCreate, setCanCreate] = useState(true);
   const [tableParams, setTableParams] = useState({
-    pagination: { current: 1, pageSize: 5 },
+    pagination: { current: 1, pageSize: 10, total: 0 },
+    filters: {},
   });
 
   const filters = [
-    {
-      key: "rewardCode",
-      type: "text",
-      label: "Reward Code",
-      placeholder: "Enter",
-    },
-    {
-      key: "rewardName",
-      type: "text",
-      label: "Reward Name",
-      placeholder: "Enter",
-    },
-    {
-      key: "category",
-      type: "select",
-      label: "Category",
-      placeholder: "Select",
-      options: draftCampaignCategoryOptions,
-    },
-    {
-      key: "status",
-      type: "select",
-      label: "Status",
-      placeholder: "Select",
-      options: draftCampaignStatusOptions,
-    },
+    { key: "document_number", type: "text", label: "Document No", placeholder: "Enter" },
+    { key: "dealer_name", type: "text", label: "Dealer", placeholder: "Enter" },
+    { key: "sub_dealer_name", type: "text", label: "Sub Dealer", placeholder: "Enter" },
+    { key: "farmer_name", type: "text", label: "Farmer", placeholder: "Enter" },
+    { key: "dater", type: "dater", label: "Draft Date" },
   ];
 
-  const filteredRows = useMemo(() => {
-    return draftCampaignList.filter((item) => {
-      if (
-        filtersValue.rewardCode &&
-        !String(item.rewardCode || "")
-          .toLowerCase()
-          .includes(String(filtersValue.rewardCode).toLowerCase())
-      ) {
-        return false;
-      }
-      if (
-        filtersValue.rewardName &&
-        !String(item.rewardName || "")
-          .toLowerCase()
-          .includes(String(filtersValue.rewardName).toLowerCase())
-      ) {
-        return false;
-      }
-      if (
-        filtersValue.category &&
-        String(item.category).toLowerCase() !== String(filtersValue.category).toLowerCase()
-      ) {
-        return false;
-      }
-      if (
-        filtersValue.status &&
-        String(item.status).toLowerCase() !== String(filtersValue.status).toLowerCase()
-      ) {
-        return false;
-      }
-      return true;
+  const fetchData = async () => {
+    setTableLoading(true);
+    const { current, pageSize } = tableParams.pagination;
+    const f = tableParams.filters || {};
+
+    try {
+      const res = await useServiceAPI.get(paths.pathDraftCampaignList, {
+        user_id: f.user_id || userInfo?.id || "",
+        dealer_name: f.dealer_name || "",
+        sub_dealer_name: f.sub_dealer_name || "",
+        farmer_name: f.farmer_name || "",
+        document_number: f.document_number || "",
+        dater:
+          Array.isArray(f.dater) && f.dater[0] && f.dater[1]
+            ? f.dater
+            : [],
+        orderby_column: "document_date",
+        orderby: "desc",
+        page_size: pageSize,
+        page_length: current,
+      });
+
+      const payload = getListPayload(res);
+      const list = Array.isArray(payload?.data) ? payload.data : [];
+
+      setCanCreate(Boolean(payload?.permission?.btn_create ?? true));
+      setDataSource(
+        list.map((item, index) => ({
+          key: item.document_number || `${current}-${index}`,
+          no: index + 1 + (current - 1) * pageSize,
+          document_number: item.document_number || "-",
+          sales: item.name_en || "-",
+          dealer: item.dealer_name || "-",
+          sub_dealer: item.sub_dealer_name || "-",
+          farmer: item.farm_name || "-",
+          draft_date: formatDate(item.document_date),
+          line_product: formatNumber(item.line_product),
+          target_point: formatNumber(item.target_point),
+          point: formatNumber(item.point),
+          net_amount: formatNumber(item.net_amount, 2),
+          action: (
+            <Dropdown
+              placement="bottom"
+              menu={{
+                items: (item.action || []).map((act, i) => {
+                  const actionType = String(act.action || "").toLowerCase();
+                  const documentNumber = item.document_number;
+                  return {
+                    key: `${documentNumber}-${actionType}-${i}`,
+                    label: (
+                      <ItemDropDown
+                        mode={actionType}
+                        text={act.action}
+                        onClick={() => {
+                          if (actionType === "delete") {
+                            handleDelete(documentNumber);
+                            return;
+                          }
+                          navigate(`/setting/line/draft-campaign/${actionType}`, {
+                            state: { documentNumber },
+                          });
+                        }}
+                      />
+                    ),
+                  };
+                }),
+              }}
+            >
+              <a onClick={(e) => e.preventDefault()}>
+                <img src="/img/icons/action.png" alt="action" className="w-5 h-5" />
+              </a>
+            </Dropdown>
+          ),
+        }))
+      );
+
+      setTableParams((prev) => ({
+        ...prev,
+        pagination: {
+          ...prev.pagination,
+          total: payload?.records_filtered ?? payload?.records_total ?? list.length,
+        },
+      }));
+    } catch (error) {
+      showNotification?.(
+        "error",
+        error?.response?.data?.message || "Load failed",
+        error?.response?.data?.data?.message_line || [error?.message || "Unable to load draft campaigns"]
+      );
+    } finally {
+      setTableLoading(false);
+    }
+  };
+
+  const handleDelete = (documentNumber) => {
+    Modal.confirm({
+      title: "Delete Draft Campaign?",
+      icon: <ExclamationCircleFilled />,
+      centered: true,
+      onOk: async () => {
+        try {
+          const res = await useServiceAPI.delete(paths.pathDraftCampaignDelete, {
+            document_number: documentNumber,
+          });
+          await showNotification?.(
+            res?.status === 200 ? "success" : "warning",
+            res?.message || "Notification",
+            res?.data?.message_line || [res?.data?.message || "Delete finished"]
+          );
+          fetchData();
+        } catch (error) {
+          await showNotification?.(
+            "error",
+            error?.response?.data?.message || "Delete failed",
+            error?.response?.data?.data?.message_line || [error?.message || "Unable to delete draft campaign"]
+          );
+        }
+      },
     });
-  }, [filtersValue]);
+  };
 
-  const dataSource = filteredRows.map((item, index) => {
-    const totalQty = item.products.reduce((sum, row) => sum + Number(row.qty || 0), 0);
-    const totalPoint = item.products.reduce((sum, row) => sum + Number(row.point || 0), 0);
-    const totalValue = item.products.reduce((sum, row) => sum + Number(row.subTotal || 0), 0);
-    const statusMeta = statusColorMap[item.status] || statusColorMap.draft;
+  useEffect(() => {
+    setLoading(false);
+  }, []);
 
-    return {
-      key: item.id,
-      no: index + 1,
-      sales: findName(draftCampaignSalesOptions, item.sale),
-      dealer: item.dealer,
-      subDealer: findName(draftCampaignSubDealerOptions, item.subDealer),
-      farmer: findName(draftCampaignFarmerOptions, item.farmer),
-      qty: formatNumber(totalQty),
-      point: formatNumber(totalPoint),
-      value: formatNumber(totalValue, 2),
-      draftDate: item.draftDate,
-      createdBy: item.createdBy,
-      status: (
-        <BadgeStatus
-          text={statusMeta.label}
-          bgColor={statusMeta.bg}
-          textColor={statusMeta.color}
-        />
-      ),
-      action: (
-        <Dropdown
-          placement="bottom"
-          menu={{
-            items: [
-              {
-                key: "view",
-                label: (
-                  <ItemDropDown
-                    mode="view"
-                    onClick={() =>
-                      navigate("/setting/line/draft-campaign/view", {
-                        state: { id: item.id },
-                      })
-                    }
-                  />
-                ),
-              },
-              {
-                key: "edit",
-                label: (
-                  <ItemDropDown
-                    mode="edit"
-                    onClick={() =>
-                      navigate("/setting/line/draft-campaign/edit", {
-                        state: { id: item.id },
-                      })
-                    }
-                  />
-                ),
-              },
-            ],
-          }}
-        >
-          <a onClick={(event) => event.preventDefault()}>
-            <img src="/img/icons/action.png" alt="action" className="w-5 h-5" />
-          </a>
-        </Dropdown>
-      ),
-    };
-  });
+  useEffect(() => {
+    fetchData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [
+    tableParams.pagination.current,
+    tableParams.pagination.pageSize,
+    JSON.stringify(tableParams.filters),
+    userInfo?.id,
+  ]);
 
   const header = [
     { title: "No", dataIndex: "no", width: 70, align: "center" },
-    { title: "Sales", dataIndex: "sales" },
-    { title: "Dealer", dataIndex: "dealer" },
-    { title: "Sub Dealer", dataIndex: "subDealer" },
-    { title: "Farmer", dataIndex: "farmer" },
-    { title: "QTY", dataIndex: "qty", align: "right" },
-    { title: "Point", dataIndex: "point", align: "right" },
-    { title: "Value", dataIndex: "value", align: "right" },
-    { title: "Draft Date", dataIndex: "draftDate", align: "center" },
-    { title: "Create By", dataIndex: "createdBy" },
-    { title: "Status", dataIndex: "status", align: "center" },
-    { title: "Action", dataIndex: "action", align: "center", width: 90 },
+    { title: "Document No", dataIndex: "document_number", width: 160 },
+    { title: "Sales", dataIndex: "sales", width: 180 },
+    { title: "Dealer", dataIndex: "dealer", width: 180 },
+    { title: "Sub Dealer", dataIndex: "sub_dealer", width: 180 },
+    { title: "Farmer", dataIndex: "farmer", width: 180 },
+    { title: "Draft Date", dataIndex: "draft_date", width: 130, align: "center" },
+    { title: "Line Product", dataIndex: "line_product", width: 110, align: "right" },
+    { title: "Target Point", dataIndex: "target_point", width: 120, align: "right" },
+    { title: "Point", dataIndex: "point", width: 120, align: "right" },
+    { title: "Net Amount", dataIndex: "net_amount", width: 140, align: "right" },
+    { title: "Action", dataIndex: "action", width: 90, align: "center" },
   ];
 
   return (
-    <MainLayout loading={false}>
+    <MainLayout loading={loading}>
       <div className="flex items-center justify-between">
         <div className="title-page">Draft Campaign</div>
-        <ActionButton
-          mode="create"
-          text="Create"
-          onClick={() => navigate("/setting/line/draft-campaign/create")}
-        />
+        {canCreate && (
+          <ActionButton
+            mode="create"
+            text="Create"
+            onClick={() => navigate("/setting/line/draft-campaign/create")}
+          />
+        )}
       </div>
 
       <Filter
         filters={filters}
-        values={filtersValue}
-        onSearch={(values) => {
-          setFiltersValue(values);
+        values={filterValues}
+        onChange={setFilterValues}
+        onSearch={(filtersFromUI) => {
+          setFilterValues(filtersFromUI);
           setTableParams((prev) => ({
             ...prev,
+            filters: filtersFromUI,
             pagination: { ...prev.pagination, current: 1 },
           }));
         }}
         onClear={() => {
-          setFiltersValue({});
+          setFilterValues({});
           setTableParams((prev) => ({
             ...prev,
+            filters: {},
             pagination: { ...prev.pagination, current: 1 },
           }));
         }}
@@ -219,10 +224,8 @@ export default function DraftCampaignList() {
         <TableComponent
           header={header}
           dataSource={dataSource}
-          pagination={{
-            ...tableParams.pagination,
-            total: dataSource.length,
-          }}
+          loading={tableLoading}
+          pagination={tableParams.pagination}
           onChange={(pagination) =>
             setTableParams((prev) => ({
               ...prev,
