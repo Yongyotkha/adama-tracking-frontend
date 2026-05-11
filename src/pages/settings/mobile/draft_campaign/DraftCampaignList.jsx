@@ -22,35 +22,126 @@ export default function DraftCampaignList() {
   const [dataSource, setDataSource] = useState([]);
   const [filterValues, setFilterValues] = useState({});
   const [canCreate, setCanCreate] = useState(true);
+
+  const [saleList, setSaleList] = useState([]);
+  const [dealerList, setDealerList] = useState([]);
+  const [subDealerList, setSubDealerList] = useState([]);
+  const [farmerList, setFarmerList] = useState([]);
+
   const [tableParams, setTableParams] = useState({
     pagination: { current: 1, pageSize: 10, total: 0 },
     filters: {},
   });
 
+  const getFilterValue = (value) => {
+    if (typeof value === "object" && value?.value) {
+      return value.value;
+    }
+
+    return value || "";
+  };
+
   const filters = [
-    { key: "document_number", type: "text", label: "Document No", placeholder: "Enter" },
-    { key: "dealer_name", type: "text", label: "Dealer", placeholder: "Enter" },
-    { key: "sub_dealer_name", type: "text", label: "Sub Dealer", placeholder: "Enter" },
-    { key: "farmer_name", type: "text", label: "Farmer", placeholder: "Enter" },
-    { key: "dater", type: "dater", label: "Draft Date" },
+    {
+      key: "sale",
+      type: "select",
+      label: "Sale",
+      placeholder: "All",
+      options: saleList,
+      moderef: true,
+    },
+    {
+      key: "dealers",
+      type: "select",
+      label: "Dealer",
+      placeholder: "All",
+      options: dealerList,
+      moderef: true,
+    },
+    {
+      key: "shop",
+      type: "select",
+      label: "Sub-dealer",
+      placeholder: "All",
+      options: subDealerList,
+    },
+    {
+      key: "farmers",
+      type: "select",
+      label: "Farmer",
+      placeholder: "All",
+      options: farmerList,
+      moderef: true,
+    },
   ];
+
+  const fetchMaster = async () => {
+    setLoading(true);
+
+    try {
+      const [sales, dealerRes, subDealerRes, farmerRes] = await Promise.all([
+        useServiceAPI.get(paths.pathMasterSaleDropdown, {}),
+        useServiceAPI.get(paths.pathMasterDealerAll, {}),
+        useServiceAPI.get(paths.pathMasterSubDealerAll, {}),
+        useServiceAPI.get(paths.pathMasterFarmer, {}),
+      ]);
+
+      setSaleList(sales?.data || []);
+      setDealerList(dealerRes?.data || []);
+
+      setSubDealerList(
+        (subDealerRes?.data || []).map((item) => ({
+          id: item.sub_dealer_id,
+          name: item.sub_dealer_name,
+        }))
+      );
+
+      setFarmerList(
+        (farmerRes?.data || []).map((item) => ({
+          id: item.farmer_id,
+          name: item.farmer_name || item.farmer_id,
+        }))
+      );
+    } catch (error) {
+      showNotification?.(
+        "error",
+        error?.response?.data?.message || error?.message || "Load filter failed",
+        error?.response?.data?.data?.message_line || [
+          error?.message || "Unable to load filter data",
+        ]
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const fetchData = async () => {
     setTableLoading(true);
+
     const { current, pageSize } = tableParams.pagination;
     const f = tableParams.filters || {};
 
+    const saleId = getFilterValue(f.sale);
+    const dealerId = getFilterValue(f.dealers);
+    const subDealerId = getFilterValue(f.shop);
+    const farmerId = getFilterValue(f.farmers);
+
     try {
       const res = await useServiceAPI.get(paths.pathDraftCampaignList, {
-        user_id: f.user_id || userInfo?.id || "",
-        dealer_name: f.dealer_name || "",
-        sub_dealer_name: f.sub_dealer_name || "",
-        farmer_name: f.farmer_name || "",
-        document_number: f.document_number || "",
-        dater:
-          Array.isArray(f.dater) && f.dater[0] && f.dater[1]
-            ? f.dater
-            : [],
+        // user_id: f.user_id || userInfo?.id || "",
+
+        sale_id: saleId,
+        dealer_id: dealerId,
+        sub_dealer_id: subDealerId,
+        farmer_id: farmerId,
+
+        // ส่งค่าว่างไว้ เผื่อ backend เดิมยังมี field เหล่านี้ใน request
+        dealer_name: "",
+        sub_dealer_name: "",
+        farmer_name: "",
+        document_number: "",
+        dater: [],
+
         orderby_column: "document_date",
         orderby: "desc",
         page_size: pageSize,
@@ -58,9 +149,10 @@ export default function DraftCampaignList() {
       });
 
       const payload = getListPayload(res);
-      const list = Array.isArray(payload?.data) ? payload.data : [];
+      const list = Array.isArray(payload) ? payload : [];
 
       setCanCreate(Boolean(payload?.permission?.btn_create ?? true));
+
       setDataSource(
         list.map((item, index) => ({
           key: item.document_number || `${current}-${index}`,
@@ -82,6 +174,7 @@ export default function DraftCampaignList() {
                 items: (item.action || []).map((act, i) => {
                   const actionType = String(act.action || "").toLowerCase();
                   const documentNumber = item.document_number;
+
                   return {
                     key: `${documentNumber}-${actionType}-${i}`,
                     label: (
@@ -93,6 +186,7 @@ export default function DraftCampaignList() {
                             handleDelete(documentNumber);
                             return;
                           }
+
                           navigate(`/setting/line/draft-campaign/${actionType}`, {
                             state: { documentNumber },
                           });
@@ -122,7 +216,9 @@ export default function DraftCampaignList() {
       showNotification?.(
         "error",
         error?.response?.data?.message || "Load failed",
-        error?.response?.data?.data?.message_line || [error?.message || "Unable to load draft campaigns"]
+        error?.response?.data?.data?.message_line || [
+          error?.message || "Unable to load draft campaigns",
+        ]
       );
     } finally {
       setTableLoading(false);
@@ -139,17 +235,21 @@ export default function DraftCampaignList() {
           const res = await useServiceAPI.delete(paths.pathDraftCampaignDelete, {
             document_number: documentNumber,
           });
+
           await showNotification?.(
             res?.status === 200 ? "success" : "warning",
             res?.message || "Notification",
             res?.data?.message_line || [res?.data?.message || "Delete finished"]
           );
+
           fetchData();
         } catch (error) {
           await showNotification?.(
             "error",
             error?.response?.data?.message || "Delete failed",
-            error?.response?.data?.data?.message_line || [error?.message || "Unable to delete draft campaign"]
+            error?.response?.data?.data?.message_line || [
+              error?.message || "Unable to delete draft campaign",
+            ]
           );
         }
       },
@@ -157,7 +257,8 @@ export default function DraftCampaignList() {
   };
 
   useEffect(() => {
-    setLoading(false);
+    fetchMaster();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
@@ -189,6 +290,7 @@ export default function DraftCampaignList() {
     <MainLayout loading={loading}>
       <div className="flex items-center justify-between">
         <div className="title-page">Draft Campaign</div>
+
         {canCreate && (
           <ActionButton
             mode="create"
@@ -204,6 +306,7 @@ export default function DraftCampaignList() {
         onChange={setFilterValues}
         onSearch={(filtersFromUI) => {
           setFilterValues(filtersFromUI);
+
           setTableParams((prev) => ({
             ...prev,
             filters: filtersFromUI,
@@ -212,6 +315,7 @@ export default function DraftCampaignList() {
         }}
         onClear={() => {
           setFilterValues({});
+
           setTableParams((prev) => ({
             ...prev,
             filters: {},

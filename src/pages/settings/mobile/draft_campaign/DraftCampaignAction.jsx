@@ -1,6 +1,11 @@
 import React, { useContext, useEffect, useMemo, useRef, useState } from "react";
 import { DatePicker, Form, Input, InputNumber, Modal, Select } from "antd";
-import { DeleteOutlined, ExclamationCircleFilled, MinusCircleOutlined, PlusCircleOutlined } from "@ant-design/icons";
+import {
+  DeleteOutlined,
+  ExclamationCircleFilled,
+  MinusCircleOutlined,
+  PlusCircleOutlined,
+} from "@ant-design/icons";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import dayjs from "dayjs";
 import MainLayout from "../../../../layouts/MainLayout";
@@ -47,12 +52,17 @@ export default function DraftCampaignAction() {
   const location = useLocation();
   const { mode } = useParams();
   const [form] = Form.useForm();
-  const { showNotification, userInfo } = useContext(AuthContext);
+  const { showNotification } = useContext(AuthContext);
 
   const isView = String(mode).toLowerCase() === "view";
   const isEdit = String(mode).toLowerCase() === "edit";
   const isCreate = !isView && !isEdit;
-  const pageTitle = isView ? "View Draft Campaign" : isEdit ? "Edit Draft Campaign" : "Create Draft Campaign";
+
+  const pageTitle = isView
+    ? "View Draft Campaign"
+    : isEdit
+      ? "Edit Draft Campaign"
+      : "Create Draft Campaign";
 
   const documentNumber =
     location.state?.documentNumber ||
@@ -65,14 +75,90 @@ export default function DraftCampaignAction() {
   const [salesOptions, setSalesOptions] = useState([]);
   const [dealerOptions, setDealerOptions] = useState([]);
   const [subDealerOptions, setSubDealerOptions] = useState([]);
-  const [allFarmerOptions, setAllFarmerOptions] = useState([]);
   const [farmerOptions, setFarmerOptions] = useState([]);
   const [productOptions, setProductOptions] = useState([]);
   const [productSelection, setProductSelection] = useState(undefined);
+
   const productSearchRef = useRef("");
+  const currentPointRequestRef = useRef(0);
+  const farmerRequestRef = useRef(0);
 
   const readOnly = isView;
   const canSubmit = isCreate || detail.permission?.update !== false;
+
+  const watchSaleId = Form.useWatch("user_id", form);
+  const watchDealerId = Form.useWatch("dealer_id", form);
+  const watchSubDealerId = Form.useWatch("sub_dealer_id", form);
+
+  const setCurrentPointValue = (value) => {
+    const currentPoint = toNumber(value);
+
+    form.setFieldsValue({
+      current_point: currentPoint,
+    });
+
+    setDetail((prev) => ({
+      ...prev,
+      current_point: currentPoint,
+    }));
+  };
+
+  const resetCurrentPoint = () => {
+    currentPointRequestRef.current += 1;
+    setCurrentPointValue(0);
+  };
+
+  const getBalancePointFromResponse = (res) => {
+    return (
+      res?.data?.data?.users?.balance_point ??
+      res?.data?.users?.balance_point ??
+      res?.users?.balance_point ??
+      res?.data?.data?.balance_point ??
+      res?.data?.balance_point ??
+      res?.balance_point ??
+      0
+    );
+  };
+
+  const fetchDraftUserInfo = async ({ shop_type, id }) => {
+    if (!shop_type || !id) return null;
+
+    const res = await useServiceAPI.get(paths.pathDraftCampaignUserInfo, {
+      shop_type,
+      id,
+    });
+
+    return res;
+  };
+
+  const loadCurrentPoint = async ({ shop_type, id }) => {
+    const requestId = currentPointRequestRef.current + 1;
+    currentPointRequestRef.current = requestId;
+
+    if (!shop_type || !id) {
+      setCurrentPointValue(0);
+      return null;
+    }
+
+    try {
+      const res = await fetchDraftUserInfo({ shop_type, id });
+
+      if (requestId !== currentPointRequestRef.current) {
+        return res;
+      }
+
+      const balancePoint = getBalancePointFromResponse(res);
+      setCurrentPointValue(balancePoint);
+
+      return res;
+    } catch (_) {
+      if (requestId === currentPointRequestRef.current) {
+        setCurrentPointValue(0);
+      }
+
+      return null;
+    }
+  };
 
   const loadProductOptions = async (keyword) => {
     if (!keyword || keyword.trim().length < 3) {
@@ -81,7 +167,10 @@ export default function DraftCampaignAction() {
     }
 
     try {
-      const res = await useServiceAPI.get(paths.pathMasterProducts, { keyword: keyword.trim() });
+      const res = await useServiceAPI.get(paths.pathMasterProducts, {
+        keyword: keyword.trim(),
+      });
+
       const list = Array.isArray(res?.data) ? res.data : [];
       setProductOptions(list.map(mapProductSearchOption));
     } catch (_) {
@@ -89,25 +178,36 @@ export default function DraftCampaignAction() {
     }
   };
 
-  const loadDealers = async (saleId, selectedDealerId) => {
+  const loadDealers = async (saleId, selectedDealerId, selectedDealerName) => {
     if (!saleId) {
       setDealerOptions([]);
       return;
     }
+
     try {
       const res = await useServiceAPI.get(paths.pathMasterDealerDropdown, {
         user_id: saleId,
       });
+
       const list = Array.isArray(res?.data) ? res.data : [];
+
       const normalized = list.map((item) =>
         normalizeOption(item, {
           valueKey: "id",
           labelKey: "name",
         })
       );
+
       setDealerOptions(normalized);
-      if (selectedDealerId && !normalized.some((item) => String(item.id) === String(selectedDealerId))) {
-        const fallback = normalized.find((item) => item.name === detail.dealer_name);
+
+      if (
+        selectedDealerId &&
+        !normalized.some((item) => String(item.id) === String(selectedDealerId))
+      ) {
+        const fallback = normalized.find(
+          (item) => item.name === selectedDealerName || item.name === detail.dealer_name
+        );
+
         if (fallback) {
           form.setFieldValue("dealer_id", fallback.id);
         }
@@ -117,29 +217,44 @@ export default function DraftCampaignAction() {
     }
   };
 
-  const loadSubDealers = async (saleId, dealerId, selectedSubDealerId) => {
+  const loadSubDealers = async (
+    saleId,
+    dealerId,
+    selectedSubDealerId,
+    selectedSubDealerName
+  ) => {
     if (!dealerId) {
       setSubDealerOptions([]);
       return;
     }
+
     try {
       const res = await useServiceAPI.get(paths.pathMasterSubDealerAll, {
         user_id: saleId || "",
         dealer_id: dealerId,
       });
+
       const list = Array.isArray(res?.data) ? res.data : [];
+
       const normalized = list.map((item) =>
         normalizeOption(item, {
           valueKey: "sub_dealer_id",
           labelKey: "sub_dealer_name",
         })
       );
+
       setSubDealerOptions(normalized);
+
       if (
         selectedSubDealerId &&
         !normalized.some((item) => String(item.id) === String(selectedSubDealerId))
       ) {
-        const fallback = normalized.find((item) => item.name === detail.sub_dealer_name);
+        const fallback = normalized.find(
+          (item) =>
+            item.name === selectedSubDealerName ||
+            item.name === detail.sub_dealer_name
+        );
+
         if (fallback) {
           form.setFieldValue("sub_dealer_id", fallback.id);
         }
@@ -149,9 +264,24 @@ export default function DraftCampaignAction() {
     }
   };
 
-  const loadFarmerMaster = async () => {
+  const loadFarmerMaster = async (
+    subDealerId,
+    selectedFarmerId,
+    selectedFarmerName
+  ) => {
+    const requestId = farmerRequestRef.current + 1;
+    farmerRequestRef.current = requestId;
+
+    if (!subDealerId) {
+      setFarmerOptions([]);
+      return [];
+    }
+
     try {
-      const res = await useServiceAPI.get(paths.pathMasterFarmer, {});
+      const res = await useServiceAPI.get(paths.pathMasterFarmer, {
+        sub_dealer_id: subDealerId,
+      });
+
       const list = Array.isArray(res?.data?.data)
         ? res.data.data
         : Array.isArray(res?.data)
@@ -159,53 +289,40 @@ export default function DraftCampaignAction() {
           : [];
 
       const normalized = list.map((item) => ({
-        id: String(item?.farmer_id ?? ""),
+        id: String(item?.farmer_id ?? item?.id ?? ""),
         name:
-          String(item?.farmer_name || "").trim() ||
-          String(item?.farmer_id || "-"),
+          String(item?.farmer_name || item?.name || "").trim() ||
+          String(item?.farmer_id || item?.id || "-"),
         raw: item,
       }));
 
-      setAllFarmerOptions(normalized);
-      return normalized;
+      const hasSelectedFarmer =
+        selectedFarmerId &&
+        normalized.some((item) => String(item.id) === String(selectedFarmerId));
+
+      const finalOptions =
+        selectedFarmerId && !hasSelectedFarmer
+          ? [
+              {
+                id: String(selectedFarmerId),
+                name: selectedFarmerName || String(selectedFarmerId),
+                raw: {},
+              },
+              ...normalized,
+            ]
+          : normalized;
+
+      if (requestId === farmerRequestRef.current) {
+        setFarmerOptions(finalOptions);
+      }
+
+      return finalOptions;
     } catch (_) {
-      setAllFarmerOptions([]);
+      if (requestId === farmerRequestRef.current) {
+        setFarmerOptions([]);
+      }
+
       return [];
-    }
-  };
-
-  const applyFarmerOptions = (source = allFarmerOptions) => {
-    setFarmerOptions(source);
-  };
-
-  const loadCurrentPoint = async (values) => {
-    const farmerId = values?.farmer_id || form.getFieldValue("farmer_id");
-    const subDealerId = values?.sub_dealer_id || form.getFieldValue("sub_dealer_id");
-    const dealerId = values?.dealer_id || form.getFieldValue("dealer_id");
-
-    const payload =
-      farmerId
-        ? { shop_type: "farmer", id: farmerId }
-        : subDealerId
-          ? { shop_type: "sub_dealer", id: subDealerId }
-          : dealerId
-            ? { shop_type: "dealer", id: dealerId }
-            : null;
-
-    if (!payload?.id) {
-      form.setFieldValue("current_point", 0);
-      setDetail((prev) => ({ ...prev, current_point: 0 }));
-      return;
-    }
-
-    try {
-      const res = await useServiceAPI.get(paths.pathDraftCampaignUserInfo, payload);
-      const currentPoint = toNumber(res?.data?.data?.users?.balance_point);
-      form.setFieldValue("current_point", currentPoint);
-      setDetail((prev) => ({ ...prev, current_point: currentPoint }));
-    } catch (_) {
-      form.setFieldValue("current_point", 0);
-      setDetail((prev) => ({ ...prev, current_point: 0 }));
     }
   };
 
@@ -213,6 +330,8 @@ export default function DraftCampaignAction() {
     if (!documentNumber || isCreate) {
       setDetail(emptyDetail);
       setRows([]);
+      setFarmerOptions([]);
+
       form.setFieldsValue({
         document_number: "",
         document_date: dayjs(),
@@ -224,6 +343,7 @@ export default function DraftCampaignAction() {
         target_point: 0,
         diff_form_target: 0,
       });
+
       return;
     }
 
@@ -232,16 +352,31 @@ export default function DraftCampaignAction() {
     });
 
     const draft = getDetailPayload(detailRes);
-    const currentPointRes = draft?.sub_dealer_id
-      ? await useServiceAPI.get(paths.pathDraftCampaignUserInfo, {
-          shop_type: "sub_dealer",
-          id: draft.sub_dealer_id,
-        })
+
+    const currentPointPayload = draft?.farmer_id
+      ? {
+          shop_type: "farmer",
+          id: draft.farmer_id,
+        }
+      : draft?.sub_dealer_id
+        ? {
+            shop_type: "sub_dealer",
+            id: draft.sub_dealer_id,
+          }
+        : draft?.dealer_id
+          ? {
+              shop_type: "dealer",
+              id: draft.dealer_id,
+            }
+          : null;
+
+    const currentPointRes = currentPointPayload
+      ? await fetchDraftUserInfo(currentPointPayload)
       : null;
 
     const mapped = mapDraftCampaignDetail(
       draft,
-      currentPointRes?.data?.data?.users?.balance_point ?? 0
+      getBalancePointFromResponse(currentPointRes)
     );
 
     setDetail(mapped);
@@ -259,17 +394,30 @@ export default function DraftCampaignAction() {
       diff_form_target: mapped.diff_form_target,
     });
 
-    await loadDealers(mapped.user_id, mapped.dealer_id);
-    await loadSubDealers(mapped.user_id, mapped.dealer_id, mapped.sub_dealer_id);
-    applyFarmerOptions();
+    await loadDealers(mapped.user_id, mapped.dealer_id, mapped.dealer_name);
+
+    await loadSubDealers(
+      mapped.user_id,
+      mapped.dealer_id,
+      mapped.sub_dealer_id,
+      mapped.sub_dealer_name
+    );
+
+    await loadFarmerMaster(
+      mapped.sub_dealer_id,
+      mapped.farmer_id,
+      mapped.farmer_name
+    );
   };
 
   useEffect(() => {
     const bootstrap = async () => {
       setLoading(true);
+
       try {
         const salesRes = await useServiceAPI.get(paths.pathMasterSaleSingle, {});
         const sales = Array.isArray(salesRes?.data) ? salesRes.data : [];
+
         setSalesOptions(
           sales.map((item) =>
             normalizeOption(item, {
@@ -278,7 +426,7 @@ export default function DraftCampaignAction() {
             })
           )
         );
-        await loadFarmerMaster();
+
         await loadDetail();
       } catch (error) {
         showNotification?.(
@@ -295,10 +443,6 @@ export default function DraftCampaignAction() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [documentNumber, isCreate]);
 
-  const watchSaleId = Form.useWatch("user_id", form);
-  const watchDealerId = Form.useWatch("dealer_id", form);
-  const watchSubDealerId = Form.useWatch("sub_dealer_id", form);
-
   useEffect(() => {
     if (!watchSaleId) {
       setDealerOptions([]);
@@ -306,6 +450,7 @@ export default function DraftCampaignAction() {
       setFarmerOptions([]);
       return;
     }
+
     loadDealers(watchSaleId, form.getFieldValue("dealer_id"));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [watchSaleId]);
@@ -314,24 +459,24 @@ export default function DraftCampaignAction() {
     if (!watchDealerId) {
       setSubDealerOptions([]);
       setFarmerOptions([]);
-      form.setFieldValue("sub_dealer_id", undefined);
-      form.setFieldValue("farmer_id", undefined);
       return;
     }
-    loadSubDealers(watchSaleId, watchDealerId, form.getFieldValue("sub_dealer_id"));
-    applyFarmerOptions();
+
+    loadSubDealers(
+      watchSaleId,
+      watchDealerId,
+      form.getFieldValue("sub_dealer_id")
+    );
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [watchDealerId]);
 
   useEffect(() => {
     if (!watchSubDealerId) {
-      form.setFieldValue("farmer_id", undefined);
-      loadCurrentPoint({ dealer_id: watchDealerId });
-      applyFarmerOptions();
+      setFarmerOptions([]);
       return;
     }
-    applyFarmerOptions();
-    loadCurrentPoint({ sub_dealer_id: watchSubDealerId });
+
+    loadFarmerMaster(watchSubDealerId, form.getFieldValue("farmer_id"));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [watchSubDealerId]);
 
@@ -350,16 +495,21 @@ export default function DraftCampaignAction() {
 
   const addSelectedProduct = async () => {
     if (!productSelection) return;
+
     try {
       setLoading(true);
+
       const res = await useServiceAPI.get(paths.pathMasterProductDetail, {
         product_id: productSelection,
       });
+
       const product = mapDraftCampaignProduct(res?.data);
+
       setRows((prev) => {
         const index = prev.findIndex(
           (item) => String(item.product_id) === String(product.product_id)
         );
+
         if (index >= 0) {
           return prev.map((item, i) =>
             i === index
@@ -370,8 +520,17 @@ export default function DraftCampaignAction() {
               : item
           );
         }
-        return [...prev, recalculateProductRow({ ...product, quantity: 1, xpoint: product.xpoint || 1 })];
+
+        return [
+          ...prev,
+          recalculateProductRow({
+            ...product,
+            quantity: 1,
+            xpoint: product.xpoint || 1,
+          }),
+        ];
       });
+
       setProductSelection(undefined);
       setProductOptions([]);
     } catch (error) {
@@ -409,12 +568,14 @@ export default function DraftCampaignAction() {
           <MinusCircleOutlined className="text-[22px]" />
         </button>
       )}
+
       <Input
         value={value}
         disabled={readOnly}
         onChange={(event) => updateRow(index, key, event.target.value)}
         className="max-w-[90px] text-center"
       />
+
       {!readOnly && (
         <button
           type="button"
@@ -490,7 +651,9 @@ export default function DraftCampaignAction() {
           <button
             type="button"
             className="text-[#978B87] transition duration-150 ease-out hover:scale-110 hover:text-[#D4380D] active:scale-95"
-            onClick={() => setRows((prev) => prev.filter((_, rowIndex) => rowIndex !== index))}
+            onClick={() =>
+              setRows((prev) => prev.filter((_, rowIndex) => rowIndex !== index))
+            }
           >
             <DeleteOutlined className="text-[20px]" />
           </button>
@@ -501,8 +664,9 @@ export default function DraftCampaignAction() {
   const productFooter = () => (
     <tr className="bg-[#978B87]">
       <td colSpan={11} className="text-right pr-4 py-3 text-white">
-        Item : {rows.length} | QTY (ctn): {formatNumber(totals.qty)} | Total Point :{" "}
-        {formatNumber(totals.point)} | Total: {formatNumber(totals.value, 2)}
+        Item : {rows.length} | QTY (ctn): {formatNumber(totals.qty)} | Total
+        Point : {formatNumber(totals.point)} | Total:{" "}
+        {formatNumber(totals.value, 2)}
       </td>
     </tr>
   );
@@ -517,17 +681,21 @@ export default function DraftCampaignAction() {
           const res = await useServiceAPI.delete(paths.pathDraftCampaignDelete, {
             document_number: detail.document_number,
           });
+
           await showNotification?.(
             res?.status === 200 ? "success" : "warning",
             res?.message || "Notification",
             res?.data?.message_line || [res?.data?.message || "Delete finished"]
           );
+
           navigate("/setting/line/draft-campaign");
         } catch (error) {
           await showNotification?.(
             "error",
             error?.response?.data?.message || "Delete failed",
-            error?.response?.data?.data?.message_line || [error?.message || "Unable to delete draft campaign"]
+            error?.response?.data?.data?.message_line || [
+              error?.message || "Unable to delete draft campaign",
+            ]
           );
         }
       },
@@ -537,12 +705,16 @@ export default function DraftCampaignAction() {
   const onSave = async () => {
     try {
       const values = await form.validateFields();
+
       if (!rows.length) {
-        showNotification?.("warning", "Validation", ["Please add at least one product"]);
+        showNotification?.("warning", "Validation", [
+          "Please add at least one product",
+        ]);
         return;
       }
 
       setLoading(true);
+
       const payload = buildDraftCampaignPayload({
         values: {
           ...values,
@@ -556,19 +728,26 @@ export default function DraftCampaignAction() {
         ? await useServiceAPI.put(paths.pathDraftCampaignUpdate, payload)
         : await useServiceAPI.post(paths.pathDraftCampaignCreate, payload);
 
-      const lines = res?.data?.message_line || [res?.message || "Save successful"];
+      const lines = res?.data?.message_line || [
+        res?.message || "Save successful",
+      ];
+
       await showNotification?.(
         res?.status === 200 ? "success" : "warning",
         res?.message || "Notification",
         lines
       );
+
       navigate("/setting/line/draft-campaign");
     } catch (error) {
       if (error?.errorFields) return;
+
       await showNotification?.(
         "error",
         error?.response?.data?.message || "Save failed",
-        error?.response?.data?.data?.message_line || [error?.message || "Unable to save draft campaign"]
+        error?.response?.data?.data?.message_line || [
+          error?.message || "Unable to save draft campaign",
+        ]
       );
     } finally {
       setLoading(false);
@@ -594,7 +773,10 @@ export default function DraftCampaignAction() {
               rules={[{ required: true, message: "Please select sales" }]}
             >
               <Select
-                options={salesOptions.map((item) => ({ label: item.name, value: item.id }))}
+                options={salesOptions.map((item) => ({
+                  label: item.name,
+                  value: item.id,
+                }))}
                 disabled={readOnly}
                 placeholder="Select"
                 showSearch
@@ -603,6 +785,12 @@ export default function DraftCampaignAction() {
                   form.setFieldValue("dealer_id", undefined);
                   form.setFieldValue("sub_dealer_id", undefined);
                   form.setFieldValue("farmer_id", undefined);
+
+                  setDealerOptions([]);
+                  setSubDealerOptions([]);
+                  setFarmerOptions([]);
+
+                  resetCurrentPoint();
                 }}
               />
             </Form.Item>
@@ -613,14 +801,25 @@ export default function DraftCampaignAction() {
               rules={[{ required: true, message: "Please select dealer" }]}
             >
               <Select
-                options={dealerOptions.map((item) => ({ label: item.name, value: item.id }))}
+                options={dealerOptions.map((item) => ({
+                  label: item.name,
+                  value: item.id,
+                }))}
                 disabled={readOnly || !watchSaleId}
                 placeholder="Select"
                 showSearch
                 optionFilterProp="label"
-                onChange={() => {
+                onChange={(value) => {
                   form.setFieldValue("sub_dealer_id", undefined);
                   form.setFieldValue("farmer_id", undefined);
+
+                  setSubDealerOptions([]);
+                  setFarmerOptions([]);
+
+                  loadCurrentPoint({
+                    shop_type: "dealer",
+                    id: value,
+                  });
                 }}
               />
             </Form.Item>
@@ -631,12 +830,25 @@ export default function DraftCampaignAction() {
               rules={[{ required: true, message: "Please select sub dealer" }]}
             >
               <Select
-                options={subDealerOptions.map((item) => ({ label: item.name, value: item.id }))}
+                options={subDealerOptions.map((item) => ({
+                  label: item.name,
+                  value: item.id,
+                }))}
                 disabled={readOnly || !watchDealerId}
                 placeholder="Select"
                 showSearch
                 optionFilterProp="label"
-                onChange={() => form.setFieldValue("farmer_id", undefined)}
+                onChange={(value) => {
+                  form.setFieldValue("farmer_id", undefined);
+                  setFarmerOptions([]);
+
+                  loadFarmerMaster(value);
+
+                  loadCurrentPoint({
+                    shop_type: "sub_dealer",
+                    id: value,
+                  });
+                }}
               />
             </Form.Item>
 
@@ -646,9 +858,13 @@ export default function DraftCampaignAction() {
               rules={[{ required: true, message: "Please select farmer" }]}
             >
               <Select
-                options={farmerOptions.map((item) => ({ label: item.name, value: item.id }))}
+                options={farmerOptions.map((item) => ({
+                  label: item.name,
+                  value: item.id,
+                }))}
                 disabled={readOnly || !watchSubDealerId}
                 placeholder="Select"
+                allowClear
                 showSearch
                 optionFilterProp="label"
                 filterOption={(input, option) =>
@@ -656,7 +872,12 @@ export default function DraftCampaignAction() {
                     .toLowerCase()
                     .includes(String(input || "").toLowerCase())
                 }
-                onChange={() => loadCurrentPoint()}
+                onChange={(value) => {
+                  loadCurrentPoint({
+                    shop_type: "farmer",
+                    id: value,
+                  });
+                }}
               />
             </Form.Item>
 
@@ -665,7 +886,11 @@ export default function DraftCampaignAction() {
               name="document_date"
               rules={[{ required: true, message: "Please select draft date" }]}
             >
-              <DatePicker className="w-full" format="YYYY-MM-DD" disabled={readOnly} />
+              <DatePicker
+                className="w-full"
+                format="YYYY-MM-DD"
+                disabled={readOnly}
+              />
             </Form.Item>
           </div>
         </BoxPrimary>
@@ -687,7 +912,9 @@ export default function DraftCampaignAction() {
             <Form.Item
               label="Diff Form Target"
               name="diff_form_target"
-              rules={[{ required: true, message: "Please enter diff form target" }]}
+              rules={[
+                { required: true, message: "Please enter diff form target" },
+              ]}
             >
               <InputNumber className="w-full" disabled={readOnly} min={0} />
             </Form.Item>
@@ -715,8 +942,13 @@ export default function DraftCampaignAction() {
                   : "Type at least 3 characters"
               }
             />
+
             {!readOnly && (
-              <ActionButton mode="add" text="Add Product" onClick={addSelectedProduct} />
+              <ActionButton
+                mode="add"
+                text="Add Product"
+                onClick={addSelectedProduct}
+              />
             )}
           </div>
         </BoxPrimary>
@@ -748,7 +980,9 @@ export default function DraftCampaignAction() {
               className="bg-[#F89E18]"
               onClick={() =>
                 window.open(
-                  `/setting/line/draft-campaign/pdf?document_number=${encodeURIComponent(detail.document_number)}`,
+                  `/setting/line/draft-campaign/pdf?document_number=${encodeURIComponent(
+                    detail.document_number
+                  )}`,
                   "_blank"
                 )
               }
