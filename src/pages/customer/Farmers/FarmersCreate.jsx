@@ -20,6 +20,8 @@ import {
   Upload,
 } from "antd";
 import {
+  CheckOutlined,
+  CloseOutlined,
   DeleteOutlined,
   EditOutlined,
   EnvironmentOutlined,
@@ -166,6 +168,9 @@ const masterOptionsToSelectOptions = (items = []) =>
     value: Number(item.id),
   }));
 
+const getPreferredTextValue = (...values) =>
+  values.find((value) => typeof value === "string" && value.trim() !== "") || "";
+
 const getCalendarRowKey = (item) =>
   `${Number(item.farmer_crop_id)}-${Number(item.farmer_crop_stage_id)}`;
 
@@ -185,12 +190,15 @@ export default function FarmersCreate() {
   const [farmSizeRows, setFarmSizeRows] = useState([{ ...EMPTY_FARM_SIZE }]);
   const [cropCalendarRows, setCropCalendarRows] = useState([]);
   const [cropCalendarDrafts, setCropCalendarDrafts] = useState({});
+  const [editingCalendarCropId, setEditingCalendarCropId] = useState(null);
+  const [editingCalendarCropRowKey, setEditingCalendarCropRowKey] = useState(null);
+  const [editingCalendarCropValue, setEditingCalendarCropValue] = useState("");
   const [galleryByYear, setGalleryByYear] = useState({
     [String(dayjs().year())]: [],
   });
   const [homeLocation, setHomeLocation] = useState(DEFAULT_LOCATION);
   const [farmLocation, setFarmLocation] = useState(DEFAULT_LOCATION);
-  const [selectedCropIds, setSelectedCropIds] = useState([]);
+  const [profileCropIds, setProfileCropIds] = useState([]);
   const [permission, setPermission] = useState(DEFAULT_PERMISSION);
 
   const mode = location.state?.mod || "create";
@@ -256,6 +264,8 @@ export default function FarmersCreate() {
     cropOptions.find((item) => Number(item.id) === Number(cropId))?.name || "";
   const getUniqueFarmSizeCropIds = (rows) =>
     [...new Set((rows || []).map((item) => Number(item.crop_id)).filter(Boolean))];
+  const getCalendarCropLabel = (item) =>
+    getPreferredTextValue(item?.custom_name, item?.crop_detail, item?.crop_name);
 
   const geocodeLatLng = async (lat, lng) => {
     if (!window.google?.maps) return "";
@@ -300,7 +310,12 @@ export default function FarmersCreate() {
         farmer_crop_stage_id: Number(item.farmer_crop_stage_id),
         crop_id: Number(item.crop_id),
         crop_name: item.crop_name,
-        crop_detail: item.crop_detail,
+        crop_detail: getPreferredTextValue(
+          matched?.crop_detail,
+          item.crop_detail,
+          matched?.crop_name,
+          item.crop_name
+        ),
         stage_name: item.stage_name,
         custom_name: matched?.custom_name || "",
         ...buildMonthPayload(matched),
@@ -363,9 +378,19 @@ export default function FarmersCreate() {
       data.location_longitude_farm
     );
     const cropIds = (data.crop_list || []).map((item) => Number(item.id));
+    const farmSizeItems =
+      (data.farmer_size || []).length > 0
+        ? data.farmer_size.map((item, index) => ({
+          key: index + 1,
+          crop_id: Number(item.crop_id),
+          size: item.size || "",
+        }))
+        : [{ ...EMPTY_FARM_SIZE }];
+    const farmSizeCropIds = getUniqueFarmSizeCropIds(farmSizeItems);
     const mappedCalendarRows = (data.farmer_crop_calendar || []).map((item) => ({
       farmer_crop_id: Number(item.farmer_crop_id),
       farmer_crop_stage_id: Number(item.farmer_crop_stage_id),
+      crop_detail: getPreferredTextValue(item.crop_detail, item.crop_name),
       custom_name: item.custom_name || "",
       ...MONTHS.reduce((acc, month) => {
         acc[month.key] = String(item[month.key]) === "1";
@@ -387,29 +412,21 @@ export default function FarmersCreate() {
       ...farmCoordinates,
       address: data.location_address_farm || "",
     });
-    setSelectedCropIds(cropIds);
+    setProfileCropIds(cropIds);
     setCropCalendarDrafts(mappedCalendarDrafts);
     setContacts(
       (data.contact_items || []).length > 0
         ? data.contact_items.map((item) => ({
-            ...EMPTY_CONTACT,
-            ...item,
-            date_of_birth: normalizeDate(item.date_of_birth),
-          }))
+          ...EMPTY_CONTACT,
+          ...item,
+          date_of_birth: normalizeDate(item.date_of_birth),
+        }))
         : [{ ...EMPTY_CONTACT }]
     );
     setGalleryByYear(
       ensureAtLeastOneYear(groupGalleryByYear(data.farmer_gallery || []))
     );
-    setFarmSizeRows(
-      (data.farmer_size || []).length > 0
-        ? data.farmer_size.map((item, index) => ({
-            key: index + 1,
-            crop_id: Number(item.crop_id),
-            size: item.size || "",
-          }))
-        : [{ ...EMPTY_FARM_SIZE }]
-    );
+    setFarmSizeRows(farmSizeItems);
 
     form.setFieldsValue({
       farm_name: data.farm_name || "",
@@ -426,10 +443,10 @@ export default function FarmersCreate() {
       remark: data.remark || "",
       equ_id: (data.equ_id || []).map((item) => Number(item)),
       equ_other: data.equ_other || "",
-      crop_id: cropIds,
+      profile_crop_id: cropIds,
     });
 
-    await fetchCropCalendarTemplate(cropIds, mappedCalendarRows);
+    await fetchCropCalendarTemplate(farmSizeCropIds, mappedCalendarRows);
   };
 
   useEffect(() => {
@@ -529,8 +546,6 @@ export default function FarmersCreate() {
       }
 
       const cropIds = getUniqueFarmSizeCropIds(nextRows || []);
-      setSelectedCropIds(cropIds);
-      form.setFieldValue("crop_id", cropIds);
       await fetchCropCalendarTemplate(cropIds);
     }
   };
@@ -558,16 +573,13 @@ export default function FarmersCreate() {
         key: index + 1,
       }));
     const cropIds = getUniqueFarmSizeCropIds(nextRows);
-    setSelectedCropIds(cropIds);
-    form.setFieldValue("crop_id", cropIds);
     fetchCropCalendarTemplate(cropIds);
   };
 
-  const onCropChange = async (value) => {
+  const onProfileCropChange = (value) => {
     const normalized = (value || []).map(Number);
-    setSelectedCropIds(normalized);
-    form.setFieldValue("crop_id", normalized);
-    await fetchCropCalendarTemplate(normalized);
+    setProfileCropIds(normalized);
+    form.setFieldValue("profile_crop_id", normalized);
   };
 
   const updateCalendarRow = (rowKey, field, value) => {
@@ -585,6 +597,51 @@ export default function FarmersCreate() {
         [field]: value,
       },
     }));
+  };
+
+  const startCalendarCropEdit = (row) => {
+    setEditingCalendarCropId(Number(row.farmer_crop_id));
+    setEditingCalendarCropRowKey(getCalendarRowKey(row));
+    setEditingCalendarCropValue(getCalendarCropLabel(row));
+  };
+
+  const cancelCalendarCropEdit = () => {
+    setEditingCalendarCropId(null);
+    setEditingCalendarCropRowKey(null);
+    setEditingCalendarCropValue("");
+  };
+
+  const confirmCalendarCropEdit = () => {
+    if (!editingCalendarCropId) return;
+
+    const nextValue = editingCalendarCropValue;
+    const targetRowKeys = cropCalendarRows
+      .filter(
+        (item) => Number(item.farmer_crop_id) === Number(editingCalendarCropId)
+      )
+      .map((item) => getCalendarRowKey(item));
+
+    setCropCalendarRows((prev) =>
+      prev.map((item) =>
+        Number(item.farmer_crop_id) === Number(editingCalendarCropId)
+          ? { ...item, custom_name: nextValue }
+          : item
+      )
+    );
+    setCropCalendarDrafts((prev) => {
+      const nextDrafts = { ...prev };
+
+      targetRowKeys.forEach((rowKey) => {
+        nextDrafts[rowKey] = {
+          ...(nextDrafts[rowKey] || {}),
+          custom_name: nextValue,
+        };
+      });
+
+      return nextDrafts;
+    });
+
+    cancelCalendarCropEdit();
   };
 
   const handleUploadProfile = async ({ file }) => {
@@ -660,7 +717,7 @@ export default function FarmersCreate() {
         location_longitude: homeCoordinates.longitude,
         location_latitude_farm: farmCoordinates.latitude,
         location_longitude_farm: farmCoordinates.longitude,
-        crop_id: (values.crop_id || []).map(Number),
+        crop_id: (values.profile_crop_id || []).map(Number),
         contact_items: contacts.map((item) => ({
           name_th: item.name_th || "",
           nickname: item.nickname || "",
@@ -687,6 +744,7 @@ export default function FarmersCreate() {
         crop_calendar: cropCalendarRows.map((item) => ({
           farmer_crop_id: Number(item.farmer_crop_id),
           farmer_crop_stage_id: Number(item.farmer_crop_stage_id),
+          crop_detail: item.crop_detail || "",
           custom_name: item.custom_name || "",
           ...MONTHS.reduce((acc, month) => {
             acc[month.key] = !!item[month.key];
@@ -922,15 +980,15 @@ export default function FarmersCreate() {
       </BoxPrimary>
 
       <BoxPrimary title="Crop">
-        <Form.Item className="mb-0" name="crop_id">
+        <Form.Item className="mb-0" name="profile_crop_id">
           <Select
             mode="multiple"
             showSearch
             disabled={isViewMode}
             placeholder="Select main crop"
             options={cropSelectOptions}
-            value={selectedCropIds}
-            onChange={onCropChange}
+            value={profileCropIds}
+            onChange={onProfileCropChange}
           />
         </Form.Item>
       </BoxPrimary>
@@ -1183,16 +1241,11 @@ export default function FarmersCreate() {
                 </div>
 
                 <div className="col-span-1 flex justify-center">
-                  {canUpdate && (
+                  {canUpdate && item.key !== 1 && (
                     <button
                       type="button"
                       onClick={() => removeFarmSizeRow(item.key)}
-                      disabled={farmSizeRows.length === 1}
-                      className={`w-8 h-8 flex items-center justify-center rounded ${
-                        farmSizeRows.length === 1
-                          ? "opacity-40 cursor-not-allowed"
-                          : "hover:bg-red-50"
-                      }`}
+                      className="w-8 h-8 flex items-center justify-center rounded hover:bg-red-50"
                     >
                       <img
                         src="/img/icons/delete-file.png"
@@ -1221,7 +1274,6 @@ export default function FarmersCreate() {
               <tr className="bg-[#00783F] text-white">
                 <th className="p-2 text-left">Crop</th>
                 <th className="p-2 text-left">Stage</th>
-                <th className="p-2 text-left">Custom Name</th>
                 {MONTHS.map((month) => (
                   <th key={month.key} className="p-2 text-center">
                     {month.label}
@@ -1231,21 +1283,65 @@ export default function FarmersCreate() {
             </thead>
             <tbody>
               {cropCalendarRows.length > 0 ? (
-                cropCalendarRows.map((row) => {
+                cropCalendarRows.map((row, index) => {
                   const rowKey = `${row.farmer_crop_id}-${row.farmer_crop_stage_id}`;
+                  const isFirstCropRow =
+                    index === 0 ||
+                    Number(cropCalendarRows[index - 1]?.farmer_crop_id) !==
+                    Number(row.farmer_crop_id);
+                  const cropRowSpan = cropCalendarRows.filter(
+                    (item) =>
+                      Number(item.farmer_crop_id) === Number(row.farmer_crop_id)
+                  ).length;
+                  const isEditingCrop =
+                    editingCalendarCropRowKey === rowKey &&
+                    Number(editingCalendarCropId) === Number(row.farmer_crop_id);
                   return (
                     <tr key={rowKey} className="border-b border-gray-100">
-                      <td className="p-2">{row.crop_detail || row.crop_name}</td>
+                      {isFirstCropRow && (
+                        <td
+                          rowSpan={cropRowSpan}
+                          className="p-2 min-w-[260px] align-top"
+                        >
+                          <div className="flex items-center gap-2">
+                            {isEditingCrop ? (
+                              <>
+                                <Input
+                                  value={editingCalendarCropValue}
+                                  disabled={isViewMode}
+                                  onChange={(event) =>
+                                    setEditingCalendarCropValue(event.target.value)
+                                  }
+                                />
+                                <Button
+                                  type="text"
+                                  className="text-red-500"
+                                  icon={<CloseOutlined />}
+                                  onClick={cancelCalendarCropEdit}
+                                />
+                                <Button
+                                  type="text"
+                                  className="text-green-600"
+                                  icon={<CheckOutlined />}
+                                  onClick={confirmCalendarCropEdit}
+                                />
+                              </>
+                            ) : (
+                              <>
+                                <span>{getCalendarCropLabel(row)}</span>
+                                {canUpdate && (
+                                  <Button
+                                    type="text"
+                                    icon={<EditOutlined />}
+                                    onClick={() => startCalendarCropEdit(row)}
+                                  />
+                                )}
+                              </>
+                            )}
+                          </div>
+                        </td>
+                      )}
                       <td className="p-2">{row.stage_name}</td>
-                      <td className="p-2 min-w-[220px]">
-                        <Input
-                          value={row.custom_name}
-                          disabled={isViewMode}
-                          onChange={(event) =>
-                            updateCalendarRow(rowKey, "custom_name", event.target.value)
-                          }
-                        />
-                      </td>
                       {MONTHS.map((month) => (
                         <td key={month.key} className="p-2 text-center">
                           <Checkbox
@@ -1266,7 +1362,7 @@ export default function FarmersCreate() {
                 })
               ) : (
                 <tr>
-                  <td colSpan={15} className="text-center text-gray-400 py-8">
+                  <td colSpan={14} className="text-center text-gray-400 py-8">
                     Please select crop first
                   </td>
                 </tr>
@@ -1285,8 +1381,8 @@ export default function FarmersCreate() {
           {isViewMode
             ? "View Farmer"
             : isEditMode
-            ? "Edit Farmer"
-            : "Create Farmer"}
+              ? "Edit Farmer"
+              : "Create Farmer"}
         </div>
 
         <Tabs
