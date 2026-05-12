@@ -9,8 +9,12 @@ import { useNavigate } from "react-router-dom";
 import ItemDropDown from "../../../components/dropdown/ItemDropDown";
 import useServiceAPI from "../../../services/corsService";
 import { paths } from "../../../services/CorsPath";
+import { loadListPageState, saveListPageState } from "../../../utils/listPageState";
+
+const PAGE_STATE_KEY = "customer-dealer-list";
 
 export default function DealerList() {
+  const persistedState = loadListPageState(PAGE_STATE_KEY, {});
   const [loading, setLoading] = useState(false);
   const [dataSource, setDataSource] = useState([]);
   const [dealers, setDealers] = useState([]);
@@ -20,14 +24,18 @@ export default function DealerList() {
   const [saleList, setSaleList] = useState([]);
   const [targetList, setTargetList] = useState([]); // ✅ NEW
 
-  const [filterValues, setFilterValues] = useState({});
+  const [filterValues, setFilterValues] = useState(persistedState.filterValues || {});
   const navigate = useNavigate();
 
   const [tableParams, setTableParams] = useState({
-    pagination: { current: 1, pageSize: 10, total: 0 },
-    filters: {},
-    sortOrder: null,
-    sortField: null,
+    pagination: {
+      current: persistedState.tableParams?.pagination?.current || 1,
+      pageSize: persistedState.tableParams?.pagination?.pageSize || 10,
+      total: 0,
+    },
+    filters: persistedState.tableParams?.filters || {},
+    sortOrder: persistedState.tableParams?.sortOrder || null,
+    sortField: persistedState.tableParams?.sortField || null,
   });
 
   // ---------- Load master: Status, Sales, Dealer All, Target ----------
@@ -77,6 +85,21 @@ export default function DealerList() {
     tableParams.sortField,
     JSON.stringify(tableParams.filters),
   ]);
+
+  useEffect(() => {
+    saveListPageState(PAGE_STATE_KEY, {
+      filterValues,
+      tableParams: {
+        pagination: {
+          current: tableParams.pagination.current,
+          pageSize: tableParams.pagination.pageSize,
+        },
+        filters: tableParams.filters,
+        sortOrder: tableParams.sortOrder,
+        sortField: tableParams.sortField,
+      },
+    });
+  }, [filterValues, tableParams]);
 
   const fetchData = async () => {
     setTableLoading(true);
