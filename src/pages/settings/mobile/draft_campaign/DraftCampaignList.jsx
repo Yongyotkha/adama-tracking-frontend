@@ -61,7 +61,7 @@ export default function DraftCampaignList() {
     {
       key: "shop",
       type: "select",
-      label: "Sub-dealer",
+      label: "Sub Dealer",
       placeholder: "All",
       options: subDealerList,
     },

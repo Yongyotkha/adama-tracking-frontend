@@ -33,7 +33,7 @@ const styles = StyleSheet.create({
     paddingBottom: 32,
     paddingHorizontal: 28,
     fontFamily: "Sarabun",
-    fontSize: 10,
+    fontSize: 8,
     color: "#2E2A28",
   },
   header: {
@@ -142,15 +142,15 @@ const styles = StyleSheet.create({
   th: {
     justifyContent: "center",
     alignItems: "center",
-    paddingHorizontal: 6,
-    paddingVertical: 10,
+    paddingHorizontal: 4,
+    paddingVertical: 8,
     borderRightWidth: 1,
     borderColor: "#222",
     textAlign: "center",
   },
   td: {
-    paddingHorizontal: 8,
-    paddingVertical: 8,
+    paddingHorizontal: 4,
+    paddingVertical: 6,
     borderRightWidth: 1,
     borderColor: "#222",
   },
@@ -223,7 +223,7 @@ export default function DraftCampaignPDF() {
   return (
     <PDFViewer style={{ width: "100%", height: "100vh" }}>
       <Document>
-        <Page size="A4" style={styles.page}>
+        <Page size="A4" orientation="landscape" style={styles.page}>
           <View style={styles.header}>
             <Image src="/favicon.png" style={styles.logo} />
             <View style={styles.companyWrap}>
@@ -293,37 +293,55 @@ export default function DraftCampaignPDF() {
 
           <View style={styles.table}>
             <View style={styles.tr}>
-              <Text style={[styles.th, { width: "24%" }]}>SKU</Text>
-              <Text style={[styles.th, { width: "24%" }]}>Product Name</Text>
-              <Text style={[styles.th, { width: "16%" }]}>Pack Size</Text>
-              <Text style={[styles.th, { width: "12%" }]}>QTY (ctn)</Text>
-              <Text style={[styles.th, { width: "10%" }]}>X Point</Text>
-              <Text style={[styles.th, { width: "14%" }, styles.lastCell]}>Sub Total (THB)</Text>
+              <Text style={[styles.th, { width: "11%" }]}>SKU</Text>
+              <Text style={[styles.th, { width: "20%" }]}>Product Name</Text>
+              <Text style={[styles.th, { width: "13%" }]}>Unit</Text>
+              <Text style={[styles.th, { width: "10%" }]}>THB / Unit</Text>
+              <Text style={[styles.th, { width: "10%" }]}>Point / Ctn</Text>
+              <Text style={[styles.th, { width: "9%" }]}>QTY (ctn)</Text>
+              <Text style={[styles.th, { width: "8%" }]}>X Point</Text>
+              <Text style={[styles.th, { width: "8%" }]}>Point</Text>
+              <Text style={[styles.th, { width: "11%" }, styles.lastCell]}>Sub Total (THB)</Text>
             </View>
 
             {data.products.map((item, index) => (
               <View key={`${item.product_id || item.product_code}-${index}`} style={styles.trBorder}>
-                <Text style={[styles.td, { width: "24%" }]}>{item.product_code}</Text>
-                <Text style={[styles.td, { width: "24%" }]}>{item.product_name}</Text>
-                <Text style={[styles.td, { width: "16%" }]}>{item.packing_list}</Text>
-                <Text style={[styles.td, { width: "12%" }, styles.tdCenter]}>
+                <Text style={[styles.td, { width: "11%" }]}>{item.product_code}</Text>
+                <Text style={[styles.td, { width: "20%" }]}>{item.product_name}</Text>
+                <Text style={[styles.td, { width: "13%" }]}>{item.packing_list}</Text>
+                <Text style={[styles.td, { width: "10%" }, styles.tdRight]}>
+                  {formatNumber(item.unit_convert_value, 2)}
+                </Text>
+                <Text style={[styles.td, { width: "10%" }, styles.tdRight]}>
+                  {formatNumber(item.master_point)}
+                </Text>
+                <Text style={[styles.td, { width: "9%" }, styles.tdCenter]}>
                   {formatNumber(item.quantity)}
                 </Text>
-                <Text style={[styles.td, { width: "10%" }, styles.tdCenter]}>
+                <Text style={[styles.td, { width: "8%" }, styles.tdCenter]}>
                   {formatNumber(item.xpoint)}
                 </Text>
-                <Text style={[styles.td, { width: "14%" }, styles.tdRight, styles.lastCell]}>
+                <Text style={[styles.td, { width: "8%" }, styles.tdRight]}>
+                  {formatNumber(item.point)}
+                </Text>
+                <Text style={[styles.td, { width: "11%" }, styles.tdRight, styles.lastCell]}>
                   {formatNumber(item.net_amount, 2)}
                 </Text>
               </View>
             ))}
 
             <View style={styles.trBorder}>
-              <Text style={[styles.totalLabelCell, { width: "76%" }]}>Total</Text>
-              <Text style={[styles.td, { width: "10%" }, styles.tdRight]}>
+              <Text style={[styles.totalLabelCell, { width: "64%" }]}>
+                Item : {data.products.length} | QTY (ctn):{" "}
+                {formatNumber(
+                  data.products.reduce((sum, item) => sum + Number(item.quantity || 0), 0)
+                )}
+              </Text>
+              <Text style={[styles.td, { width: "8%" }]} />
+              <Text style={[styles.td, { width: "8%" }, styles.tdRight]}>
                 {formatNumber(data.total_point)}
               </Text>
-              <Text style={[styles.td, { width: "14%" }, styles.tdRight, styles.lastCell]}>
+              <Text style={[styles.td, { width: "11%" }, styles.tdRight, styles.lastCell]}>
                 {formatNumber(data.net_amount, 2)}
               </Text>
             </View>
