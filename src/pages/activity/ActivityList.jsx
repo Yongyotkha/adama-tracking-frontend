@@ -15,8 +15,12 @@ import { AuthContext } from "../../contexts/AuthContext";
 import dayjs from "dayjs";
 import FormMappingModal from "../../components/modal/FormMappingModal";
 import { ExclamationCircleFilled } from "@ant-design/icons";
+import { loadListPageState, saveListPageState } from "../../utils/listPageState";
+
+const PAGE_STATE_KEY = "activity-list";
 
 export default function ActivityList() {
+  const persistedState = loadListPageState(PAGE_STATE_KEY, {});
   const { confirm } = Modal;
   const [loading, setLoading] = useState(false);
   const [dataSource, setDataSource] = useState([]);
@@ -26,16 +30,16 @@ export default function ActivityList() {
   const [subDealerList, setSubDealerList] = useState([]);
   const [tableLoading, setTableLoading] = useState(false);
   const { showMsg, showNotification } = useContext(AuthContext);
-  const [filterValues, setFilterValues] = useState({});
+  const [filterValues, setFilterValues] = useState(persistedState.filterValues || {});
 
   const [tableParams, setTableParams] = useState({
     pagination: {
-      current: 1,
-      pageSize: 10,
+      current: persistedState.tableParams?.pagination?.current || 1,
+      pageSize: persistedState.tableParams?.pagination?.pageSize || 10,
     },
-    filters: {},
-    sortOrder: null,
-    sortField: null,
+    filters: persistedState.tableParams?.filters || {},
+    sortOrder: persistedState.tableParams?.sortOrder || null,
+    sortField: persistedState.tableParams?.sortField || null,
   });
 
   const [userCreate, setUserCreate] = useState([]);
@@ -430,6 +434,21 @@ export default function ActivityList() {
     tableParams.sortField,
     JSON.stringify(tableParams.filters),
   ]);
+
+  useEffect(() => {
+    saveListPageState(PAGE_STATE_KEY, {
+      filterValues,
+      tableParams: {
+        pagination: {
+          current: tableParams.pagination.current,
+          pageSize: tableParams.pagination.pageSize,
+        },
+        filters: tableParams.filters,
+        sortOrder: tableParams.sortOrder,
+        sortField: tableParams.sortField,
+      },
+    });
+  }, [filterValues, tableParams]);
 
 
   return (

@@ -52,7 +52,7 @@ export default function DraftCampaignAction() {
   const location = useLocation();
   const { mode } = useParams();
   const [form] = Form.useForm();
-  const { showNotification } = useContext(AuthContext);
+  const { showMsg, showNotification } = useContext(AuthContext);
 
   const isView = String(mode).toLowerCase() === "view";
   const isEdit = String(mode).toLowerCase() === "edit";
@@ -78,6 +78,7 @@ export default function DraftCampaignAction() {
   const [farmerOptions, setFarmerOptions] = useState([]);
   const [productOptions, setProductOptions] = useState([]);
   const [productSelection, setProductSelection] = useState(undefined);
+  const [productSearchValue, setProductSearchValue] = useState("");
 
   const productSearchRef = useRef("");
   const currentPointRequestRef = useRef(0);
@@ -493,45 +494,44 @@ export default function DraftCampaignAction() {
     );
   };
 
-  const addSelectedProduct = async () => {
-    if (!productSelection) return;
+  const addSelectedProduct = async (selectedProductId = productSelection) => {
+    if (!selectedProductId) return;
+
+    const duplicateProduct = rows.find(
+      (item) => String(item.product_id) === String(selectedProductId)
+    );
+
+    if (duplicateProduct) {
+      showMsg?.("warning", "This product has already been selected.");
+      setProductSelection(undefined);
+      setProductSearchValue("");
+      productSearchRef.current = "";
+      setProductOptions([]);
+      return;
+    }
 
     try {
       setLoading(true);
+      setProductSelection(selectedProductId);
 
       const res = await useServiceAPI.get(paths.pathMasterProductDetail, {
-        product_id: productSelection,
+        product_id: selectedProductId,
       });
 
       const product = mapDraftCampaignProduct(res?.data);
 
-      setRows((prev) => {
-        const index = prev.findIndex(
-          (item) => String(item.product_id) === String(product.product_id)
-        );
-
-        if (index >= 0) {
-          return prev.map((item, i) =>
-            i === index
-              ? recalculateProductRow({
-                  ...item,
-                  quantity: toNumber(item.quantity) + 1,
-                })
-              : item
-          );
-        }
-
-        return [
-          ...prev,
-          recalculateProductRow({
-            ...product,
-            quantity: 1,
-            xpoint: product.xpoint || 1,
-          }),
-        ];
-      });
+      setRows((prev) => [
+        ...prev,
+        recalculateProductRow({
+          ...product,
+          quantity: 1,
+          xpoint: product.xpoint || 1,
+        }),
+      ]);
 
       setProductSelection(undefined);
+      setProductSearchValue("");
+      productSearchRef.current = "";
       setProductOptions([]);
     } catch (error) {
       showNotification?.(
@@ -539,6 +539,7 @@ export default function DraftCampaignAction() {
         error?.response?.data?.message || "Product not found",
         [error?.message || "Unable to load product detail"]
       );
+      setProductSelection(undefined);
     } finally {
       setLoading(false);
     }
@@ -929,11 +930,13 @@ export default function DraftCampaignAction() {
               filterOption={false}
               placeholder="Search product by keyword"
               value={productSelection}
+              searchValue={productSearchValue}
               onSearch={(keyword) => {
                 productSearchRef.current = keyword;
+                setProductSearchValue(keyword);
                 loadProductOptions(keyword);
               }}
-              onChange={setProductSelection}
+              onSelect={(value) => addSelectedProduct(value)}
               disabled={readOnly}
               options={productOptions}
               notFoundContent={
@@ -942,14 +945,6 @@ export default function DraftCampaignAction() {
                   : "Type at least 3 characters"
               }
             />
-
-            {!readOnly && (
-              <ActionButton
-                mode="add"
-                text="Add Product"
-                onClick={addSelectedProduct}
-              />
-            )}
           </div>
         </BoxPrimary>
 

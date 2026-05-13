@@ -12,6 +12,9 @@ import useServiceAPI from "../../../services/CorsService";
 import { paths } from "../../../services/CorsPath";
 import { AuthContext } from "../../../contexts/AuthContext";
 import { ExclamationCircleFilled } from "@ant-design/icons";
+import { loadListPageState, saveListPageState } from "../../../utils/listPageState";
+
+const PAGE_STATE_KEY = "advance-expense-list";
 
 export default function AdvanceExpense() {
   const { confirm } = Modal;
@@ -22,6 +25,10 @@ export default function AdvanceExpense() {
   const saleAutoRoles = [5, 6];
   const isAutoSaleSelf = saleAutoRoles.includes(Number(userInfo?.role_id));
   const defaultSaleValue = isAutoSaleSelf ? userInfo?.id : undefined;
+  const persistedState = loadListPageState(PAGE_STATE_KEY, {});
+  const fallbackFilters = persistedState.filterValues || (defaultSaleValue ? { sale: defaultSaleValue } : {});
+  const fallbackTableFilters =
+    persistedState.tableParams?.filters || (defaultSaleValue ? { sale: defaultSaleValue } : {});
 
   const [loading, setLoading] = useState(false);
   const [tableLoading, setTableLoading] = useState(false);
@@ -34,12 +41,16 @@ export default function AdvanceExpense() {
   const [subDealerList, setSubDealerList] = useState([]);
   const [statusList, setStatusList] = useState([]);
 
-  const [filterValues, setFilterValues] = useState({});
+  const [filterValues, setFilterValues] = useState(fallbackFilters);
   const [tableParams, setTableParams] = useState({
-    pagination: { current: 1, pageSize: 10, total: 0 },
-    filters: {},
-    sortOrder: null,
-    sortField: null,
+    pagination: {
+      current: persistedState.tableParams?.pagination?.current || 1,
+      pageSize: persistedState.tableParams?.pagination?.pageSize || 10,
+      total: 0,
+    },
+    filters: fallbackTableFilters,
+    sortOrder: persistedState.tableParams?.sortOrder || null,
+    sortField: persistedState.tableParams?.sortField || null,
   });
 
   const getId = (v) => {
@@ -381,6 +392,21 @@ export default function AdvanceExpense() {
     tableParams.sortField,
     JSON.stringify(tableParams.filters),
   ]);
+
+  useEffect(() => {
+    saveListPageState(PAGE_STATE_KEY, {
+      filterValues,
+      tableParams: {
+        pagination: {
+          current: tableParams.pagination.current,
+          pageSize: tableParams.pagination.pageSize,
+        },
+        filters: tableParams.filters,
+        sortOrder: tableParams.sortOrder,
+        sortField: tableParams.sortField,
+      },
+    });
+  }, [filterValues, tableParams]);
 
   const handleTableChange = (pagination) => {
     setTableParams((prev) => ({

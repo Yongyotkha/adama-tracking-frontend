@@ -11,10 +11,13 @@ import { useNavigate } from "react-router-dom";
 import useServiceAPI from "../../../../services/CorsService";
 import { paths } from "../../../../services/CorsPath";
 import { AuthContext } from "../../../../contexts/AuthContext";
+import { loadListPageState, saveListPageState } from "../../../../utils/listPageState";
 
 export default function CollectPointsList() {
   const navigate = useNavigate();
   const { showMsg, showNotification } = useContext(AuthContext);
+  const PAGE_STATE_KEY = "collect-points-list";
+  const persistedState = loadListPageState(PAGE_STATE_KEY, {});
 
   const [loading, setLoading] = useState(false);
 
@@ -22,17 +25,20 @@ export default function CollectPointsList() {
   const [dataSource, setDataSource] = useState([]);
   const [tableLoading, setTableLoading] = useState(false);
   const [tableParams, setTableParams] = useState({
-    pagination: { current: 1, pageSize: 50 },
-    filters: {},
-    sortOrder: "desc",
-    sortField: "document_number",
+    pagination: {
+      current: persistedState.tableParams?.pagination?.current || 1,
+      pageSize: persistedState.tableParams?.pagination?.pageSize || 50,
+    },
+    filters: persistedState.tableParams?.filters || {},
+    sortOrder: persistedState.tableParams?.sortOrder || "desc",
+    sortField: persistedState.tableParams?.sortField || "document_number",
   });
 
   // ---------- masters ----------
   const [saleList, setSaleList] = useState([]);
   const [dataDealer, setDataDealer] = useState([]);
   const [subDealerOptions, setSubDealerOptions] = useState([]);
-  const [filterValues, setFilterValues] = useState({});
+  const [filterValues, setFilterValues] = useState(persistedState.filterValues || {});
 
   // ---------- Filters ----------
   const filters = [
@@ -276,6 +282,7 @@ export default function CollectPointsList() {
 
   // ---------- handlers ----------
   const handleSearch = (filters) => {
+    setFilterValues(filters);
     setTableParams((prev) => ({
       ...prev,
       filters,
@@ -284,6 +291,7 @@ export default function CollectPointsList() {
   };
 
   const handleClear = () => {
+    setFilterValues({});
     setTableParams((prev) => ({
       ...prev,
       filters: {},
@@ -371,11 +379,44 @@ export default function CollectPointsList() {
     JSON.stringify(tableParams.filters),
   ]);
 
+  useEffect(() => {
+    saveListPageState(PAGE_STATE_KEY, {
+      filterValues,
+      tableParams: {
+        pagination: {
+          current: tableParams.pagination.current,
+          pageSize: tableParams.pagination.pageSize,
+        },
+        filters: tableParams.filters,
+        sortOrder: tableParams.sortOrder,
+        sortField: tableParams.sortField,
+      },
+    });
+  }, [filterValues, tableParams]);
+
+  useEffect(() => {
+    if (!saleList.length) return;
+
+    const saleId = typeof filterValues.sale === "object" ? filterValues.sale.value : filterValues.sale;
+    const dealerId = typeof filterValues.dealer === "object" ? filterValues.dealer.value : filterValues.dealer;
+
+    if (saleId || dealerId) {
+      handleChange(filterValues);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [saleList.length]);
+
   return (
     <MainLayout loading={loading}>
       <div className="title-page">Point Collection</div>
 
-      <Filter onSearch={handleSearch} onClear={handleClear} onChange={handleChange} filters={filters} />
+      <Filter
+        onSearch={handleSearch}
+        onClear={handleClear}
+        onChange={handleChange}
+        filters={filters}
+        values={filterValues}
+      />
 
       <BoxPrimary>
         <TableComponent
