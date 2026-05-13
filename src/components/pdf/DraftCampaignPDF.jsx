@@ -201,9 +201,9 @@ export default function DraftCampaignPDF() {
         const payload = getDetailPayload(detailRes);
         const pointRes = payload?.sub_dealer_id
           ? await useServiceAPI.get(paths.pathDraftCampaignUserInfo, {
-              shop_type: "sub_dealer",
-              id: payload.sub_dealer_id,
-            })
+            shop_type: "sub_dealer",
+            id: payload.sub_dealer_id,
+          })
           : null;
 
         setData(
@@ -223,11 +223,11 @@ export default function DraftCampaignPDF() {
   return (
     <PDFViewer style={{ width: "100%", height: "100vh" }}>
       <Document>
-        <Page size="A4" orientation="landscape" style={styles.page}>
+        <Page size="A4" orientation="portrait" style={styles.page}>
           <View style={styles.header}>
             <Image src="/favicon.png" style={styles.logo} />
             <View style={styles.companyWrap}>
-              <Text style={styles.companyNameTh}>บริษัท อดามา (ประเทศไทย) จำกัด</Text>
+              <Text style={styles.companyNameTh}>บริษัท อดามา (ประเทศไทย) จำกัด </Text>
               <Text style={styles.companyNameEn}>ADAMA (Thailand) Limited</Text>
               <Text style={styles.companyLine}>
                 127/33 อาคารปัญจธานี ทาวเวอร์ ชั้น 28 ถนนนนทรี แขวงช่องนนทรี เขตยานนาวา กรุงเทพฯ 10120
@@ -293,7 +293,7 @@ export default function DraftCampaignPDF() {
 
           <View style={styles.table}>
             <View style={styles.tr}>
-              <Text style={[styles.th, { width: "11%" }]}>SKU</Text>
+              <Text style={[styles.th, { width: "15%" }]}>SKU</Text>
               <Text style={[styles.th, { width: "20%" }]}>Product Name</Text>
               <Text style={[styles.th, { width: "13%" }]}>Unit</Text>
               <Text style={[styles.th, { width: "10%" }]}>THB / Unit</Text>
@@ -306,7 +306,7 @@ export default function DraftCampaignPDF() {
 
             {data.products.map((item, index) => (
               <View key={`${item.product_id || item.product_code}-${index}`} style={styles.trBorder}>
-                <Text style={[styles.td, { width: "11%" }]}>{item.product_code}</Text>
+                <Text style={[styles.td, { width: "15%" }]}>{item.product_code}</Text>
                 <Text style={[styles.td, { width: "20%" }]}>{item.product_name}</Text>
                 <Text style={[styles.td, { width: "13%" }]}>{item.packing_list}</Text>
                 <Text style={[styles.td, { width: "10%" }, styles.tdRight]}>
@@ -331,16 +331,19 @@ export default function DraftCampaignPDF() {
             ))}
 
             <View style={styles.trBorder}>
-              <Text style={[styles.totalLabelCell, { width: "64%" }]}>
+              <Text style={[styles.totalLabelCell, { width: "77%" }]}>
                 Item : {data.products.length} | QTY (ctn):{" "}
                 {formatNumber(
                   data.products.reduce((sum, item) => sum + Number(item.quantity || 0), 0)
                 )}
               </Text>
-              <Text style={[styles.td, { width: "8%" }]} />
-              <Text style={[styles.td, { width: "8%" }, styles.tdRight]}>
+
+              {/* Point column */}
+              <Text style={[styles.td, { width: "16%" }, styles.tdRight]}>
                 {formatNumber(data.total_point)}
               </Text>
+
+              {/* Sub Total column */}
               <Text style={[styles.td, { width: "11%" }, styles.tdRight, styles.lastCell]}>
                 {formatNumber(data.net_amount, 2)}
               </Text>
