@@ -13,6 +13,7 @@ import {
   Collapse,
   DatePicker,
   Form,
+  Image,
   Input,
   Row,
   Select,
@@ -22,7 +23,6 @@ import {
 import {
   CheckOutlined,
   CloseOutlined,
-  DeleteOutlined,
   EditOutlined,
   EnvironmentOutlined,
   PlusOutlined,
@@ -74,6 +74,7 @@ const EMPTY_FARM_SIZE = {
 };
 
 const GOOGLE_MAPS_API_KEY = "AIzaSyDUeNLdnx0CqDtfCXRywGdcizCnBVCdwik";
+const GALLERY_MAX_IMAGES_PER_YEAR = 10;
 const DEFAULT_PERMISSION = {
   view: true,
   edit: true,
@@ -132,6 +133,7 @@ const groupGalleryByYear = (galleryItems = []) =>
   galleryItems.reduce((acc, item, index) => {
     const year = String(item.year || dayjs().year());
     if (!acc[year]) acc[year] = [];
+    if (acc[year].length >= GALLERY_MAX_IMAGES_PER_YEAR) return acc;
     acc[year].push({
       uid: item.id ? String(item.id) : `${year}-${index}-${Date.now()}`,
       name: item.name || `gallery-${index + 1}`,
@@ -146,7 +148,10 @@ const galleryStateToPayload = (galleryByYear) =>
     Object.entries(galleryByYear)
       .map(([year, items]) => [
         year,
-        (items || []).map((item) => item.url).filter(Boolean),
+        (items || [])
+          .slice(0, GALLERY_MAX_IMAGES_PER_YEAR)
+          .map((item) => item.url)
+          .filter(Boolean),
       ])
       .filter(([, items]) => items.length > 0)
   );
@@ -195,6 +200,11 @@ export default function FarmersCreate() {
   const [editingCalendarCropValue, setEditingCalendarCropValue] = useState("");
   const [galleryByYear, setGalleryByYear] = useState({
     [String(dayjs().year())]: [],
+  });
+  const [galleryPreview, setGalleryPreview] = useState({
+    open: false,
+    src: "",
+    title: "",
   });
   const [homeLocation, setHomeLocation] = useState(DEFAULT_LOCATION);
   const [farmLocation, setFarmLocation] = useState(DEFAULT_LOCATION);
@@ -656,26 +666,36 @@ export default function FarmersCreate() {
     }
   };
 
-  const handleUploadGallery = async ({ file }) => {
+  const handleUploadGallery = async ({ file, onSuccess, onError }, targetYear = latestGalleryYear) => {
+    const year = String(targetYear || dayjs().year());
+    const currentGallery = galleryByYear[year] || [];
+
+    if (currentGallery.length >= GALLERY_MAX_IMAGES_PER_YEAR) {
+      showMsg("warning", "Maximum 10 images per year.");
+      onError?.(new Error("Maximum 10 images per year."));
+      return;
+    }
+
     try {
       setLoading(true);
       const fileUrl = await uploadFile(file, "profile");
-      const targetYear = latestGalleryYear || String(dayjs().year());
 
       setGalleryByYear((prev) => ({
         ...prev,
-        [targetYear]: [
-          ...(prev[targetYear] || []),
+        [year]: [
+          ...(prev[year] || []),
           {
-            uid: `${targetYear}-${Date.now()}`,
+            uid: `${year}-${Date.now()}`,
             name: file.name,
             url: fileUrl,
             status: "done",
           },
         ],
       }));
+      onSuccess?.({ url: fileUrl }, file);
     } catch (error) {
       showNotification("error", error.message || "Upload gallery failed");
+      onError?.(error);
     } finally {
       setLoading(false);
     }
@@ -686,6 +706,14 @@ export default function FarmersCreate() {
       ...prev,
       [year]: (prev[year] || []).filter((item) => item.uid !== uid),
     }));
+  };
+
+  const handleGalleryPreview = (file) => {
+    setGalleryPreview({
+      open: true,
+      src: file.url || file.thumbUrl || "",
+      title: file.name || "Preview",
+    });
   };
 
   const handleSave = async () => {
@@ -801,71 +829,72 @@ export default function FarmersCreate() {
             </div>
           </Col>
 
-          <Col xs={24} md={12} lg={6}>
+          {/* Personal Info fields */}
+          <Col xs={24} md={8}>
             <Form.Item label="Farm Name" name="farm_name">
               <Input disabled={isViewMode} />
             </Form.Item>
           </Col>
 
-          <Col xs={24} md={12} lg={4}>
+          <Col xs={24} md={4}>
             <Form.Item label="Pre Fix" name="prefix">
               <Select
                 disabled={isViewMode}
                 options={prefixSelectOptions}
-                placeholder="Select prefix"
+                placeholder="select"
               />
             </Form.Item>
           </Col>
 
-          <Col xs={24} md={12} lg={8}>
-            <Form.Item label="Name (TH)" name="name">
+          <Col xs={24} md={6}>
+            <Form.Item label="Name - Surname (TH)" name="name">
               <Input disabled={isViewMode} />
             </Form.Item>
           </Col>
 
-          <Col xs={24} md={12} lg={6}>
+          <Col xs={24} md={6}>
             <Form.Item label="Nickname" name="nickname">
               <Input disabled={isViewMode} />
             </Form.Item>
           </Col>
 
-          <Col xs={24} md={12} lg={8}>
+          <Col xs={24} md={8}>
             <Form.Item label="Est Input (Baht / Year)" name="est">
               <Input disabled={isViewMode} />
             </Form.Item>
           </Col>
 
-          <Col xs={24} md={12} lg={8}>
+          <Col xs={24} md={8}>
             <Form.Item label="Address" name="address">
               <Input disabled={isViewMode} />
             </Form.Item>
           </Col>
 
-          <Col xs={24} md={12} lg={8}>
+          <Col xs={24} md={8}>
             <Form.Item label="Date of Birth" name="date_of_birth">
               <DatePicker className="w-full" disabled={isViewMode} />
             </Form.Item>
           </Col>
 
-          <Col xs={24} md={12} lg={8}>
+          <Col xs={24} md={8}>
             <Form.Item label="Mobile Phone" name="mobile_phone">
               <Input disabled={isViewMode} />
             </Form.Item>
           </Col>
 
-          <Col xs={24} md={12} lg={8}>
+          <Col xs={24} md={8}>
             <Form.Item label="Line ID" name="line_id">
               <Input disabled={isViewMode} />
             </Form.Item>
           </Col>
 
-          <Col xs={24} md={12} lg={8}>
+          <Col xs={24} md={8}>
             <Form.Item label="T-Shirt Size" name="t_shirt_size">
               <Input disabled={isViewMode} />
             </Form.Item>
           </Col>
 
-          <Col xs={24} md={12} lg={8}>
+          <Col xs={24} md={8}>
             <Form.Item label="Email" name="email">
               <Input disabled={isViewMode} />
             </Form.Item>
@@ -880,24 +909,38 @@ export default function FarmersCreate() {
           <Col span={24}>
             <Form.Item label="Equipment On Hand" name="equ_id">
               <Checkbox.Group disabled={isViewMode}>
-                <Row gutter={[16, 8]}>
-                  {equipmentSelectOptions.map((item) => (
-                    <Col xs={12} md={8} lg={6} key={item.value}>
-                      <Checkbox value={item.value}>{item.label}</Checkbox>
-                    </Col>
-                  ))}
-                </Row>
+                <div className="flex flex-wrap items-center gap-4">
+                  {equipmentSelectOptions.map((item) => {
+                    const isOther = Number(item.value) === 5;
+
+                    return (
+                      <div
+                        key={item.value}
+                        className="flex items-center gap-2"
+                      >
+                        <Checkbox value={item.value}>
+                          {item.label}
+                        </Checkbox>
+
+                        {isOther && (
+                          <Form.Item
+                            name="equ_other"
+                            noStyle
+                          >
+                            <Input
+                              placeholder="Text"
+                              disabled={!showOtherEquipment || isViewMode}
+                              className="w-[260px]"
+                            />
+                          </Form.Item>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
               </Checkbox.Group>
             </Form.Item>
           </Col>
-
-          {showOtherEquipment && (
-            <Col span={24}>
-              <Form.Item label="Other Equipment" name="equ_other">
-                <Input disabled={isViewMode} />
-              </Form.Item>
-            </Col>
-          )}
 
           <Col xs={24} md={12}>
             <div className="mb-2 font-semibold text-[#00783F]">Home Location</div>
@@ -1145,55 +1188,68 @@ export default function FarmersCreate() {
 
   const galleryTab = (
     <BoxPrimary title="Gallery">
-      <div className="flex justify-end mb-4">
-        {canUpdate && (
-          <Upload
-            showUploadList={false}
-            customRequest={handleUploadGallery}
-            accept="image/*"
-          >
-            <Button
-              type="primary"
-              className="bg-[#00783F]"
-              icon={<UploadOutlined />}
-            >
-              Upload File
-            </Button>
-          </Upload>
-        )}
-      </div>
-
       <Collapse
         defaultActiveKey={[latestGalleryYear]}
         items={galleryYears.map((year) => ({
           key: year,
           label: `Year ${year}`,
           children: (
-            <div>
-              <div className="flex flex-wrap gap-4">
-                {(galleryByYear[year] || []).length > 0 ? (
-                  (galleryByYear[year] || []).map((item) => (
-                    <div key={item.uid} className="relative">
-                      <img
-                        src={item.url}
-                        alt={item.name}
-                        className="w-32 h-24 object-cover rounded shadow"
-                      />
-                      {canUpdate && (
-                        <button
-                          type="button"
-                          className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-red-500 text-white flex items-center justify-center"
-                          onClick={() => removeGalleryItem(year, item.uid)}
-                        >
-                          <DeleteOutlined />
-                        </button>
-                      )}
-                    </div>
-                  ))
-                ) : (
-                  <div className="text-gray-400">No gallery in this year</div>
-                )}
+            <div className="space-y-3">
+              <div className="flex items-center justify-between gap-3">
+                <span className="text-sm font-semibold text-[#00783F]">
+                  {`${(galleryByYear[year] || []).length} / ${GALLERY_MAX_IMAGES_PER_YEAR} images`}
+                </span>
               </div>
+
+              <Upload
+                accept="image/*"
+                listType="picture-card"
+                fileList={galleryByYear[year] || []}
+                customRequest={(options) => handleUploadGallery(options, year)}
+                onPreview={handleGalleryPreview}
+                onRemove={(file) => {
+                  removeGalleryItem(year, file.uid);
+                  return true;
+                }}
+                maxCount={GALLERY_MAX_IMAGES_PER_YEAR}
+                showUploadList={{
+                  showPreviewIcon: true,
+                  showRemoveIcon: canUpdate,
+                }}
+              >
+                {canUpdate &&
+                  (galleryByYear[year] || []).length < GALLERY_MAX_IMAGES_PER_YEAR && (
+                    <div className="flex flex-col items-center gap-2 text-[#00783F]">
+                      <UploadOutlined />
+                      <span>Upload</span>
+                    </div>
+                  )}
+              </Upload>
+
+              {(galleryByYear[year] || []).length === 0 && (
+                <div className="text-gray-400">No gallery in this year</div>
+              )}
+
+              <Image
+                className="hidden"
+                src={galleryPreview.src}
+                preview={{
+                  open: galleryPreview.open,
+                  visible: galleryPreview.open,
+                  src: galleryPreview.src,
+                  title: galleryPreview.title,
+                  onOpenChange: (open) =>
+                    setGalleryPreview((prev) => ({
+                      ...prev,
+                      open,
+                    })),
+                  onVisibleChange: (open) =>
+                    setGalleryPreview((prev) => ({
+                      ...prev,
+                      open,
+                    })),
+                }}
+              />
             </div>
           ),
         }))}
@@ -1377,50 +1433,52 @@ export default function FarmersCreate() {
   return (
     <Form form={form} layout="vertical" component={false}>
       <MainLayout loading={loading}>
-        <div className="title-page">
-          {isViewMode
-            ? "View Farmer"
-            : isEditMode
-              ? "Edit Farmer"
-              : "Create Farmer"}
-        </div>
+        <div className="farmer-form-page [&_.ant-form-item]:!mb-3.5 [&_.ant-form-item-row]:!flex-col [&_.ant-form-item-row]:!items-stretch [&_.ant-form-item-label]:!max-w-full [&_.ant-form-item-label]:!flex-none [&_.ant-form-item-label]:!pb-1.5 [&_.ant-form-item-label]:!text-left [&_.ant-form-item-label]:!whitespace-normal [&_.ant-form-item-label>label]:!h-auto [&_.ant-form-item-label>label]:!text-[13px] [&_.ant-form-item-label>label]:!font-semibold [&_.ant-form-item-label>label]:!leading-tight [&_.ant-form-item-label>label]:!text-[#2f2522] [&_.ant-form-item-control]:!max-w-full [&_.ant-form-item-control]:!w-full [&_.ant-form-item-control]:!flex-none [&_.ant-input]:!min-h-[38px] [&_.ant-input]:!rounded-md [&_.ant-picker]:!min-h-[38px] [&_.ant-picker]:!rounded-md [&_.ant-select-selector]:!min-h-[38px] [&_.ant-select-selector]:!rounded-md [&_.ant-select-single_.ant-select-selector]:!items-center [&_.ant-checkbox-group]:!w-full">
+          <div className="title-page">
+            {isViewMode
+              ? "View Farmer"
+              : isEditMode
+                ? "Edit Farmer"
+                : "Create Farmer"}
+          </div>
 
-        <Tabs
-          activeKey={activeTab}
-          onChange={setActiveTab}
-          className="custom-tabs"
-          items={[
-            {
-              key: "profile",
-              label: <span className="tab-title">Profile</span>,
-              children: profileTab,
-            },
-            {
-              key: "gallery",
-              label: <span className="tab-title">Gallery</span>,
-              children: galleryTab,
-            },
-            {
-              key: "farm",
-              label: <span className="tab-title">Farm Size & Crop Calendar</span>,
-              children: farmSizeCalendarTab,
-            },
-          ]}
-        />
-
-        <div className="flex justify-end space-x-4 mt-6">
-          <ActionButton
-            mode="back"
-            text="Back"
-            onClick={() => navigate("/customer/farmers")}
+          <Tabs
+            activeKey={activeTab}
+            onChange={setActiveTab}
+            className="custom-tabs"
+            items={[
+              {
+                key: "profile",
+                label: <span className="tab-title">Profile</span>,
+                children: profileTab,
+              },
+              {
+                key: "gallery",
+                label: <span className="tab-title">Gallery</span>,
+                children: galleryTab,
+              },
+              {
+                key: "farm",
+                label: <span className="tab-title">Farm Size & Crop Calendar</span>,
+                children: farmSizeCalendarTab,
+              },
+            ]}
           />
-          {canUpdate && (
+
+          <div className="flex justify-end space-x-4 mt-6">
             <ActionButton
-              mode="save"
-              text={isEditMode ? "Update" : "Save"}
-              onClick={handleSave}
+              mode="back"
+              text="Back"
+              onClick={() => navigate("/customer/farmers")}
             />
-          )}
+            {canUpdate && (
+              <ActionButton
+                mode="save"
+                text={isEditMode ? "Update" : "Save"}
+                onClick={handleSave}
+              />
+            )}
+          </div>
         </div>
       </MainLayout>
     </Form>
