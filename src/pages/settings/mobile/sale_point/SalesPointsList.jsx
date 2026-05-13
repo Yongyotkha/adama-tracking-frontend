@@ -13,6 +13,7 @@ import useServiceAPI from "../../../../services/CorsService";
 import { paths } from "../../../../services/CorsPath";
 import { AuthContext } from "../../../../contexts/AuthContext";
 import { ExclamationCircleFilled } from "@ant-design/icons";
+import { loadListPageState, saveListPageState } from "../../../../utils/listPageState";
 
 const { TabPane } = Tabs;
 
@@ -27,29 +28,37 @@ const STATUS_OPTIONS_LIST = [
 export default function SalesPointsList() {
   const navigate = useNavigate();
   const { showMsg, showNotification } = useContext(AuthContext);
+  const PAGE_STATE_KEY = "sales-points-list";
+  const persistedState = loadListPageState(PAGE_STATE_KEY, {});
 
   const [loading, setLoading] = useState(false);
-  const [activeTab, setActiveTab] = useState("list");
+  const [activeTab, setActiveTab] = useState(persistedState.activeTab || "list");
 
   const [dataSource, setDataSource] = useState([]);
   const [tableLoading, setTableLoading] = useState(false);
   const [tableParams, setTableParams] = useState({
-    pagination: { current: 1, pageSize: 10 },
-    filters: {},
-    sortOrder: "desc",
-    sortField: "document_number",
+    pagination: {
+      current: persistedState.tableParams?.pagination?.current || 1,
+      pageSize: persistedState.tableParams?.pagination?.pageSize || 10,
+    },
+    filters: persistedState.tableParams?.filters || {},
+    sortOrder: persistedState.tableParams?.sortOrder || "desc",
+    sortField: persistedState.tableParams?.sortField || "document_number",
   });
-  const [filterValues, setFilterValues] = useState({});
+  const [filterValues, setFilterValues] = useState(persistedState.filterValues || {});
 
   const [requestDataSource, setRequestDataSource] = useState([]);
   const [requestTableLoading, setRequestTableLoading] = useState(false);
   const [requestTableParams, setRequestTableParams] = useState({
-    pagination: { current: 1, pageSize: 50 },
-    filters: {},
-    sortOrder: "desc",
-    sortField: "document_date",
+    pagination: {
+      current: persistedState.requestTableParams?.pagination?.current || 1,
+      pageSize: persistedState.requestTableParams?.pagination?.pageSize || 50,
+    },
+    filters: persistedState.requestTableParams?.filters || {},
+    sortOrder: persistedState.requestTableParams?.sortOrder || "desc",
+    sortField: persistedState.requestTableParams?.sortField || "document_date",
   });
-  const [requestFiltersValues, setRequestFiltersValues] = useState({});
+  const [requestFiltersValues, setRequestFiltersValues] = useState(persistedState.requestFiltersValues || {});
 
   const [saleList, setSaleList] = useState([]);
   const [dataDealer, setDataDealer] = useState([]);
@@ -577,6 +586,49 @@ export default function SalesPointsList() {
     requestTableParams.sortField,
     JSON.stringify(requestTableParams.filters),
   ]);
+
+  useEffect(() => {
+    saveListPageState(PAGE_STATE_KEY, {
+      activeTab,
+      filterValues,
+      tableParams: {
+        pagination: {
+          current: tableParams.pagination.current,
+          pageSize: tableParams.pagination.pageSize,
+        },
+        filters: tableParams.filters,
+        sortOrder: tableParams.sortOrder,
+        sortField: tableParams.sortField,
+      },
+      requestFiltersValues,
+      requestTableParams: {
+        pagination: {
+          current: requestTableParams.pagination.current,
+          pageSize: requestTableParams.pagination.pageSize,
+        },
+        filters: requestTableParams.filters,
+        sortOrder: requestTableParams.sortOrder,
+        sortField: requestTableParams.sortField,
+      },
+    });
+  }, [activeTab, filterValues, tableParams, requestFiltersValues, requestTableParams]);
+
+  useEffect(() => {
+    if (!saleList.length) return;
+
+    const values = activeTab === "request" ? requestFiltersValues : filterValues;
+    const saleId = typeof values.sale === "object" ? values.sale.value : values.sale;
+    const dealerId = typeof values.dealer === "object" ? values.dealer.value : values.dealer;
+
+    if (saleId || dealerId) {
+      if (activeTab === "request") {
+        handleChangeRequestFilters(values);
+      } else {
+        handleChange(values);
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [saleList.length, activeTab]);
 
   const handleDelete = (documentNumber) => {
     confirm({
