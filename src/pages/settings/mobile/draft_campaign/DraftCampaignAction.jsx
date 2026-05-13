@@ -304,13 +304,13 @@ export default function DraftCampaignAction() {
       const finalOptions =
         selectedFarmerId && !hasSelectedFarmer
           ? [
-              {
-                id: String(selectedFarmerId),
-                name: selectedFarmerName || String(selectedFarmerId),
-                raw: {},
-              },
-              ...normalized,
-            ]
+            {
+              id: String(selectedFarmerId),
+              name: selectedFarmerName || String(selectedFarmerId),
+              raw: {},
+            },
+            ...normalized,
+          ]
           : normalized;
 
       if (requestId === farmerRequestRef.current) {
@@ -356,19 +356,19 @@ export default function DraftCampaignAction() {
 
     const currentPointPayload = draft?.farmer_id
       ? {
-          shop_type: "farmer",
-          id: draft.farmer_id,
-        }
+        shop_type: "farmer",
+        id: draft.farmer_id,
+      }
       : draft?.sub_dealer_id
         ? {
-            shop_type: "sub_dealer",
-            id: draft.sub_dealer_id,
-          }
+          shop_type: "sub_dealer",
+          id: draft.sub_dealer_id,
+        }
         : draft?.dealer_id
           ? {
-              shop_type: "dealer",
-              id: draft.dealer_id,
-            }
+            shop_type: "dealer",
+            id: draft.dealer_id,
+          }
           : null;
 
     const currentPointRes = currentPointPayload
@@ -381,7 +381,24 @@ export default function DraftCampaignAction() {
     );
 
     setDetail(mapped);
-    setRows(mapped.products);
+    setRows(
+      mapped.products.map((item) =>
+        recalculateProductRow({
+          ...item,
+          quantity: toNumber(item.quantity),
+          xpoint: toNumber(item.xpoint) || 1,
+
+          // ใช้ราคาต่อ unit จาก detail
+          unit_convert_order_value: item.unit_convert_order_value,
+
+          // fallback ให้ใช้ชื่อเดียวกับ create ได้
+          bath_unit: item.unit_convert_order_value || item.master_price,
+
+          // point ต่อกล่อง
+          master_point: item.master_point || item.point,
+        })
+      )
+    );
 
     form.setFieldsValue({
       document_number: mapped.document_number,
@@ -486,9 +503,9 @@ export default function DraftCampaignAction() {
       prev.map((row, rowIndex) =>
         rowIndex === index
           ? recalculateProductRow({
-              ...row,
-              [key]: Math.max(0, toNumber(value)),
-            })
+            ...row,
+            [key]: Math.max(0, toNumber(value)),
+          })
           : row
       )
     );
@@ -517,8 +534,18 @@ export default function DraftCampaignAction() {
       const res = await useServiceAPI.get(paths.pathMasterProductDetail, {
         product_id: selectedProductId,
       });
+      const productDetail = res?.data || {};
 
-      const product = mapDraftCampaignProduct(res?.data);
+      const product = {
+        ...mapDraftCampaignProduct(productDetail),
+
+        // เพิ่มค่าที่ต้องใช้
+        unit_convert_order_value:
+          productDetail.unit_convert_order_value,
+
+        bath_unit:
+          productDetail.bath_unit,
+      };
 
       setRows((prev) => [
         ...prev,
@@ -544,19 +571,6 @@ export default function DraftCampaignAction() {
       setLoading(false);
     }
   };
-
-  const totals = useMemo(
-    () =>
-      rows.reduce(
-        (sum, row) => ({
-          qty: sum.qty + toNumber(row.quantity),
-          point: sum.point + toNumber(row.point),
-          value: sum.value + toNumber(row.net_amount),
-        }),
-        { qty: 0, point: 0, value: 0 }
-      ),
-    [rows]
-  );
 
   const renderStepperInput = (index, key, value) => (
     <div className="flex items-center justify-center gap-2">
@@ -589,6 +603,39 @@ export default function DraftCampaignAction() {
     </div>
   );
 
+  const getOrderUnitPrice = (row) => {
+    const orderValue = toNumber(row.unit_convert_order_value);
+
+    if (orderValue > 0) {
+      return orderValue;
+    }
+
+    const bathUnit = toNumber(row.bath_unit);
+
+    if (bathUnit > 0) {
+      return bathUnit;
+    }
+
+    return 0;
+  };
+
+  const totals = useMemo(
+    () =>
+      rows.reduce(
+        (sum, row) => {
+          const unitPrice = getOrderUnitPrice(row);
+          const qty = toNumber(row.quantity);
+          console.log(unitPrice);
+          return {
+            qty: sum.qty + qty,
+            point: sum.point + toNumber(row.point),
+            value: sum.value + qty * unitPrice,
+          };
+        },
+        { qty: 0, point: 0, value: 0 }
+      ),
+    [rows]
+  );
   const productColumns = [
     {
       title: "No",
@@ -600,12 +647,13 @@ export default function DraftCampaignAction() {
     { title: "SKU", dataIndex: "product_code", width: 150 },
     { title: "Product Name", dataIndex: "product_name", width: 220 },
     { title: "Unit", dataIndex: "packing_list", width: 140 },
+
     {
       title: "THB / Unit",
-      dataIndex: "unit_convert_value",
+      dataIndex: "bath_unit",
       width: 130,
       align: "right",
-      render: (value) => formatNumber(value, 2),
+      render: (_, row) => formatNumber(getOrderUnitPrice(row), 2),
     },
     {
       title: "Point / Ctn",
@@ -614,20 +662,25 @@ export default function DraftCampaignAction() {
       align: "right",
       render: (value) => formatNumber(value),
     },
+
     {
       title: "QTY (ctn)",
       dataIndex: "quantity",
       width: 180,
       align: "center",
-      render: (value, _, index) => renderStepperInput(index, "quantity", value),
+      render: (value, _, index) =>
+        renderStepperInput(index, "quantity", value),
     },
+
     {
       title: "X Point",
       dataIndex: "xpoint",
       width: 180,
       align: "center",
-      render: (value, _, index) => renderStepperInput(index, "xpoint", value),
+      render: (value, _, index) =>
+        renderStepperInput(index, "xpoint", value),
     },
+
     {
       title: "Point",
       dataIndex: "point",
@@ -635,13 +688,19 @@ export default function DraftCampaignAction() {
       align: "right",
       render: (value) => formatNumber(value),
     },
+
     {
       title: "Sub Total (THB)",
-      dataIndex: "net_amount",
+      dataIndex: "unit_convert_order_value",
       width: 150,
       align: "right",
-      render: (value) => formatNumber(value, 2),
+      render: (_, row) =>
+        formatNumber(
+          toNumber(row.quantity) * getOrderUnitPrice(row),
+          2
+        ),
     },
+
     {
       title: "Action",
       dataIndex: "action",
@@ -653,7 +712,9 @@ export default function DraftCampaignAction() {
             type="button"
             className="text-[#978B87] transition duration-150 ease-out hover:scale-110 hover:text-[#D4380D] active:scale-95"
             onClick={() =>
-              setRows((prev) => prev.filter((_, rowIndex) => rowIndex !== index))
+              setRows((prev) =>
+                prev.filter((_, rowIndex) => rowIndex !== index)
+              )
             }
           >
             <DeleteOutlined className="text-[20px]" />
