@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import {
   Document,
   Font,
@@ -26,6 +26,44 @@ Font.register({
     { src: "/font/Sarabun/Sarabun-Bold.ttf", fontWeight: "bold" },
   ],
 });
+
+const toNumber = (value) => {
+  const number = Number(value);
+  return Number.isFinite(number) ? number : 0;
+};
+
+const getPdfUnitPrice = (item) => {
+  const unitPrice = toNumber(
+    item.unit_convert_order_value || item.master_price || item.bath_unit
+  );
+
+  if (unitPrice > 0) return unitPrice;
+
+  const qty = toNumber(item.quantity);
+  const netAmount = toNumber(item.net_amount);
+
+  if (qty > 0 && netAmount > 0) {
+    return netAmount / qty;
+  }
+
+  return 0;
+};
+
+const getPdfMasterPoint = (item) => {
+  return toNumber(item.master_point || item.point);
+};
+
+const getPdfRowPoint = (item) => {
+  const qty = toNumber(item.quantity);
+  const xpoint = toNumber(item.xpoint) || 1;
+  const masterPoint = getPdfMasterPoint(item);
+
+  return qty * masterPoint * xpoint;
+};
+
+const getPdfSubTotal = (item) => {
+  return toNumber(item.quantity) * getPdfUnitPrice(item);
+};
 
 const styles = StyleSheet.create({
   page: {
@@ -194,24 +232,51 @@ export default function DraftCampaignPDF() {
   useEffect(() => {
     const load = async () => {
       if (!documentNumber) return;
+
       try {
         const detailRes = await useServiceAPI.get(paths.pathDraftCampaignDetail, {
           document_number: documentNumber,
         });
+
         const payload = getDetailPayload(detailRes);
+
         const pointRes = payload?.sub_dealer_id
           ? await useServiceAPI.get(paths.pathDraftCampaignUserInfo, {
-            shop_type: "sub_dealer",
-            id: payload.sub_dealer_id,
-          })
+              shop_type: "sub_dealer",
+              id: payload.sub_dealer_id,
+            })
           : null;
 
-        setData(
-          mapDraftCampaignDetail(
-            payload,
-            pointRes?.data?.data?.users?.balance_point ?? 0
-          )
+        const mapped = mapDraftCampaignDetail(
+          payload,
+          pointRes?.data?.data?.users?.balance_point ?? 0
         );
+
+        const detailItems = Array.isArray(payload?.items) ? payload.items : [];
+
+        const products = detailItems.map((item) => ({
+          ...item,
+          quantity: toNumber(item.quantity),
+          xpoint: toNumber(item.xpoint) || 1,
+          unit_convert_order_value:
+            item.unit_convert_order_value || item.master_price,
+          bath_unit: item.unit_convert_order_value || item.master_price,
+          master_price: item.master_price || item.unit_convert_order_value,
+          master_point: item.master_point || item.point,
+        }));
+
+        setData({
+          ...mapped,
+          products,
+          total_point: products.reduce(
+            (sum, item) => sum + getPdfRowPoint(item),
+            0
+          ),
+          net_amount: products.reduce(
+            (sum, item) => sum + getPdfSubTotal(item),
+            0
+          ),
+        });
       } catch (_) {
         setData(emptyDetail);
       }
@@ -219,6 +284,17 @@ export default function DraftCampaignPDF() {
 
     load();
   }, [documentNumber]);
+
+  const totals = useMemo(() => {
+    return data.products.reduce(
+      (sum, item) => ({
+        qty: sum.qty + toNumber(item.quantity),
+        point: sum.point + getPdfRowPoint(item),
+        value: sum.value + getPdfSubTotal(item),
+      }),
+      { qty: 0, point: 0, value: 0 }
+    );
+  }, [data.products]);
 
   return (
     <PDFViewer style={{ width: "100%", height: "100vh" }}>
@@ -243,10 +319,12 @@ export default function DraftCampaignPDF() {
 
           <View style={styles.metaRow}>
             <Text>
-              <Text style={styles.metaLabel}>Document No :</Text> {data.document_number || "-"}
+              <Text style={styles.metaLabel}>Document No :</Text>{" "}
+              {data.document_number || "-"}
             </Text>
             <Text>
-              <Text style={styles.metaLabel}>Date :</Text> {formatDate(data.document_date, "DD-MM-YYYY")}
+              <Text style={styles.metaLabel}>Date :</Text>{" "}
+              {formatDate(data.document_date, "DD-MM-YYYY")}
             </Text>
           </View>
 
@@ -301,19 +379,30 @@ export default function DraftCampaignPDF() {
               <Text style={[styles.th, { width: "9%" }]}>QTY (ctn)</Text>
               <Text style={[styles.th, { width: "8%" }]}>X Point</Text>
               <Text style={[styles.th, { width: "8%" }]}>Point</Text>
-              <Text style={[styles.th, { width: "11%" }, styles.lastCell]}>Sub Total (THB)</Text>
+              <Text style={[styles.th, { width: "11%" }, styles.lastCell]}>
+                Sub Total (THB)
+              </Text>
             </View>
 
             {data.products.map((item, index) => (
-              <View key={`${item.product_id || item.product_code}-${index}`} style={styles.trBorder}>
-                <Text style={[styles.td, { width: "15%" }]}>{item.product_code}</Text>
-                <Text style={[styles.td, { width: "20%" }]}>{item.product_name}</Text>
-                <Text style={[styles.td, { width: "13%" }]}>{item.packing_list}</Text>
-                <Text style={[styles.td, { width: "10%" }, styles.tdRight]}>
-                  {formatNumber(item.unit_convert_value, 2)}
+              <View
+                key={`${item.product_id || item.product_code}-${index}`}
+                style={styles.trBorder}
+              >
+                <Text style={[styles.td, { width: "15%" }]}>
+                  {item.product_code}
+                </Text>
+                <Text style={[styles.td, { width: "20%" }]}>
+                  {item.product_name}
+                </Text>
+                <Text style={[styles.td, { width: "13%" }]}>
+                  {item.packing_list}
                 </Text>
                 <Text style={[styles.td, { width: "10%" }, styles.tdRight]}>
-                  {formatNumber(item.master_point)}
+                  {formatNumber(getPdfUnitPrice(item), 2)}
+                </Text>
+                <Text style={[styles.td, { width: "10%" }, styles.tdRight]}>
+                  {formatNumber(getPdfMasterPoint(item))}
                 </Text>
                 <Text style={[styles.td, { width: "9%" }, styles.tdCenter]}>
                   {formatNumber(item.quantity)}
@@ -322,10 +411,17 @@ export default function DraftCampaignPDF() {
                   {formatNumber(item.xpoint)}
                 </Text>
                 <Text style={[styles.td, { width: "8%" }, styles.tdRight]}>
-                  {formatNumber(item.point)}
+                  {formatNumber(getPdfRowPoint(item))}
                 </Text>
-                <Text style={[styles.td, { width: "11%" }, styles.tdRight, styles.lastCell]}>
-                  {formatNumber(item.net_amount, 2)}
+                <Text
+                  style={[
+                    styles.td,
+                    { width: "11%" },
+                    styles.tdRight,
+                    styles.lastCell,
+                  ]}
+                >
+                  {formatNumber(getPdfSubTotal(item), 2)}
                 </Text>
               </View>
             ))}
@@ -333,19 +429,22 @@ export default function DraftCampaignPDF() {
             <View style={styles.trBorder}>
               <Text style={[styles.totalLabelCell, { width: "77%" }]}>
                 Item : {data.products.length} | QTY (ctn):{" "}
-                {formatNumber(
-                  data.products.reduce((sum, item) => sum + Number(item.quantity || 0), 0)
-                )}
+                {formatNumber(totals.qty)}
               </Text>
 
-              {/* Point column */}
               <Text style={[styles.td, { width: "16%" }, styles.tdRight]}>
-                {formatNumber(data.total_point)}
+                {formatNumber(totals.point)}
               </Text>
 
-              {/* Sub Total column */}
-              <Text style={[styles.td, { width: "11%" }, styles.tdRight, styles.lastCell]}>
-                {formatNumber(data.net_amount, 2)}
+              <Text
+                style={[
+                  styles.td,
+                  { width: "11%" },
+                  styles.tdRight,
+                  styles.lastCell,
+                ]}
+              >
+                {formatNumber(totals.value, 2)}
               </Text>
             </View>
           </View>

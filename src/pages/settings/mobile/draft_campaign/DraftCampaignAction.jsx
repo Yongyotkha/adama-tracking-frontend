@@ -381,21 +381,33 @@ export default function DraftCampaignAction() {
     );
 
     setDetail(mapped);
+    const detailItems = Array.isArray(draft?.items) ? draft.items : [];
+
     setRows(
-      mapped.products.map((item) =>
+      detailItems.map((item) =>
         recalculateProductRow({
           ...item,
+
           quantity: toNumber(item.quantity),
           xpoint: toNumber(item.xpoint) || 1,
 
-          // ใช้ราคาต่อ unit จาก detail
-          unit_convert_order_value: item.unit_convert_order_value,
+          // ราคาต่อ unit จาก detail API
+          unit_convert_order_value:
+            item.unit_convert_order_value || item.master_price,
 
-          // fallback ให้ใช้ชื่อเดียวกับ create ได้
-          bath_unit: item.unit_convert_order_value || item.master_price,
+          bath_unit:
+            item.unit_convert_order_value || item.master_price,
 
-          // point ต่อกล่อง
-          master_point: item.master_point || item.point,
+          master_price:
+            item.master_price || item.unit_convert_order_value,
+
+          // point ต่อ ctn
+          master_point:
+            item.master_point || item.point,
+
+          // ให้ recalculate คำนวณ point รวมใหม่จาก qty
+          point:
+            item.master_point || item.point,
         })
       )
     );
@@ -606,19 +618,18 @@ export default function DraftCampaignAction() {
   const getOrderUnitPrice = (row) => {
     const orderValue = toNumber(row.unit_convert_order_value);
 
-    if (orderValue > 0) {
-      return orderValue;
-    }
+    if (orderValue > 0) return orderValue;
+
+    const masterPrice = toNumber(row.master_price);
+
+    if (masterPrice > 0) return masterPrice;
 
     const bathUnit = toNumber(row.bath_unit);
 
-    if (bathUnit > 0) {
-      return bathUnit;
-    }
+    if (bathUnit > 0) return bathUnit;
 
     return 0;
   };
-
   const totals = useMemo(
     () =>
       rows.reduce(
