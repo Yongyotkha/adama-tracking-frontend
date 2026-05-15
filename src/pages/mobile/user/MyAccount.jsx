@@ -25,7 +25,7 @@ export default function MyAccount() {
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState(null);
   const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
-  const { logout } = useContext(AuthContext);
+  const { logout, clearUserSession } = useContext(AuthContext);
   const location = useLocation();
   const [userID, setUserID] = useState(location.state.id);
   const { lineProfile } = useOutletContext() || {};
@@ -75,9 +75,9 @@ export default function MyAccount() {
     setIsLogoutModalOpen(false);
     try {
       if (liff.isLoggedIn()) {
-        localStorage.removeItem("users");
-        logout("line");
-        liff.logout();
+        clearUserSession();
+        // logout("line");
+        // liff.logout();
         window.location.reload();
 
         console.log("User logged out from LIFF");

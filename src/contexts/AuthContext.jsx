@@ -132,13 +132,18 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  const clearUserSession = () => {
+    localStorage.removeItem("users");
+    localStorage.removeItem("user_id");
+    localStorage.removeItem("accessToken");
+    localStorage.removeItem("expiredToken");
+  };
+
   const logout = (mode = 'web') => {
     setIsLoggedIn(false);
     setUserInfo(null);
 
-    localStorage.removeItem("users");
-    localStorage.removeItem("accessToken");
-    localStorage.removeItem("expiredToken");
+    clearUserSession();
 
     console.log("เข้าฟังก์ชัน logout");
 
@@ -168,6 +173,7 @@ export const AuthProvider = ({ children }) => {
         showNotification,
         formatNumber,
         loginLineUid,
+        clearUserSession,
       }}
     >
       {contextHolder}
