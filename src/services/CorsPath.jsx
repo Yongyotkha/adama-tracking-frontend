@@ -45,6 +45,7 @@ export const paths = {
   pathOtpShopCall: "/shop-otp/call",
   pathOtpShopVerify: "/shop-otp/verify",
   pathOtpverify: "shop-otp/verify-phone",
+  pathOtpShopGetLineToken: "/shop-otp/get_line_token",
 
   // Master
   pathMasterUserAll: "master/sale-user-all",
@@ -54,6 +55,9 @@ export const paths = {
   pathMasterAreas: "master/areas",
   pathMasterRoles: "master/roles",
   pathMasterCrop: "master/crop",
+  pathMasterPrefix: "master/prefix",
+  pathMasterEquipment: "master/equ",
+  pathMasterCropCalendar: "master/crop-calendar",
   pathMasterTarget: "master/target",
   pathMasterSubDealerCrop: "master/sub-dealer-crop",
   pathMasterProductTypes: "master/product-types",
@@ -446,4 +450,11 @@ export const paths = {
   pathPointCampaignCustomer: "campaign/customer",
   pathPointCampaignDelete: "campaign/delete",
   pathPointCampaignClone: "campaign/clone",
+
+  pathDraftCampaignList: "draft-campaign/list",
+  pathDraftCampaignDetail: "draft-campaign/detail",
+  pathDraftCampaignCreate: "draft-campaign/create",
+  pathDraftCampaignUpdate: "draft-campaign/update",
+  pathDraftCampaignDelete: "draft-campaign/delete",
+  pathDraftCampaignUserInfo: "draft-campaign/user-info",
 };

@@ -31,11 +31,24 @@ export default function OtpOA() {
 
   const onFinish = () => {
     const otpValue = otp.join("");
+    const lineUserId =
+      localStorage.getItem("lineUserId") || userInfo?.lineUserId || "";
     console.log("OTP Submitted:", otpValue);
+    console.log("lineUserId:", lineUserId);
 
     setLoading(true);
     useServiceAPI
-      .post(paths.pathOtpShopVerify, { messageId, otp: otpValue }, setLoading)
+    // เพิ่ม lineUserIdใน payload ของ API call
+      .post(
+        paths.pathOtpShopVerify,
+        {
+          messageId,
+          otp: otpValue,
+          // lineUserId,
+          line_id_token: lineUserId,
+        },
+        setLoading
+      )
       .then((response) => {
         if (response.status === 200) {
           console.log(response);
