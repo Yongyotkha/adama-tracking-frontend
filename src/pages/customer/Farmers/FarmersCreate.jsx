@@ -435,7 +435,7 @@ export default function FarmersCreate() {
     setPermission(data.permission || DEFAULT_PERMISSION);
     setHomeLocation({
       ...homeCoordinates,
-      address: data.location_address || data.contact_address || data.address || "",
+      address: data.location_address || "",
     });
     setFarmLocation({
       ...farmCoordinates,
@@ -1006,7 +1006,7 @@ export default function FarmersCreate() {
                 mode="custom"
                 onClick={() => setIsHomeMapEnabled((prev) => !prev)}
                 className={`text-white ${
-                  isHomeMapEnabled ? "bg-[#FF4D4F]" : "bg-[#00783F]"
+                  isHomeMapEnabled ? "bg-[#f11113]" : "bg-[#00783F]"
                 }`}
               />
               <button
@@ -1063,7 +1063,7 @@ export default function FarmersCreate() {
                 mode="custom"
                 onClick={() => setIsFarmMapEnabled((prev) => !prev)}
                 className={`text-white ${
-                  isFarmMapEnabled ? "bg-[#FF4D4F]" : "bg-[#00783F]"
+                  isFarmMapEnabled ? "bg-[#f11113]" : "bg-[#00783F]"
                 }`}
               />
               <button
