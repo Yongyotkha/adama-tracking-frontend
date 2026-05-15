@@ -24,7 +24,7 @@ export default function VerifyOA() {
   const [phone_number, setPhoneNumber] = useState("");
   const { Title, Text } = Typography;
   const formatPhoneNumber = (number) => number.replace(/\s+/g, "");
-  const { logout } = useContext(AuthContext); // ✅ เพิ่มบรรทัดนี้
+  const { loginLineUid } = useContext(AuthContext);
   const { lineProfile } = useOutletContext() || {};
   useEffect(() => {
     console.log("lineProfile xxx : ", lineProfile);
@@ -34,22 +34,6 @@ export default function VerifyOA() {
     }
 
   }, []);
-
-
-  const confirmLogout = async () => {
-    try {
-      if (liff.isLoggedIn()) {
-        localStorage.removeItem("users");
-        logout("line"); // ✅ ตอนนี้ไม่ error แล้ว
-        liff.logout();
-        alert("User logged out from LIFF");
-        window.location.reload();
-      }
-    } catch (error) {
-      console.log(error);
-      alert("LIFF Logout Error:", error);
-    }
-  };
 
   const showConfirm = (title, content, btn_ok, btn_cancel) => {
     Modal.confirm({
@@ -80,6 +64,8 @@ export default function VerifyOA() {
   };
   const onFinish = () => {
     const formattedPhoneNumber = formatPhoneNumber(phone_number);
+    const lineUserId =
+      lineProfile?.userId || localStorage.getItem("lineUserId") || "";
     console.log('formattedPhoneNumber : ', formattedPhoneNumber)
 
     setLoading(true);
@@ -87,12 +73,27 @@ export default function VerifyOA() {
     useServiceAPI
       .post(
         paths.pathOtpShopCall,
-        { phone_number: Number(formattedPhoneNumber) },
+        {
+          phone_number: Number(formattedPhoneNumber),
+          line_id_token: lineUserId,
+        },
         setLoading
       )
-      .then((response) => {
+      .then(async (response) => {
 
         if (response.status === 200) {
+          if (
+            response.result === true &&
+            response.data?.login === true &&
+            response.data?.user_id
+          ) {
+            const results = await loginLineUid(response.data.user_id, setLoading);
+            if (results?.status === 200) {
+              navigate("/mobile/main", { replace: true });
+            }
+            return;
+          }
+
           if (response.data.step_number == 0) {
             showCancel('ขออภัย', 'ไม่พบข้อมูลของคุณในระบบ', 'ปิด');
           } else if (response.data.step_number == 1 || response.data.step_number == 4) {
@@ -131,7 +132,7 @@ export default function VerifyOA() {
     >
       {/* <BackTopLeftButton /> */}
 
-      <LogoGreenNew width="w-[100%]" className="mb-10 max-w-xs" onClick={confirmLogout} />
+      <LogoGreenNew width="w-[100%]" className="mb-10 max-w-xs"/>
 
       <Title level={4}>
         <span className="text-[#8A8A8A] font-bold sarabun-font">
@@ -188,11 +189,6 @@ export default function VerifyOA() {
         </Text>
 
 
-      </div>
-      <div className="text-center mt-10">
-
-
-        <button onClick={confirmLogout}>clear</button>
       </div>
       <button
         onClick={() => {

@@ -11,10 +11,14 @@ import ItemDropDown from "../../../components/dropdown/ItemDropDown";
 import useServiceAPI from "../../../services/corsService";
 import { paths } from "../../../services/CorsPath";
 import { AuthContext } from "../../../contexts/AuthContext";
+import { loadListPageState, saveListPageState } from "../../../utils/listPageState";
+
+const PAGE_STATE_KEY = "customer-sub-dealer-list";
 
 export default function SubDealerList() {
   const navigate = useNavigate();
   const { showNotification } = useContext(AuthContext);
+  const persistedState = loadListPageState(PAGE_STATE_KEY, {});
 
   const [loading, setLoading] = useState(false);
   const [tableLoading, setTableLoading] = useState(false);
@@ -26,11 +30,15 @@ export default function SubDealerList() {
   const [subDealerList, setSubDealerList] = useState([]);
   const [targetList, setTargetList] = useState([]); // ✅ NEW
 
-  const [filterValues, setFilterValues] = useState({});
+  const [filterValues, setFilterValues] = useState(persistedState.filterValues || {});
 
   const [tableParams, setTableParams] = useState({
-    pagination: { current: 1, pageSize: 10, total: 0 },
-    filters: {},
+    pagination: {
+      current: persistedState.tableParams?.pagination?.current || 1,
+      pageSize: persistedState.tableParams?.pagination?.pageSize || 10,
+      total: 0,
+    },
+    filters: persistedState.tableParams?.filters || {},
   });
 
   const filters = [
@@ -254,6 +262,19 @@ export default function SubDealerList() {
     tableParams.pagination.pageSize,
     JSON.stringify(tableParams.filters),
   ]);
+
+  useEffect(() => {
+    saveListPageState(PAGE_STATE_KEY, {
+      filterValues,
+      tableParams: {
+        pagination: {
+          current: tableParams.pagination.current,
+          pageSize: tableParams.pagination.pageSize,
+        },
+        filters: tableParams.filters,
+      },
+    });
+  }, [filterValues, tableParams]);
 
   const handleSearch = (filtersFromUI) => {
     setTableParams((prev) => ({

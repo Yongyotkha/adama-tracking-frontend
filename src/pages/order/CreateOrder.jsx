@@ -39,31 +39,152 @@ export default function CreateOrder() {
 
   const canEditProduct = ["1", "7"].includes(String(userInfo?.role_id));
 
+  const toNumber = (value, defaultValue = 0) => {
+    const num = parseFloat(String(value ?? "").replace(/,/g, ""));
+    return Number.isFinite(num) ? num : defaultValue;
+  };
+
+  const formatMoney = (value) =>
+    toNumber(value, 0).toLocaleString("en-US", {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    });
+
+  const isNumberOnly = (value) => /^\d+$/.test(String(value));
+
+  const alertNumberOnly = () => {
+    showMsg("warning", "กรุณากรอกตัวเลขเท่านั้น");
+  };
+
+  const handleNumberKeyDown = (e) => {
+    const allowedKeys = [
+      "Backspace",
+      "Delete",
+      "ArrowLeft",
+      "ArrowRight",
+      "ArrowUp",
+      "ArrowDown",
+      "Tab",
+      "Enter",
+    ];
+
+    if (allowedKeys.includes(e.key)) return;
+
+    if (!/^\d$/.test(e.key)) {
+      e.preventDefault();
+      alertNumberOnly();
+    }
+  };
+  const isDecimalOnly = (value) => /^\d*\.?\d*$/.test(String(value));
+
+  const handlePriceKeyDown = (e) => {
+    const allowedKeys = [
+      "Backspace",
+      "Delete",
+      "ArrowLeft",
+      "ArrowRight",
+      "ArrowUp",
+      "ArrowDown",
+      "Tab",
+      "Enter",
+    ];
+
+    if (allowedKeys.includes(e.key)) return;
+
+    if (e.key === "." && !String(e.target.value).includes(".")) return;
+
+    if (!/^\d$/.test(e.key)) {
+      e.preventDefault();
+      alertNumberOnly();
+    }
+  };
+
+  const handleUnitPriceInput = (key, value) => {
+    if (value === "") {
+      handleUnitPriceChange(key, "");
+      return;
+    }
+
+    if (!isDecimalOnly(value)) {
+      alertNumberOnly();
+      return;
+    }
+
+    handleUnitPriceChange(key, value);
+  };
+  const getProductPrice = (data) => {
+    return toNumber(
+      data?.product_unit_thb ??
+      data?.bath_unit ??
+      data?.baht_unit ??
+      data?.price ??
+      data?.value ??
+      0,
+      0
+    );
+  };
+
+  const handleQuantityInput = (key, value, minValue = 0, type = "product") => {
+    if (value === "") {
+      if (type === "other") handleQuantityChangeOther(key, minValue);
+      else handleQuantityChange(key, minValue);
+      return;
+    }
+
+    if (!isNumberOnly(value)) {
+      alertNumberOnly();
+      return;
+    }
+
+    if (type === "other") {
+      handleQuantityChangeOther(key, parseInt(value, 10));
+    } else {
+      handleQuantityChange(key, parseInt(value, 10));
+    }
+  };
+
   useEffect(() => {
     if (location.state?.data) {
       const { user_id, dealer_id, others, products, remark } = location.state.data;
 
-      setDataSaleId(user_id ? parseInt(user_id) : undefined);
+      setDataSaleId(user_id ? parseInt(user_id, 10) : undefined);
       setDealerId(dealer_id || undefined);
       setInputRemark(remark || "");
 
       setDataSource(
-        (products || []).map((item, index) => ({
-          ...item,
-          key: index + 1,
-          no: index + 1,
-          quantity: parseInt(item.quantity || 0),
-          foc: parseInt(item.foc || 0),
-        }))
+        (products || []).map((item, index) => {
+          const quantity = parseInt(item.quantity || 0, 10);
+          const price = getProductPrice(item);
+          const netAmount = toNumber(item.net_amount, quantity * price);
+
+          return {
+            ...item,
+            key: index + 1,
+            no: index + 1,
+            product_unit_thb: price,
+            quantity,
+            foc: parseInt(item.foc || 0, 10),
+            net_amount: netAmount.toFixed(2),
+          };
+        })
       );
 
       setDataSourceOther(
-        (others || []).map((item, index) => ({
-          ...item,
-          key: index + 1,
-          no: index + 1,
-          quantity: parseInt(item.quantity || 1),
-        }))
+        (others || []).map((item, index) => {
+          const quantity = parseInt(item.quantity || 1, 10);
+          const price = getProductPrice(item);
+          const netAmount = toNumber(item.net_amount, quantity * price);
+
+          return {
+            ...item,
+            key: index + 1,
+            no: index + 1,
+            product_unit_value: price,
+            product_unit_thb: price,
+            quantity,
+            net_amount: netAmount.toFixed(2),
+          };
+        })
       );
     }
   }, [location.state]);
@@ -87,9 +208,9 @@ export default function CreateOrder() {
           );
 
           if (checkSaleId) {
-            setDataSaleId(parseInt(userInfo.id));
+            setDataSaleId(parseInt(userInfo.id, 10));
             formCustom.setFieldsValue({
-              sale: parseInt(userInfo.id),
+              sale: parseInt(userInfo.id, 10),
             });
           }
         }
@@ -110,7 +231,7 @@ export default function CreateOrder() {
       try {
         const [dealer] = await Promise.all([
           useServiceAPI.get(paths.pathMasterDealerDropdown, {
-            user_id: parseInt(dataSaleId),
+            user_id: parseInt(dataSaleId, 10),
           }),
         ]);
 
@@ -215,19 +336,16 @@ export default function CreateOrder() {
 
     setDataSource((prev) =>
       prev.map((item) => {
-        if (item.key === key) {
-          const quantity = parseInt(item.quantity || 0);
-          const price = parseFloat(String(value || "0").replace(/,/g, ""));
-          const net_amount = (quantity * price).toFixed(2);
+        if (item.key !== key) return item;
 
-          return {
-            ...item,
-            product_unit_thb: value,
-            net_amount,
-          };
-        }
+        const quantity = toNumber(item.quantity, 0);
+        const price = toNumber(value, 0);
 
-        return item;
+        return {
+          ...item,
+          product_unit_thb: value,
+          net_amount: (quantity * price).toFixed(2),
+        };
       })
     );
   };
@@ -247,22 +365,20 @@ export default function CreateOrder() {
   const handleQuantityChange = (key, newQuantity) => {
     setDataSource((prevData) =>
       prevData.map((item) => {
-        if (item.key === key) {
-          const quantity = Math.max(0, newQuantity);
-          const price = parseFloat(String(item.product_unit_thb || "0").replace(/,/g, ""));
-          const net_amount = (quantity * price).toFixed(2);
-          const minFoc = parseInt(item.product_campaign_order_min_foc || 0);
-          const foc = minFoc > 0 ? parseInt(quantity / minFoc) : 0;
+        if (item.key !== key) return item;
 
-          return {
-            ...item,
-            quantity,
-            net_amount,
-            foc,
-          };
-        }
+        const quantity = Math.max(0, parseInt(newQuantity || 0, 10));
+        const price = toNumber(item.product_unit_thb, 0);
+        const net_amount = (quantity * price).toFixed(2);
+        const minFoc = parseInt(item.product_campaign_order_min_foc || 0, 10);
+        const foc = minFoc > 0 ? parseInt(quantity / minFoc, 10) : 0;
 
-        return item;
+        return {
+          ...item,
+          quantity,
+          net_amount,
+          foc,
+        };
       })
     );
   };
@@ -270,19 +386,17 @@ export default function CreateOrder() {
   const handleQuantityChangeOther = (key, newQuantity) => {
     setDataSourceOther((prevData) =>
       prevData.map((item) => {
-        if (item.key === key) {
-          const quantity = Math.max(1, newQuantity);
-          const price = parseFloat(String(item.product_unit_thb || "0").replace(/,/g, ""));
-          const net_amount = (quantity * price).toFixed(2);
+        if (item.key !== key) return item;
 
-          return {
-            ...item,
-            quantity,
-            net_amount,
-          };
-        }
+        const quantity = Math.max(1, parseInt(newQuantity || 1, 10));
+        const price = toNumber(item.product_unit_thb, 0);
+        const net_amount = (quantity * price).toFixed(2);
 
-        return item;
+        return {
+          ...item,
+          quantity,
+          net_amount,
+        };
       })
     );
   };
@@ -318,7 +432,7 @@ export default function CreateOrder() {
           no: index + 1,
           name: data.name,
           unit: data.unit,
-          value: parseFloat(data.value),
+          value: toNumber(data.value, 0),
         }));
 
         setGetOtherProductData(productData);
@@ -351,6 +465,7 @@ export default function CreateOrder() {
           ]);
 
           const productData = otherProduct.data;
+          const price = getProductPrice(productData);
 
           const isDuplicate = dataSourceOther.some(
             (item) => String(item.product_id) === String(productData.id)
@@ -369,10 +484,10 @@ export default function CreateOrder() {
               product_code: productData.code || "",
               product_name: productData.name,
               product_unit: productData.unit,
-              product_unit_value: productData.value,
-              product_unit_thb: productData.value,
+              product_unit_value: price,
+              product_unit_thb: price,
               quantity: 1,
-              net_amount: productData.value,
+              net_amount: price.toFixed(2),
             };
 
             return [...prev, newProduct].map((item, index) => ({
@@ -407,8 +522,18 @@ export default function CreateOrder() {
         if (canEditProduct && isEditing) {
           return (
             <Input
+              inputMode="decimal"
               value={record.product_unit_thb}
-              onChange={(e) => handleUnitPriceChange(record.key, e.target.value)}
+              onKeyDown={handlePriceKeyDown}
+              onChange={(e) => handleUnitPriceInput(record.key, e.target.value)}
+              onPressEnter={(e) => {
+                handleUnitPriceInput(record.key, e.target.value);
+                setEditingPriceKeys((prev) => ({
+                  ...prev,
+                  [record.key]: false,
+                }));
+                e.target.blur();
+              }}
               onBlur={() =>
                 setEditingPriceKeys((prev) => ({
                   ...prev,
@@ -420,9 +545,7 @@ export default function CreateOrder() {
           );
         }
 
-        return parseFloat(String(text || "0").replace(/,/g, "")).toLocaleString("en-US", {
-          minimumFractionDigits: 2,
-        });
+        return formatMoney(text);
       },
     },
     {
@@ -442,7 +565,12 @@ export default function CreateOrder() {
             inputMode="numeric"
             min={0}
             value={record.quantity}
-            onChange={(e) => handleQuantityChange(record.key, parseInt(e.target.value) || 0)}
+            onKeyDown={handleNumberKeyDown}
+            onChange={(e) => handleQuantityInput(record.key, e.target.value, 0, "product")}
+            onPressEnter={(e) => {
+              handleQuantityInput(record.key, e.target.value, 0, "product");
+              e.target.blur();
+            }}
             className="border border-solid border-[#00783F] text-[#00783F] text-center mx-2 w-20"
           />
 
@@ -460,10 +588,7 @@ export default function CreateOrder() {
       title: "Sub Total (THB)",
       dataIndex: "net_amount",
       key: "net_amount",
-      render: (text) =>
-        parseFloat(String(text || "0").replace(/,/g, "")).toLocaleString("en-US", {
-          minimumFractionDigits: 2,
-        }),
+      render: (text) => formatMoney(text),
     },
     {
       title: <div className="text-center">Action</div>,
@@ -498,10 +623,7 @@ export default function CreateOrder() {
       title: "Value(THB/Unit)",
       dataIndex: "product_unit_value",
       key: "product_unit_value",
-      render: (text, record) =>
-        parseFloat(String(text || record.product_unit_thb || "0").replace(/,/g, "")).toLocaleString("en-US", {
-          minimumFractionDigits: 2,
-        }),
+      render: (text, record) => formatMoney(text || record.product_unit_thb),
     },
     {
       title: <div className="text-center">QTY</div>,
@@ -520,7 +642,12 @@ export default function CreateOrder() {
             inputMode="numeric"
             min={1}
             value={record.quantity}
-            onChange={(e) => handleQuantityChangeOther(record.key, parseInt(e.target.value) || 1)}
+            onKeyDown={handleNumberKeyDown}
+            onChange={(e) => handleQuantityInput(record.key, e.target.value, 1, "other")}
+            onPressEnter={(e) => {
+              handleQuantityInput(record.key, e.target.value, 1, "other");
+              e.target.blur();
+            }}
             className="border border-solid border-[#00783F] text-[#00783F] text-center mx-2 w-20"
           />
 
@@ -537,10 +664,7 @@ export default function CreateOrder() {
       title: "Sub Total (THB)",
       dataIndex: "net_amount",
       key: "net_amount",
-      render: (text) =>
-        parseFloat(String(text || "0").replace(/,/g, "")).toLocaleString("en-US", {
-          minimumFractionDigits: 2,
-        }),
+      render: (text) => formatMoney(text),
     },
     {
       title: <div className="text-center">Action</div>,
@@ -555,17 +679,17 @@ export default function CreateOrder() {
 
   const footerOrderList = () => {
     const totalQuantity = dataSource.reduce(
-      (total, item) => total + parseFloat(item.quantity || 0),
+      (total, item) => total + toNumber(item.quantity, 0),
       0
     );
 
     const totalFOC = dataSource.reduce(
-      (total, item) => total + parseFloat(item.foc || 0),
+      (total, item) => total + toNumber(item.foc, 0),
       0
     );
 
     const totalAmount = dataSource.reduce(
-      (total, item) => total + parseFloat(String(item.net_amount || "0").replace(/,/g, "")),
+      (total, item) => total + toNumber(item.net_amount, 0),
       0
     );
 
@@ -573,7 +697,7 @@ export default function CreateOrder() {
       <tr className="bg-[#978B87]">
         <td colSpan={9} className="text-right pr-2 text-white">
           Item: {dataSource.length} &nbsp; QTY (ctn): {totalQuantity}+{totalFOC}
-          &nbsp; Total: {totalAmount.toLocaleString("en-US", { minimumFractionDigits: 2 })}
+          &nbsp; Total: {formatMoney(totalAmount)}
         </td>
       </tr>
     );
@@ -581,12 +705,12 @@ export default function CreateOrder() {
 
   const footerOther = () => {
     const totalQuantity = dataSourceOther.reduce(
-      (total, item) => total + parseFloat(item.quantity || 0),
+      (total, item) => total + toNumber(item.quantity, 0),
       0
     );
 
     const totalAmount = dataSourceOther.reduce(
-      (total, item) => total + parseFloat(String(item.net_amount || "0").replace(/,/g, "")),
+      (total, item) => total + toNumber(item.net_amount, 0),
       0
     );
 
@@ -594,7 +718,7 @@ export default function CreateOrder() {
       <tr className="bg-[#978B87]">
         <td colSpan={7} className="text-right pr-2 text-white">
           Item: {dataSourceOther.length} &nbsp; QTY: {totalQuantity}
-          &nbsp; Total: {totalAmount.toLocaleString("en-US", { minimumFractionDigits: 2 })}
+          &nbsp; Total: {formatMoney(totalAmount)}
         </td>
       </tr>
     );
@@ -623,6 +747,7 @@ export default function CreateOrder() {
         ]);
 
         const data = productDetail.data;
+        const price = getProductPrice(data);
 
         const isDuplicate = dataSource.some(
           (item) =>
@@ -635,8 +760,7 @@ export default function CreateOrder() {
           return;
         }
 
-        const price = parseFloat(String(data.bath_unit || "0").replace(/,/g, ""));
-        const minFoc = parseInt(data.product_campaign_order_min_foc || 0);
+        const minFoc = parseInt(data.product_campaign_order_min_foc || 0, 10);
 
         const newProductDataDetail = {
           key: dataSource.length + 1,
@@ -645,11 +769,11 @@ export default function CreateOrder() {
           product_code: data.product_code,
           product_name: data.product_name,
           product_unit: data.packing_list,
-          product_unit_thb: data.bath_unit,
+          product_unit_thb: price,
           product_campaign_order_min_foc: data.product_campaign_order_min_foc,
           product_campaign_foc: data.product_campaign_foc,
           quantity: 1,
-          foc: minFoc > 0 ? parseInt(1 / minFoc) : 0,
+          foc: minFoc > 0 ? parseInt(1 / minFoc, 10) : 0,
           net_amount: price.toFixed(2),
         };
 

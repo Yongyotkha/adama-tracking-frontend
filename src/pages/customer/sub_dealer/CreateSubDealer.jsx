@@ -72,6 +72,21 @@ export default function CreateSubDealer() {
   const [isTerritoryModalVisible, setIsTerritoryModalVisible] = useState(false);
   const [userList, setUserList] = useState([]);
 
+  const renderNetworkAction = (farmerId) =>
+    !isViewMode && (
+      <DynamicButton
+        iconSrc="/img/icons/delete.png"
+        onClick={() => handleDeleteNetworkItem(farmerId)}
+      />
+    );
+
+  const normalizeNetworkList = (items = []) =>
+    items.map((item, index) => ({
+      ...item,
+      no: index + 1,
+      action: renderNetworkAction(item.key),
+    }));
+
   const networkHeader = [
     { title: "No", dataIndex: "no", key: "no", width: 50, align: "center" },
     { title: "Name", dataIndex: "name", key: "name", width: 150 },
@@ -178,15 +193,9 @@ export default function CreateSubDealer() {
                 textColor={farmer.farmer_channel_type_color}
               />
             ),
-            action:
-              !isViewMode && (
-                <DynamicButton
-                  iconSrc="/img/icons/delete.png"
-                  onClick={() => handleDeleteNetworkItem(farmer.farmer_id)}
-                />
-              ),
+            action: renderNetworkAction(farmer.farmer_id),
           })) || [];
-        setNetworkList(farmers);
+        setNetworkList(normalizeNetworkList(farmers));
 
         // contact_items
         const contactList =
@@ -395,17 +404,10 @@ export default function CreateSubDealer() {
 
     const newRows = selectedRows.map((row) => ({
       key: row.key,
-      no: networkList.length + 1,
       name: row.name || "-",
       contactperson: row.contactperson || "-",
       status: row.status || "-",
-      action:
-        !isViewMode && (
-          <DynamicButton
-            iconSrc="/img/icons/delete.png"
-            onClick={() => handleDeleteNetworkItem(row.key)}
-          />
-        ),
+      action: renderNetworkAction(row.key),
     }));
 
     setNetworkList((prev) => {
@@ -418,11 +420,20 @@ export default function CreateSubDealer() {
         return prev;
       }
       showNotification("success", "Add network success.");
-      return [...prev, ...filteredNewRows];
+      return normalizeNetworkList([...prev, ...filteredNewRows]);
     });
   };
 
   const handleDeleteNetworkItem = async (record) => {
+    setNetworkList((prev) =>
+      normalizeNetworkList(prev.filter((item) => item.key !== record))
+    );
+
+    // Keep the old API delete flow below for reference only.
+    // Farmer rows are now removed on the client and persisted
+    // when the user clicks "Update Farmer".
+    return;
+
     try {
       const requestData = {
         sub_dealer_id: location.state.id,
