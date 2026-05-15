@@ -385,7 +385,7 @@ export default function DraftCampaignAction() {
 
     setRows(
       detailItems.map((item) =>
-        recalculateProductRow({
+        calculateCampaignRow({
           ...item,
 
           quantity: toNumber(item.quantity),
@@ -514,7 +514,7 @@ export default function DraftCampaignAction() {
     setRows((prev) =>
       prev.map((row, rowIndex) =>
         rowIndex === index
-          ? recalculateProductRow({
+          ? calculateCampaignRow({
             ...row,
             [key]: Math.max(0, toNumber(value)),
           })
@@ -561,7 +561,7 @@ export default function DraftCampaignAction() {
 
       setRows((prev) => [
         ...prev,
-        recalculateProductRow({
+        calculateCampaignRow({
           ...product,
           quantity: 1,
           xpoint: product.xpoint || 1,
@@ -582,6 +582,20 @@ export default function DraftCampaignAction() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const calculateCampaignRow = (row) => {
+    const quantity = toNumber(row.quantity);
+    const xpoint = toNumber(row.xpoint) || 1;
+    const masterPoint = toNumber(row.master_point || row.point);
+
+    return {
+      ...row,
+      quantity,
+      xpoint,
+      master_point: masterPoint,
+      point: quantity * masterPoint * xpoint,
+    };
   };
 
   const renderStepperInput = (index, key, value) => (

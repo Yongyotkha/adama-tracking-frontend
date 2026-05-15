@@ -198,6 +198,9 @@ export default function FarmersCreate() {
   const [editingCalendarCropId, setEditingCalendarCropId] = useState(null);
   const [editingCalendarCropRowKey, setEditingCalendarCropRowKey] = useState(null);
   const [editingCalendarCropValue, setEditingCalendarCropValue] = useState("");
+  const [isHomeMapEnabled, setIsHomeMapEnabled] = useState(false);
+  const [isFarmMapEnabled, setIsFarmMapEnabled] = useState(false);
+  const [isGoogleLoaded, setIsGoogleLoaded] = useState(false);
   const [galleryByYear, setGalleryByYear] = useState({
     [String(dayjs().year())]: [],
   });
@@ -305,6 +308,22 @@ export default function FarmersCreate() {
       `https://www.google.com/maps/search/?api=1&query=${locationData.lat},${locationData.lng}`,
       "_blank"
     );
+  };
+
+  const updateMapAddressIfNeeded = async (type, locationData) => {
+    if (!locationData?.lat || !locationData?.lng || locationData?.address) {
+      return;
+    }
+
+    const address = await geocodeLatLng(locationData.lat, locationData.lng);
+    if (!address) return;
+
+    if (type === "home") {
+      setHomeLocation((prev) => ({ ...prev, address }));
+      return;
+    }
+
+    setFarmLocation((prev) => ({ ...prev, address }));
   };
 
   const mergeCalendarRows = (templateRows = [], existingRows = []) =>
@@ -492,6 +511,37 @@ export default function FarmersCreate() {
       form.setFieldValue("equ_other", "");
     }
   }, [form, showOtherEquipment]);
+
+  useEffect(() => {
+    const checkGoogleMaps = () => {
+      if (window.google?.maps) {
+        setIsGoogleLoaded(true);
+        return null;
+      }
+
+      const interval = setInterval(() => {
+        if (window.google?.maps) {
+          clearInterval(interval);
+          setIsGoogleLoaded(true);
+        }
+      }, 500);
+
+      return () => clearInterval(interval);
+    };
+
+    const cleanup = checkGoogleMaps();
+    return () => cleanup?.();
+  }, []);
+
+  useEffect(() => {
+    if (!isGoogleLoaded) return;
+    updateMapAddressIfNeeded("home", homeLocation);
+  }, [isGoogleLoaded, homeLocation.lat, homeLocation.lng]);
+
+  useEffect(() => {
+    if (!isGoogleLoaded) return;
+    updateMapAddressIfNeeded("farm", farmLocation);
+  }, [isGoogleLoaded, farmLocation.lat, farmLocation.lng]);
 
   const addContact = () => {
     setContacts((prev) => [...prev, { ...EMPTY_CONTACT }]);
@@ -950,31 +1000,49 @@ export default function FarmersCreate() {
               disabled
               suffix={<EnvironmentOutlined />}
             />
-            <div className="flex justify-end mb-2">
-              <Button
-                type="primary"
-                className="bg-[#00783F]"
+            <div className="flex justify-end items-center gap-2 mb-2">
+              <ActionButton
+                text={isHomeMapEnabled ? "Close Google" : "Open Google"}
+                mode="custom"
+                onClick={() => setIsHomeMapEnabled((prev) => !prev)}
+                className={`text-white ${
+                  isHomeMapEnabled ? "bg-[#FF4D4F]" : "bg-[#00783F]"
+                }`}
+              />
+              <button
+                type="button"
+                className="w-8 h-8 bg-white rounded hover:shadow"
                 onClick={() => openGoogleMap(homeLocation)}
+                title="Open in Google Maps"
+                disabled={!homeLocation.lat || !homeLocation.lng}
               >
-                Open Google
-              </Button>
+                <img
+                  src="/img/icons/google-map.png"
+                  alt="Google Map"
+                  className="w-full h-full object-contain"
+                />
+              </button>
             </div>
             <LoadScript googleMapsApiKey={GOOGLE_MAPS_API_KEY}>
               <GoogleMap
                 mapContainerStyle={mapContainerStyle}
                 center={homeLocation}
                 zoom={10}
+                options={{ disableDefaultUI: !isHomeMapEnabled }}
                 onClick={(event) => {
-                  if (!canUpdate || !event.latLng) return;
+                  if (!canUpdate || !isHomeMapEnabled || !event.latLng) return;
                   updateMapLocation("home", event.latLng.lat(), event.latLng.lng());
                 }}
               >
                 <Marker
                   position={homeLocation}
-                  draggable={canUpdate}
+                  draggable={canUpdate && isHomeMapEnabled}
                   onDragEnd={(event) => {
-                    if (!event.latLng) return;
+                    if (!isHomeMapEnabled || !event.latLng) return;
                     updateMapLocation("home", event.latLng.lat(), event.latLng.lng());
+                  }}
+                  options={{
+                    draggable: canUpdate && isHomeMapEnabled,
                   }}
                 />
               </GoogleMap>
@@ -989,31 +1057,49 @@ export default function FarmersCreate() {
               disabled
               suffix={<EnvironmentOutlined />}
             />
-            <div className="flex justify-end mb-2">
-              <Button
-                type="primary"
-                className="bg-[#00783F]"
+            <div className="flex justify-end items-center gap-2 mb-2">
+              <ActionButton
+                text={isFarmMapEnabled ? "Close Google" : "Open Google"}
+                mode="custom"
+                onClick={() => setIsFarmMapEnabled((prev) => !prev)}
+                className={`text-white ${
+                  isFarmMapEnabled ? "bg-[#FF4D4F]" : "bg-[#00783F]"
+                }`}
+              />
+              <button
+                type="button"
+                className="w-8 h-8 bg-white rounded hover:shadow"
                 onClick={() => openGoogleMap(farmLocation)}
+                title="Open in Google Maps"
+                disabled={!farmLocation.lat || !farmLocation.lng}
               >
-                Open Google
-              </Button>
+                <img
+                  src="/img/icons/google-map.png"
+                  alt="Google Map"
+                  className="w-full h-full object-contain"
+                />
+              </button>
             </div>
             <LoadScript googleMapsApiKey={GOOGLE_MAPS_API_KEY}>
               <GoogleMap
                 mapContainerStyle={mapContainerStyle}
                 center={farmLocation}
                 zoom={10}
+                options={{ disableDefaultUI: !isFarmMapEnabled }}
                 onClick={(event) => {
-                  if (!canUpdate || !event.latLng) return;
+                  if (!canUpdate || !isFarmMapEnabled || !event.latLng) return;
                   updateMapLocation("farm", event.latLng.lat(), event.latLng.lng());
                 }}
               >
                 <Marker
                   position={farmLocation}
-                  draggable={canUpdate}
+                  draggable={canUpdate && isFarmMapEnabled}
                   onDragEnd={(event) => {
-                    if (!event.latLng) return;
+                    if (!isFarmMapEnabled || !event.latLng) return;
                     updateMapLocation("farm", event.latLng.lat(), event.latLng.lng());
+                  }}
+                  options={{
+                    draggable: canUpdate && isFarmMapEnabled,
                   }}
                 />
               </GoogleMap>
