@@ -28,12 +28,11 @@ export default function VerifyOA() {
   const { lineProfile } = useOutletContext() || {};
   useEffect(() => {
     console.log("lineProfile xxx : ", lineProfile);
-    if (lineProfile) {
-      localStorage.setItem('lineDisplayName', lineProfile.displayName);
-      localStorage.setItem('lineUserId', lineProfile.userId);
+    if (lineProfile?.userId) {
+      localStorage.setItem("lineDisplayName", lineProfile.displayName || "");
+      localStorage.setItem("lineUserId", lineProfile.userId);
     }
-
-  }, []);
+  }, [lineProfile]);
 
   const showConfirm = (title, content, btn_ok, btn_cancel) => {
     Modal.confirm({
@@ -100,7 +99,14 @@ export default function VerifyOA() {
 
             const otpRefNo = response.data.data.data.otp_ref_no;
             const message_id = response.data.data.data.message_id;
-            navigate("/mobile/otp", { state: { otpRefNo, message_id } });
+            navigate("/mobile/otp", {
+              state: {
+                otpRefNo,
+                message_id,
+                phone_number: Number(formattedPhoneNumber),
+                lineUserId,
+              },
+            });
 
           } else if (response.data.step_number == 2) {
             showConfirm('ขออภัย', 'กรุณากรอกเบอร์โทรศัพท์ที่เคยมีการลงทะเบียนแล้วหากคุณลืมหมายเลขให้ติดต่อแจ้งเจ้าหน้าที่', 'ตกลง', 'ติดต่อเจ้าหน้าที่');
