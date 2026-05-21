@@ -24,6 +24,7 @@ export default function OtpOA() {
   console.log("messageId:", messageId);
   const otp_ref_no = location?.state?.otpRefNo;
   const phone_number = location?.state?.phone_number;
+  const lineUserIdFromState = location?.state?.lineUserId;
 
   useEffect(() => {
     console.log(location.state);
@@ -32,7 +33,10 @@ export default function OtpOA() {
   const onFinish = () => {
     const otpValue = otp.join("");
     const lineUserId =
-      localStorage.getItem("lineUserId") || userInfo?.lineUserId || "";
+      lineUserIdFromState ||
+      localStorage.getItem("lineUserId") ||
+      userInfo?.lineUserId ||
+      "";
     console.log("OTP Submitted:", otpValue);
     console.log("lineUserId:", lineUserId);
 
@@ -44,7 +48,7 @@ export default function OtpOA() {
         {
           messageId,
           otp: otpValue,
-          // lineUserId,
+          lineUserId,
           line_id_token: lineUserId,
         },
         setLoading
@@ -178,10 +182,19 @@ export default function OtpOA() {
 
   const handleResend = () => {
     setTimeLeft(300);
+    const lineUserId =
+      lineUserIdFromState ||
+      localStorage.getItem("lineUserId") ||
+      userInfo?.lineUserId ||
+      "";
 
     setLoading(true);
     useServiceAPI
-      .post(paths.pathOtpShopCall, { phone_number }, setLoading)
+      .post(
+        paths.pathOtpShopCall,
+        { phone_number, line_id_token: lineUserId },
+        setLoading
+      )
       .then((response) => {
         if (response.status === 200) {
           setmessageId(response.data.data.message_id);
