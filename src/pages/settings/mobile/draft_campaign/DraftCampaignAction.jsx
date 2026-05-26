@@ -186,7 +186,7 @@ export default function DraftCampaignAction() {
     }
 
     try {
-      const res = await useServiceAPI.get(paths.pathMasterDealerDropdown, {
+      const res = await useServiceAPI.get(paths.pathMasterDealerAssistant, {
         user_id: saleId,
       });
 
@@ -231,7 +231,7 @@ export default function DraftCampaignAction() {
 
     try {
       const res = await useServiceAPI.get(paths.pathMasterSubDealerAll, {
-        user_id: saleId || "",
+        // user_id: saleId || "",
         dealer_id: dealerId,
       });
 

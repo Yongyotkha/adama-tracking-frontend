@@ -43,8 +43,8 @@ export default function ApprovalClearingExpense() {
       total: 0,
     },
     filters: {},
-    sortOrder: null,
-    sortField: null,
+    sortOrder: "desc",
+    sortField: "document_date",
   });
 
   const getId = (v) => {
@@ -360,9 +360,6 @@ export default function ApprovalClearingExpense() {
     const { current, pageSize } = tableParams.pagination;
     const f = tableParams.filters || {};
 
-    const sortOrder = tableParams.sortOrder || "desc";
-    const sortField = tableParams.sortField || "document_number";
-
     const requestData = {
       page_code: "expense_clearing",
       keyword: f.expense_no || "",
@@ -376,8 +373,8 @@ export default function ApprovalClearingExpense() {
       document_number_advance_referrent: f.advance_reference_no || "",
       customer_name: "",
       page: "all",
-      orderby_column: sortField,
-      orderby: sortOrder,
+      orderby_column: "document_date",
+      orderby: "desc",
       page_length: current,
       page_size: pageSize,
       page_mode: "waiting_" + role,
@@ -469,8 +466,8 @@ export default function ApprovalClearingExpense() {
       ...prev,
       pagination,
       filters: prev.filters,
-      sortField: sorter?.field,
-      sortOrder: sorter?.order === "descend" ? "desc" : "asc",
+      sortField: sorter?.field || prev.sortField || "document_date",
+      sortOrder: sorter?.order === "descend" ? "desc" : prev.sortOrder || "desc",
     }));
   };
 

@@ -187,7 +187,7 @@ export const paths = {
   // master/dealer-all-team
   pathMasterDealerAllTeam: "master/dealer-all-team",
   pathMasterDealerBySale: "master/dealers",
-
+  pathMasterDealerAssistant: "master/dealer-assistant",
   pathMasterSaleByArea: "/master/area_user_sale",
   pathMasterUserByArea: "/master/area_user",
 

@@ -285,7 +285,7 @@ export default function ApprovalAdvanceExpense() {
       date: filters.date || "",
       page: "all",
       page_mode: "waiting_" + role,
-      orderby_column: "document_number",
+      orderby_column: "document_date",
       orderby: "desc",
       page_length: current,
       page_size: pageSize,

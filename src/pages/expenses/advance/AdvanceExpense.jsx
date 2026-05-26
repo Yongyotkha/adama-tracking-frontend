@@ -49,8 +49,8 @@ export default function AdvanceExpense() {
       total: 0,
     },
     filters: fallbackTableFilters,
-    sortOrder: persistedState.tableParams?.sortOrder || null,
-    sortField: persistedState.tableParams?.sortField || null,
+    sortOrder: persistedState.tableParams?.sortOrder || "desc",
+    sortField: persistedState.tableParams?.sortField || "document_date",
   });
 
   const getId = (v) => {
@@ -313,9 +313,6 @@ export default function AdvanceExpense() {
     const { current, pageSize } = tableParams.pagination;
     const f = tableParams.filters || {};
 
-    const sortOrder = tableParams.sortOrder || "desc";
-    const sortField = tableParams.sortField || "document_number";
-
     const requestData = {
       page_code: "expense_advance",
       keyword: f.expense_no || "",
@@ -330,8 +327,8 @@ export default function AdvanceExpense() {
       customer_name: "",
       page: "all",
       page_mode: "list",
-      orderby_column: sortField,
-      orderby: sortOrder,
+      orderby_column: "document_date",
+      orderby: "desc",
       page_length: current,
       page_size: pageSize,
       platform: "web",

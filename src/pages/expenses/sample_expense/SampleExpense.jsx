@@ -26,8 +26,8 @@ export default function SampleExpense() {
       pageSize: 10,
     },
     filters: {},
-    sortOrder: null,
-    sortField: null,
+    sortOrder: "desc",
+    sortField: "document_date",
   });
   const [statusOptions, setStatusOptions] = useState([]);
   const [saleList, setSaleList] = useState([]);
@@ -181,6 +181,8 @@ export default function SampleExpense() {
       crop_id: filters.crop || "",
       status_transaction_code: filters.status_transaction_code || "",
       page: "all",
+      orderby_column: "document_date",
+      orderby: "desc",
       page_length: current,
       page_size: pageSize,
     };

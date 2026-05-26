@@ -32,8 +32,8 @@ export default function Traveling() {
       pageSize: 10,
     },
     filters: {},
-    sortOrder: null,
-    sortField: null,
+    sortOrder: "desc",
+    sortField: "document_date",
   });
 
   // Get Master
@@ -143,9 +143,6 @@ export default function Traveling() {
     setTableLoading(true);
     const { current, pageSize } = tableParams.pagination;
     const filters = tableParams.filters || {};
-    const sortOrder = tableParams.sortOrder || "desc";
-    const sortField = tableParams.sortField || "year";
-
     const requestData = {
       user_id: filters.sale || "",
       year: filters.year || "",
@@ -153,8 +150,8 @@ export default function Traveling() {
       status_code: filters.status || "",
       page: "all",
       use_flag: filters.use_flag || "",
-      orderby_column: sortField,
-      orderby: sortOrder,
+      orderby_column: "document_date",
+      orderby: "desc",
       page_length: current,
       page_size: pageSize,
     };
@@ -327,8 +324,8 @@ export default function Traveling() {
     setTableParams({
       pagination,
       filters: tableParams.filters, // รักษาค่าฟิลเตอร์เดิม
-      sortOrder: sorter.order === "descend" ? "desc" : "asc",
-      sortField: sorter.field,
+      sortOrder: sorter?.order === "descend" ? "desc" : tableParams.sortOrder || "desc",
+      sortField: sorter?.field || tableParams.sortField || "document_date",
     });
   };
   return (
