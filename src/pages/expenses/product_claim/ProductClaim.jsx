@@ -42,7 +42,7 @@ export default function ProductClaim() {
       page: "all",                // fixed
     },
     sortOrder: "desc",
-    sortField: "document_number",
+    sortField: "document_date",
   });
 
   const navigate = useNavigate();
@@ -215,9 +215,6 @@ export default function ProductClaim() {
     const { current, pageSize } = tableParams.pagination;
     const filters = tableParams.filters || {};
 
-    const sortOrder = tableParams.sortOrder || "desc";
-    const sortField = tableParams.sortField || "document_number";
-
     const requestData = {
       keyword: filters.keyword ?? "",
       use_flag: filters.use_flag ?? "1",
@@ -227,8 +224,8 @@ export default function ProductClaim() {
       document_date: filters.document_date ?? "", // ✅ ส่ง claim date เข้า API
       payment_status_code: filters.payment_status_code ?? "",
       page: filters.page ?? "all",
-      orderby_column: sortField,
-      orderby: sortOrder,
+      orderby_column: "document_date",
+      orderby: "desc",
       page_length: current,
       page_size: pageSize,
     };

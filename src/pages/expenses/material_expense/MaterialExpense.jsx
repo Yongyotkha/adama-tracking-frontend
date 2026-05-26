@@ -34,8 +34,8 @@ export default function MaterialExpense() {
       pageSize: 10,
     },
     filters: {},
-    sortOrder: null,
-    sortField: null,
+    sortOrder: "desc",
+    sortField: "document_date",
   });
 
   const filters = [
@@ -262,6 +262,8 @@ export default function MaterialExpense() {
         page_length: current,
         page_size: pageSize,
         code: filters.code || "",
+        orderby_column: "document_date",
+        orderby: "desc",
       });
 
       if (response.status === 200) {
@@ -349,8 +351,8 @@ export default function MaterialExpense() {
       ...prev,
       pagination,
       filters: prev.filters,
-      sortOrder: sorter?.order === "descend" ? "desc" : "asc",
-      sortField: sorter?.field,
+      sortOrder: sorter?.order === "descend" ? "desc" : prev.sortOrder || "desc",
+      sortField: sorter?.field || prev.sortField || "document_date",
     }));
   };
 
