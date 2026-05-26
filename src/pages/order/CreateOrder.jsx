@@ -38,7 +38,6 @@ export default function CreateOrder() {
   const [formCustom] = Form.useForm();
 
   const canEditProduct = ["1", "7"].includes(String(userInfo?.role_id));
-  const showProductEditActions = false;
 
   useEffect(() => {
     if (location.state?.data) {
@@ -482,14 +481,12 @@ export default function CreateOrder() {
                 onClick={() => handleDeleteProductRow(record.key)}
               />
 
-              {showProductEditActions && (
-                <img
-                  src="/img/icons/edit.png"
-                  alt="edit"
-                  className="cursor-pointer w-6 h-6"
-                  onClick={() => handleEditPrice(record.key)}
-                />
-              )}
+              <img
+                src="/img/icons/edit.png"
+                alt="edit"
+                className="cursor-pointer w-6 h-6"
+                onClick={() => handleEditPrice(record.key)}
+              />
             </>
           )}
         </div>
@@ -700,7 +697,7 @@ export default function CreateOrder() {
             <div className="flex justify-between items-center gap-2">
               <span>{data.name}</span>
 
-              {canEditProduct && showProductEditActions && (
+              {canEditProduct && (
                 <button
                   type="button"
                   className="text-[#00783F] border border-[#00783F] px-2 py-1 rounded text-xs hover:bg-[#00783F] hover:text-white"
