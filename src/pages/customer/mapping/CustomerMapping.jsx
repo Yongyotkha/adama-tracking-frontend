@@ -397,7 +397,7 @@ export default function CustomerMapping() {
                     onCloseClick={() => setLocationWindowInfo(null)}
                     options={{ pixelOffset: new window.google.maps.Size(0, -18) }}
                   >
-                    <div className="min-w-[260px] max-w-[320px] text-[#5f5653]">
+                    <div className="min-w-[260px] max-w-[320px] pt-4 text-[#5f5653]">
                       <div className="flex items-center gap-2 mb-1 border-b pb-2">
                         <span
                           className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border-2 border-white"
@@ -437,7 +437,14 @@ export default function CustomerMapping() {
                       <div className="flex items-center gap-2 mb-1">
                         <InfoIcon src="/img/icons/location.png" color="#978B87" />
                         <span className="min-w-0 flex-1 break-words">
-                          {locationWindowInfo.lat}, {locationWindowInfo.lng}
+                          <a 
+                            href={`https://www.google.com/maps/search/?api=1&query=${locationWindowInfo.lat},${locationWindowInfo.lng}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-[#1D72B8] hover:underline"
+                          >
+                            {locationWindowInfo.lat}, {locationWindowInfo.lng}
+                          </a>
                         </span>
                       </div>
                     </div>
