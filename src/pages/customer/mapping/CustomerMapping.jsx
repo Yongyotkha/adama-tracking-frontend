@@ -8,9 +8,9 @@ import useServiceAPI from "../../../services/CorsService";
 import { paths } from "../../../services/CorsPath";
 
 const CUSTOMER_TYPES = [
-  { id: "dealer", name: "Dealer", icon: "/img/icons/dealer.png", color: "#00783F" },
-  { id: "sub_dealer", name: "Sub Dealer", icon: "/img/icons/sub-dealer.png", color: "#1D72B8" },
-  { id: "farmer", name: "Farmer", icon: "/img/icons/customer.png", color: "#D88700" },
+  { id: "dealer", name: "Dealer", icon: "/img/icons/customer.png", color: "#00783F", markerLabel: "D" },
+  { id: "sub_dealer", name: "Sub Dealer", icon: "/img/icons/customer.png", color: "#1D72B8", markerLabel: "S" },
+  { id: "farmer", name: "Farmer", icon: "/img/icons/customer.png", color: "#D88700", markerLabel: "F" },
 ];
 
 const DEFAULT_CENTER = {
@@ -47,6 +47,27 @@ const normalizeCoordinates = (latValue, lngValue) => {
   return { lat, lng };
 };
 
+const createCustomerMarkerIcon = (color = "#00783F", label = "") => {
+  const svg = `
+    <svg width="44" height="54" viewBox="0 0 44 54" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M22 51C22 51 39 33.6 39 20.5C39 10.835 31.389 3 22 3C12.611 3 5 10.835 5 20.5C5 33.6 22 51 22 51Z" fill="${color}" stroke="white" stroke-width="3"/>
+      <circle cx="22" cy="20.5" r="11.5" fill="white" fill-opacity="0.96"/>
+      <text x="22" y="25" text-anchor="middle" font-family="Arial, sans-serif" font-size="14" font-weight="700" fill="${color}">${label}</text>
+    </svg>
+  `;
+
+  return `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svg)}`;
+};
+
+const InfoIcon = ({ src, color = "#00783F" }) => (
+  <span
+    className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full border"
+    style={{ backgroundColor: `${color}18`, borderColor: `${color}55` }}
+  >
+    <img src={src} className="h-4 w-4 object-contain" alt="" />
+  </span>
+);
+
 const mapCustomerRows = (rows = [], type) =>
   rows
     .map((item, index) => {
@@ -67,6 +88,7 @@ const mapCustomerRows = (rows = [], type) =>
         customer_type_name: typeMeta?.name || type,
         marker_icon: typeMeta?.icon,
         marker_color: typeMeta?.color,
+        marker_label: typeMeta?.markerLabel,
         dealer_id: item.dealer_id,
         dealer_name: item.dealer_name,
         sub_dealer_id: item.sub_dealer_id,
@@ -360,8 +382,9 @@ export default function CustomerMapping() {
                     key={loc.id}
                     position={{ lat: loc.lat, lng: loc.lng }}
                     icon={{
-                      url: loc.marker_icon,
-                      scaledSize: new window.google.maps.Size(28, 28),
+                      url: createCustomerMarkerIcon(loc.marker_color, loc.marker_label),
+                      scaledSize: new window.google.maps.Size(44, 54),
+                      anchor: new window.google.maps.Point(22, 51),
                     }}
                     options={{ suppressInfoWindow: true }}
                     onClick={() => setLocationWindowInfo(loc)}
@@ -376,31 +399,46 @@ export default function CustomerMapping() {
                   >
                     <div className="min-w-[260px] max-w-[320px] text-[#5f5653]">
                       <div className="flex items-center gap-2 mb-1 border-b pb-2">
-                        <img src={locationWindowInfo.marker_icon} className="w-7 h-7 rounded-sm" alt="" />
-                        <span className="font-semibold text-[#5f5653]">{locationWindowInfo.customer_name}</span>
+                        <span
+                          className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border-2 border-white"
+                          style={{ backgroundColor: locationWindowInfo.marker_color }}
+                        >
+                          <img src={locationWindowInfo.marker_icon} className="h-5 w-5 object-contain" alt="" />
+                        </span>
+                        <span className="min-w-0 flex-1 truncate font-semibold text-[#5f5653]">
+                          {locationWindowInfo.customer_name}
+                        </span>
                         <Tag className="ms-auto mr-0" color={locationWindowInfo.marker_color}>
                           {locationWindowInfo.customer_type_name}
                         </Tag>
                       </div>
 
                       <div className="flex items-center gap-2 mb-1 border-b pb-2">
-                        <img src="/img/icons/shop.png" className="w-6 h-6" alt="" />
-                        {locationWindowInfo.dealer_name || "No Dealer"}
+                        <InfoIcon src="/img/icons/profile.png" color="#00783F" />
+                        <span className="min-w-0 flex-1 break-words">
+                          {locationWindowInfo.sale_name || "No Sale"}
+                        </span>
+                      </div>
+                      
+                      <div className="flex items-center gap-2 mb-1 border-b pb-2">
+                        <InfoIcon src="/img/icons/dealer.png" color="#00783F" />
+                        <span className="min-w-0 flex-1 break-words">
+                          {locationWindowInfo.dealer_name || "No Dealer"}
+                        </span>
                       </div>
 
                       <div className="flex items-center gap-2 mb-1 border-b pb-2">
-                        <img src="/img/icons/sub-dealer.png" className="w-6 h-6" alt="" />
-                        {locationWindowInfo.sub_dealer_name || "No Sub Dealer"}
-                      </div>
-
-                      <div className="flex items-center gap-2 mb-1 border-b pb-2">
-                        <img src="/img/icons/profile.png" className="w-6 h-6" alt="" />
-                        {locationWindowInfo.sale_name || "No Sale"}
+                        <InfoIcon src="/img/icons/sub-dealer.png" color="#1D72B8" />
+                        <span className="min-w-0 flex-1 break-words">
+                          {locationWindowInfo.sub_dealer_name || "No Sub Dealer"}
+                        </span>
                       </div>
 
                       <div className="flex items-center gap-2 mb-1">
-                        <img src="/img/icons/location.png" className="w-6 h-6" alt="" />
-                        {locationWindowInfo.lat}, {locationWindowInfo.lng}
+                        <InfoIcon src="/img/icons/location.png" color="#978B87" />
+                        <span className="min-w-0 flex-1 break-words">
+                          {locationWindowInfo.lat}, {locationWindowInfo.lng}
+                        </span>
                       </div>
                     </div>
                   </InfoWindow>
