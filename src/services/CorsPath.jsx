@@ -148,6 +148,9 @@ export const paths = {
   pathCustomerContactList: "sale-customer-contact/list",
   pathCustomerContactCreate: "sale-customer-contact/create",
   pathCustomerContactDetail: "sale-customer-contact/detail",
+  pathCustomerMappingFarmers: "/sale-customer-mapping/farmers",
+  pathCustomerMappingSubDealers: "/sale-customer-mapping/sub-dealers",
+  pathCustomerMappingDealers: "/sale-customer-mapping/dealers",
   // dashbord
   pathDashBordCustomer: "dashboard/customer",
   pathDashBordExpense: "dashboard/expense",

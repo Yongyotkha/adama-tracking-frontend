@@ -45,6 +45,7 @@ import CreateSubDealer from "./pages/customer/sub_dealer/CreateSubDealer";
 import EditSubDealer from "./pages/customer/sub_dealer/EditSubDealer";
 import Farmer from "./pages/customer/Farmers/FarmersList";
 import FarmerCreate from "./pages/customer/Farmers/FarmersCreate";
+import CustomerMapping from "./pages/customer/mapping/CustomerMapping";
 import CameraView from "./pages/mobile/collect_points/CameraView";
 import CustomerContactList from "./pages/customer/contact/List";
 import CustomerContactFrom from "./pages/customer/contact/From";
@@ -435,6 +436,7 @@ const App = () => {
 
             <Route path="/customer/farmers" element={<Farmer />} />
             <Route path="/customer/farmers/create" element={<FarmerCreate />} />
+            <Route path="/customer/mapping" element={<CustomerMapping />} />
 
             <Route path="/customer/contact" element={<CustomerContactList />} />
             <Route
