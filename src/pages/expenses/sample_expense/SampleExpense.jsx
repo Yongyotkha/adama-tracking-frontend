@@ -142,6 +142,34 @@ export default function SampleExpense() {
       },
     });
   };
+
+  const handleApprove = (document_number) => {
+    confirm({
+      title: "Do you want to approve this sample expense?",
+      icon: <ExclamationCircleFilled />,
+      onOk: async () => {
+        try {
+          setLoading(true);
+          const payload = {
+            platform: "web",
+            document_number: document_number
+          };
+          const res = await useServiceAPI.post(paths.pathSampleStatus, payload);
+          if (res.status === 200) {
+            showNotification("success", res.data?.message || "Approve successful");
+            fetchData();
+          } else {
+            showMsg("error", res.data?.message || "ไม่สามารถทำรายการได้");
+          }
+        } catch (err) {
+          showMsg("error", err.message || "เกิดข้อผิดพลาด");
+        } finally {
+          setLoading(false);
+        }
+      },
+    });
+  };
+
   const formatNumberDisplay = (value, digits = 2) => {
     const n = Number(value);
     if (!Number.isFinite(n)) {
@@ -266,6 +294,11 @@ export default function SampleExpense() {
 
                           if (action === "delete") {
                             handleDelete(row.document_number);
+                            return;
+                          }
+
+                          if (action === "approve") {
+                            handleApprove(row.document_number);
                             return;
                           }
 
