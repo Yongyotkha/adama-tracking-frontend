@@ -129,6 +129,10 @@ export const mapDraftCampaignDetail = (item, currentPoint = 0) => {
     current_point: toNumber(currentPoint),
     target_point: toNumber(item?.target_point),
     diff_form_target: toNumber(item?.diff_form_target),
+    current_value: toNumber(item?.value_of_year ?? item?.current_value),
+    target_value: toNumber(item?.target_value),
+    diff_value_form_target: toNumber(item?.diff_value_form_target),
+    value_to_point: toNumber(item?.value_to_point),
     total_point: toNumber(item?.point),
     net_amount: products.reduce((sum, product) => sum + toNumber(product.net_amount), 0),
     products,
@@ -138,11 +142,10 @@ export const mapDraftCampaignDetail = (item, currentPoint = 0) => {
 
 export const buildDraftCampaignPayload = ({ values, rows, documentNumber }) => {
   const payload = {
+    platform: "web",
     document_date: values.document_date,
     user_id: toNumber(values.user_id),
     dealer_id: toNumber(values.dealer_id),
-    sub_dealer_id: toNumber(values.sub_dealer_id),
-    farmer_id: toNumber(values.farmer_id),
     target_point: toNumber(values.target_point),
     diff_form_target: toNumber(values.diff_form_target),
     products: rows.map((row) => ({
@@ -151,6 +154,21 @@ export const buildDraftCampaignPayload = ({ values, rows, documentNumber }) => {
       xpoint: toNumber(row.xpoint),
     })),
   };
+
+  if (values.sub_dealer_id) {
+    payload.sub_dealer_id = toNumber(values.sub_dealer_id);
+  }
+
+  if (values.farmer_id) {
+    payload.farmer_id = toNumber(values.farmer_id);
+  }
+
+  if (!values.sub_dealer_id && !values.farmer_id) {
+    payload.target_value = toNumber(values.target_value);
+    payload.diff_value_form_target = toNumber(values.diff_value_form_target);
+    payload.value_to_point = toNumber(values.value_to_point);
+    payload.point_your_get = toNumber(values.point_your_get);
+  }
 
   if (documentNumber) {
     payload.document_number = documentNumber;

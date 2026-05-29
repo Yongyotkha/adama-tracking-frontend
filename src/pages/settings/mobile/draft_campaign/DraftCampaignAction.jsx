@@ -41,6 +41,10 @@ const emptyDetail = {
   current_point: 0,
   target_point: 0,
   diff_form_target: 0,
+  current_value: 0,
+  target_value: 0,
+  diff_value_form_target: 0,
+  value_to_point: 0,
   total_point: 0,
   net_amount: 0,
   products: [],
@@ -90,6 +94,13 @@ export default function DraftCampaignAction() {
   const watchSaleId = Form.useWatch("user_id", form);
   const watchDealerId = Form.useWatch("dealer_id", form);
   const watchSubDealerId = Form.useWatch("sub_dealer_id", form);
+  const watchFarmerId = Form.useWatch("farmer_id", form);
+  const watchCurrentPoint = Form.useWatch("current_point", form);
+  const watchTargetPoint = Form.useWatch("target_point", form);
+  const watchCurrentValue = Form.useWatch("current_value", form);
+  const watchTargetValue = Form.useWatch("target_value", form);
+  const watchValueToPoint = Form.useWatch("value_to_point", form);
+  const isDealerOnly = !!watchDealerId && !watchSubDealerId && !watchFarmerId;
 
   const setCurrentPointValue = (value) => {
     const currentPoint = toNumber(value);
@@ -101,6 +112,19 @@ export default function DraftCampaignAction() {
     setDetail((prev) => ({
       ...prev,
       current_point: currentPoint,
+    }));
+  };
+
+  const setCurrentValue = (value) => {
+    const currentValue = toNumber(value);
+
+    form.setFieldsValue({
+      current_value: currentValue,
+    });
+
+    setDetail((prev) => ({
+      ...prev,
+      current_value: currentValue,
     }));
   };
 
@@ -125,6 +149,7 @@ export default function DraftCampaignAction() {
     if (!shop_type || !id) return null;
 
     const res = await useServiceAPI.get(paths.pathDraftCampaignUserInfo, {
+      platform: "web",
       shop_type,
       id,
     });
@@ -150,6 +175,7 @@ export default function DraftCampaignAction() {
 
       const balancePoint = getBalancePointFromResponse(res);
       setCurrentPointValue(balancePoint);
+      setCurrentValue(res?.data?.data?.value_of_year ?? res?.data?.value_of_year ?? 0);
 
       return res;
     } catch (_) {
@@ -343,6 +369,11 @@ export default function DraftCampaignAction() {
         current_point: 0,
         target_point: 0,
         diff_form_target: 0,
+        current_value: 0,
+        target_value: 0,
+        diff_value_form_target: 0,
+        value_to_point: 0,
+        point_your_get: 0,
       });
 
       return;
@@ -422,6 +453,11 @@ export default function DraftCampaignAction() {
       current_point: mapped.current_point,
       target_point: mapped.target_point,
       diff_form_target: mapped.diff_form_target,
+      current_value: mapped.current_value,
+      target_value: mapped.target_value,
+      diff_value_form_target: mapped.diff_value_form_target,
+      value_to_point: mapped.value_to_point,
+      point_your_get: toNumber(mapped.value_to_point) * toNumber(mapped.net_amount),
     });
 
     await loadDealers(mapped.user_id, mapped.dealer_id, mapped.dealer_name);
@@ -644,6 +680,7 @@ export default function DraftCampaignAction() {
 
     return 0;
   };
+
   const totals = useMemo(
     () =>
       rows.reduce(
@@ -661,6 +698,29 @@ export default function DraftCampaignAction() {
       ),
     [rows]
   );
+
+  const pointYourGet = useMemo(
+    () => toNumber(watchValueToPoint) * toNumber(totals.value),
+    [watchValueToPoint, totals.value]
+  );
+
+  useEffect(() => {
+    form.setFieldsValue({
+      diff_form_target:
+        toNumber(watchCurrentPoint) - toNumber(watchTargetPoint),
+    });
+  }, [form, watchCurrentPoint, watchTargetPoint]);
+
+  useEffect(() => {
+    if (!isDealerOnly) return;
+
+    form.setFieldsValue({
+      diff_value_form_target:
+        toNumber(watchCurrentValue) - toNumber(watchTargetValue),
+      point_your_get: pointYourGet,
+    });
+  }, [form, isDealerOnly, pointYourGet, watchCurrentValue, watchTargetValue]);
+
   const productColumns = [
     {
       title: "No",
@@ -754,6 +814,9 @@ export default function DraftCampaignAction() {
         Item : {rows.length} | QTY (ctn): {formatNumber(totals.qty)} | Total
         Point : {formatNumber(totals.point)} | Total:{" "}
         {formatNumber(totals.value, 2)}
+        {isDealerOnly && (
+          <> | Point Your Get : {formatNumber(pointYourGet, 2)}</>
+        )}
       </td>
     </tr>
   );
@@ -866,6 +929,7 @@ export default function DraftCampaignAction() {
                 }))}
                 disabled={readOnly}
                 placeholder="Select"
+                allowClear
                 showSearch
                 optionFilterProp="label"
                 onChange={() => {
@@ -894,6 +958,7 @@ export default function DraftCampaignAction() {
                 }))}
                 disabled={readOnly || !watchSaleId}
                 placeholder="Select"
+                allowClear
                 showSearch
                 optionFilterProp="label"
                 onChange={(value) => {
@@ -914,7 +979,6 @@ export default function DraftCampaignAction() {
             <Form.Item
               label="Sub Dealer"
               name="sub_dealer_id"
-              rules={[{ required: true, message: "Please select sub dealer" }]}
             >
               <Select
                 options={subDealerOptions.map((item) => ({
@@ -923,6 +987,7 @@ export default function DraftCampaignAction() {
                 }))}
                 disabled={readOnly || !watchDealerId}
                 placeholder="Select"
+                allowClear
                 showSearch
                 optionFilterProp="label"
                 onChange={(value) => {
@@ -942,7 +1007,6 @@ export default function DraftCampaignAction() {
             <Form.Item
               label="Farmer"
               name="farmer_id"
-              rules={[{ required: true, message: "Please select farmer" }]}
             >
               <Select
                 options={farmerOptions.map((item) => ({
@@ -996,15 +1060,50 @@ export default function DraftCampaignAction() {
               <InputNumber className="w-full" disabled={readOnly} min={0} />
             </Form.Item>
 
-            <Form.Item
-              label="Diff Form Target"
-              name="diff_form_target"
-              rules={[
-                { required: true, message: "Please enter diff form target" },
-              ]}
-            >
-              <InputNumber className="w-full" disabled={readOnly} min={0} />
+            <Form.Item label="Diff Form Target" name="diff_form_target">
+              <InputNumber className="w-full" disabled />
             </Form.Item>
+
+            {isDealerOnly && (
+              <>
+                <Form.Item label="Current Target" name="current_value">
+                  <InputNumber className="w-full" disabled />
+                </Form.Item>
+
+                <Form.Item
+                  label="Target Value"
+                  name="target_value"
+                  rules={[
+                    { required: true, message: "Please enter target value" },
+                  ]}
+                >
+                  <InputNumber className="w-full" disabled={readOnly} min={0} />
+                </Form.Item>
+
+                <Form.Item label="Diff Value Form Target" name="diff_value_form_target">
+                  <InputNumber className="w-full" disabled />
+                </Form.Item>
+
+                <Form.Item
+                  label="Bath To Point"
+                  name="value_to_point"
+                  rules={[
+                    { required: true, message: "Please enter value to point" },
+                  ]}
+                >
+                  <InputNumber
+                    className="w-full"
+                    disabled={readOnly}
+                    min={0}
+                    step={0.01}
+                  />
+                </Form.Item>
+
+                <Form.Item label="Point Your Get" name="point_your_get">
+                  <InputNumber className="w-full" disabled />
+                </Form.Item>
+              </>
+            )}
           </div>
         </BoxPrimary>
 
@@ -1024,6 +1123,7 @@ export default function DraftCampaignAction() {
               }}
               onSelect={(value) => addSelectedProduct(value)}
               disabled={readOnly}
+              allowClear
               options={productOptions}
               notFoundContent={
                 productSearchRef.current?.length >= 3
@@ -1054,10 +1154,10 @@ export default function DraftCampaignAction() {
             onClick={() => navigate("/setting/line/draft-campaign")}
           />
 
-          {isView && detail.document_number && (
+          {!isCreate && detail.document_number && (
             <ActionButton
               mode="custom"
-              text="PDF"
+              text="Export PDF"
               className="bg-[#F89E18]"
               onClick={() =>
                 window.open(

@@ -240,11 +240,16 @@ export default function DraftCampaignPDF() {
 
         const payload = getDetailPayload(detailRes);
 
-        const pointRes = payload?.sub_dealer_id
-          ? await useServiceAPI.get(paths.pathDraftCampaignUserInfo, {
-              shop_type: "sub_dealer",
-              id: payload.sub_dealer_id,
-            })
+        const pointPayload = payload?.farmer_id
+          ? { shop_type: "farmer", id: payload.farmer_id }
+          : payload?.sub_dealer_id
+            ? { shop_type: "sub_dealer", id: payload.sub_dealer_id }
+            : payload?.dealer_id
+              ? { shop_type: "dealer", id: payload.dealer_id }
+              : null;
+
+        const pointRes = pointPayload
+          ? await useServiceAPI.get(paths.pathDraftCampaignUserInfo, pointPayload)
           : null;
 
         const mapped = mapDraftCampaignDetail(

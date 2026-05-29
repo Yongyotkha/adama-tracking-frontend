@@ -36,6 +36,7 @@ export default function SampleExpense() {
   const [cropList, setCropList] = useState([]);
   const navigate = useNavigate();
   const { showMsg, showNotification, userInfo } = useContext(AuthContext);
+  const isAdmin = Number(userInfo?.role_id) === 1;
 
 
   const filters = [
@@ -250,26 +251,31 @@ export default function SampleExpense() {
           action: (
             <Dropdown
               menu={{
-                items: (row.action || []).map((actionItem, actionIndex) => ({
-                  key: actionIndex,
-                  label: (
-                    <ItemDropDown
-                      mode={actionItem.action.toLowerCase()}
-                      onClick={() => {
-                        const action = actionItem.action.toLowerCase();
+                items: (row.action || [])
+                  .filter((actionItem) => {
+                    const action = String(actionItem.action || "").toLowerCase();
+                    return action !== "delete" || isAdmin;
+                  })
+                  .map((actionItem, actionIndex) => ({
+                    key: actionIndex,
+                    label: (
+                      <ItemDropDown
+                        mode={actionItem.action.toLowerCase()}
+                        onClick={() => {
+                          const action = actionItem.action.toLowerCase();
 
-                        if (action === "delete") {
-                          handleDelete(row.document_number);
-                          return;
-                        }
+                          if (action === "delete") {
+                            handleDelete(row.document_number);
+                            return;
+                          }
 
-                        navigate(`/expenses/sample/${action}`, {
-                          state: { document_number: row.document_number },
-                        });
-                      }}
-                    />
-                  ),
-                })),
+                          navigate(`/expenses/sample/${action}`, {
+                            state: { document_number: row.document_number },
+                          });
+                        }}
+                      />
+                    ),
+                  })),
               }}
               placement="bottom"
             >
