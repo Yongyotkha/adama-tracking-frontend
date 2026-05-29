@@ -82,6 +82,33 @@ export default function MaterialExpense() {
     });
   };
 
+  const handleApprove = (code) => {
+    confirm({
+      title: "Do you want to approve this material expense?",
+      icon: <ExclamationCircleFilled />,
+      onOk: async () => {
+        try {
+          setLoading(true);
+          const payload = {
+            platform: "web",
+            code: code
+          };
+          const res = await useServiceAPI.post(paths.pathExpenseMaterialStatus, payload);
+          if (res.status === 200) {
+            showNotification("success", res.data?.message || "Approve successful");
+            fetchData();
+          } else {
+            showMsg("error", res.data?.message || "ไม่สามารถทำรายการได้");
+          }
+        } catch (err) {
+          showMsg("error", err.message || "เกิดข้อผิดพลาด");
+        } finally {
+          setLoading(false);
+        }
+      },
+    });
+  };
+
   const header = [
     { title: "#", dataIndex: "index", align: "left" },
     { title: "Code", dataIndex: "code", align: "left" },
@@ -93,6 +120,7 @@ export default function MaterialExpense() {
     { title: "Total Value Receive", dataIndex: "receive", align: "left" },
     { title: "Date", dataIndex: "date", align: "center" },
     { title: "Create By", dataIndex: "create_by", align: "left" },
+    { title: "Status", dataIndex: "status", align: "center" },
     {
       title: "Action",
       dataIndex: "action",
@@ -133,6 +161,18 @@ export default function MaterialExpense() {
                   <ItemDropDown
                     mode="delete"
                     onClick={() => handleDelete(record.code)}
+                  />
+                ),
+              };
+            }
+
+            if (actionName === "approve") {
+              return {
+                key: `approve-${index}`,
+                label: (
+                  <ItemDropDown
+                    mode="approve"
+                    onClick={() => handleApprove(record.code)}
                   />
                 ),
               };
@@ -317,6 +357,15 @@ export default function MaterialExpense() {
               : "-",
           create_by: item.create_user_name,
           unit_price: item.unit_price || "-",
+          status: item.status_name ? (
+            <BadgeStatus
+              text={item.status_name}
+              bgColor={item.status_bg_color || "#F89E18"}
+              textColor={item.status_color || "#FFFFFF"}
+            />
+          ) : (
+            "-"
+          ),
         }));
 
         setDataSource(formatted);

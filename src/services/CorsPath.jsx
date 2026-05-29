@@ -107,6 +107,7 @@ export const paths = {
   pathExpenseMaterialEdit: "expense-material/edit",
   pathExpenseMaterialDel: "expense-material/del",
   pathExpenseMaterialItem: "expense-material/item",
+  pathExpenseMaterialStatus: "expense-material/status",
 
   //Products
   pathSaleManagementProductsList: "products-management/list",

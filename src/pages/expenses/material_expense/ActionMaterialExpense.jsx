@@ -61,6 +61,27 @@ export default function ActionMaterialExpense() {
 
   const canSaveDraft = isCreateMode ? true : (permission?.btn_daft ?? false);
   const canExportPdf = permission?.btn_pdf ?? !isCreateMode;
+  const canApprove = permission?.btn_approve ?? false;
+
+  const handleApprove = async () => {
+    try {
+      setLoading(true);
+      const payload = {
+        platform: "web",
+        code: formCustom.getFieldValue("expense_material_code") || code
+      };
+      const res = await useServiceAPI.post(paths.pathExpenseMaterialStatus, payload);
+      if (res.status === 200) {
+        showNotification("success", res.data?.message || "Approve successful").then(() => navigate("/expenses/material"));
+      } else {
+        showNotification("error", res.data?.message || "ไม่สามารถทำรายการได้");
+      }
+    } catch (err) {
+      showNotification("error", err.message || "เกิดข้อผิดพลาด");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const hasCropSelected = selectedCropIds.length > 0;
   const isWarehouseUser = [
@@ -1018,6 +1039,14 @@ export default function ActionMaterialExpense() {
                 }`;
               window.open(targetUrl, "_blank");
             }}
+          />
+        )}
+
+        {canApprove && (
+          <ActionButton
+            mode="save"
+            text="Approve"
+            onClick={handleApprove}
           />
         )}
       </div>
