@@ -450,6 +450,16 @@ export default function SalesPointEdit() {
       placeholder: subDealerName || "",
     },
     {
+      key: "farmer",
+      label: "Farmer",
+      name: "farmer",
+      type: "text",
+      disabled: true,
+      required: false,
+      value: "",
+      placeholder: farmerName || "",
+    },
+    {
       key: "order_no",
       label: "Order No",
       name: "order_no",
@@ -466,16 +476,6 @@ export default function SalesPointEdit() {
       disabled: true,
       required: true,
       value: docDate || dayjs().format("YYYY-MM-DD"),
-    },
-    {
-      key: "farmer",
-      label: "Farmer",
-      name: "farmer",
-      type: "text",
-      disabled: true,
-      required: false,
-      value: "",
-      placeholder: farmerName || "",
     },
   ];
 

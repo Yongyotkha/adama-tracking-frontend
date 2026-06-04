@@ -513,6 +513,17 @@ export default function SalesPointCreate() {
       value: subDealerId ?? undefined,
     },
     {
+      label: "Farmer",
+      name: "farmer",
+      type: "select",
+      options: dataFarmer,
+      disabled: !subDealerId,
+      required: false,
+      placeholder: subDealerId ? "Select farmer" : "Please select sub dealer first",
+      moderef: false,
+      value: farmerId ?? undefined,
+    },
+    {
       label: "Order No",
       name: "order_no",
       type: "text",
@@ -530,17 +541,6 @@ export default function SalesPointCreate() {
       required: false,
       moderef: false,
       value: dayjs().format("YYYY-MM-DD"),
-    },
-    {
-      label: "Farmer",
-      name: "farmer",
-      type: "select",
-      options: dataFarmer,
-      disabled: !subDealerId,
-      required: false,
-      placeholder: subDealerId ? "Select farmer" : "Please select sub dealer first",
-      moderef: false,
-      value: farmerId ?? undefined,
     },
   ];
 

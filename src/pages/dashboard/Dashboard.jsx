@@ -1513,8 +1513,46 @@ export default function Dashboard() {
               </div>
             </div>
 
-            <div className="flex justify-center items-center">
-              <DoughnutChartComponent data={pointUsersData} tooltipMode="pointUsers" />
+            <div className="h-[350px] w-full">
+              <BarChart
+                dataset={pointUsersData}
+                xAxis={[
+                  {
+                    scaleType: "band",
+                    dataKey: "label",
+                    categoryGapRatio: Math.max(0.2, 0.9 - (pointUsersData?.length || 0) * 0.1),
+                  },
+                ]}
+                yAxis={[{ label: null }]}
+                series={[
+                  {
+                    dataKey: "value",
+                    label: "Point",
+                    color: "#00783F",
+                    valueFormatter: (v) => (v ? v.toLocaleString() : "0"),
+                  },
+                ]}
+                height={350}
+                slotProps={{
+                  legend: {
+                    direction: "row",
+                    position: { vertical: "top", horizontal: "right" },
+                    padding: 0,
+                  },
+                }}
+                margin={{ left: 80, bottom: 50 }}
+                sx={{
+                  ".MuiBar-root": { borderRadius: "4px" },
+                  ".MuiAxis-left .MuiAxis-label": {
+                    fontSize: "12px",
+                    fill: "#6B7280",
+                  },
+                  ".MuiAxis-bottom .MuiAxis-tickLabel": {
+                    angle: -45,
+                    textAnchor: "end",
+                  },
+                }}
+              />
             </div>
           </Card>
         </Col>

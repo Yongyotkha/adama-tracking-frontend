@@ -124,6 +124,7 @@ export default function SalesPointsList() {
     { title: "Sales", width: 200, dataIndex: "sale", align: "left" },
     { title: "Dealer", width: 200, dataIndex: "dealer", align: "left" },
     { title: "Sub Dealer", width: 200, dataIndex: "sub_dealer", align: "left" },
+    { title: "Farmer", width: 200, dataIndex: "farmer", align: "left" },
     { title: "Value (THB)", width: 100, dataIndex: "value", align: "right" },
     { title: "Order Date", width: 150, dataIndex: "orderDate", align: "center" },
     { title: "Points", width: 150, dataIndex: "point", align: "center" },
@@ -137,6 +138,7 @@ export default function SalesPointsList() {
     { title: "Sales", width: 200, dataIndex: "sale", align: "left" },
     { title: "Dealer", width: 220, dataIndex: "dealer", align: "left" },
     { title: "Sub Dealer", width: 200, dataIndex: "sub_dealer", align: "left" },
+    { title: "Farmer", width: 200, dataIndex: "farmer", align: "left" },
     { title: "Request Date", width: 160, dataIndex: "document_date", align: "center" },
     { title: "Status", width: 160, dataIndex: "status", align: "center" },
     { title: "Action", width: 120, dataIndex: "action", align: "center" },
@@ -181,6 +183,7 @@ export default function SalesPointsList() {
           sale: order.sale_name,
           sub_dealer: order.sub_dealer_name,
           dealer: order.dealer_name,
+          farmer: order.farmer_name || "-",
           value: order.net_amount_display,
           point: order.point,
           orderDate: order.document_date,
@@ -316,6 +319,7 @@ export default function SalesPointsList() {
             document_number: item.document_number,
             dealer: item.dealer_name ?? "-",
             sub_dealer: item.sub_dealer_name ?? "-",
+            farmer: item.farmer_name ?? "-",
             sale: item.sale_name ?? "-",
             document_date: requestDate,
             status: (
@@ -448,11 +452,33 @@ export default function SalesPointsList() {
   };
 
   const handleChange = (filters) => {
-    setFilterValues(filters);
+    let newFilters = { ...filters };
 
-    const saleId = typeof filters.sale === "object" ? filters.sale.value : filters.sale;
-    const dealerId = typeof filters.dealer === "object" ? filters.dealer.value : filters.dealer;
-    const subDealerId = typeof filters.sub_dealer === "object" ? filters.sub_dealer.value : filters.sub_dealer;
+    const oldSale = typeof filterValues.sale === "object" ? filterValues.sale?.value : filterValues.sale;
+    const newSale = typeof newFilters.sale === "object" ? newFilters.sale?.value : newFilters.sale;
+
+    const oldDealer = typeof filterValues.dealer === "object" ? filterValues.dealer?.value : filterValues.dealer;
+    const newDealer = typeof newFilters.dealer === "object" ? newFilters.dealer?.value : newFilters.dealer;
+
+    const oldSubDealer = typeof filterValues.sub_dealer === "object" ? filterValues.sub_dealer?.value : filterValues.sub_dealer;
+    const newSubDealer = typeof newFilters.sub_dealer === "object" ? newFilters.sub_dealer?.value : newFilters.sub_dealer;
+
+    if (oldSale !== newSale) {
+      newFilters.dealer = undefined;
+      newFilters.sub_dealer = undefined;
+      newFilters.farmer = undefined;
+    } else if (oldDealer !== newDealer) {
+      newFilters.sub_dealer = undefined;
+      newFilters.farmer = undefined;
+    } else if (oldSubDealer !== newSubDealer) {
+      newFilters.farmer = undefined;
+    }
+
+    setFilterValues(newFilters);
+
+    const saleId = typeof newFilters.sale === "object" ? newFilters.sale?.value : newFilters.sale;
+    const dealerId = typeof newFilters.dealer === "object" ? newFilters.dealer?.value : newFilters.dealer;
+    const subDealerId = typeof newFilters.sub_dealer === "object" ? newFilters.sub_dealer?.value : newFilters.sub_dealer;
 
     if (subDealerId) {
       (async () => {
@@ -540,11 +566,33 @@ export default function SalesPointsList() {
   };
 
   const handleChangeRequestFilters = (filters) => {
-    setRequestFiltersValues(filters);
+    let newFilters = { ...filters };
 
-    const saleId = typeof filters.sale === "object" ? filters.sale.value : filters.sale;
-    const dealerId = typeof filters.dealer === "object" ? filters.dealer.value : filters.dealer;
-    const subDealerId = typeof filters.sub_dealer === "object" ? filters.sub_dealer.value : filters.sub_dealer;
+    const oldSale = typeof requestFiltersValues.sale === "object" ? requestFiltersValues.sale?.value : requestFiltersValues.sale;
+    const newSale = typeof newFilters.sale === "object" ? newFilters.sale?.value : newFilters.sale;
+
+    const oldDealer = typeof requestFiltersValues.dealer === "object" ? requestFiltersValues.dealer?.value : requestFiltersValues.dealer;
+    const newDealer = typeof newFilters.dealer === "object" ? newFilters.dealer?.value : newFilters.dealer;
+
+    const oldSubDealer = typeof requestFiltersValues.sub_dealer === "object" ? requestFiltersValues.sub_dealer?.value : requestFiltersValues.sub_dealer;
+    const newSubDealer = typeof newFilters.sub_dealer === "object" ? newFilters.sub_dealer?.value : newFilters.sub_dealer;
+
+    if (oldSale !== newSale) {
+      newFilters.dealer = undefined;
+      newFilters.sub_dealer = undefined;
+      newFilters.farmer = undefined;
+    } else if (oldDealer !== newDealer) {
+      newFilters.sub_dealer = undefined;
+      newFilters.farmer = undefined;
+    } else if (oldSubDealer !== newSubDealer) {
+      newFilters.farmer = undefined;
+    }
+
+    setRequestFiltersValues(newFilters);
+
+    const saleId = typeof newFilters.sale === "object" ? newFilters.sale?.value : newFilters.sale;
+    const dealerId = typeof newFilters.dealer === "object" ? newFilters.dealer?.value : newFilters.dealer;
+    const subDealerId = typeof newFilters.sub_dealer === "object" ? newFilters.sub_dealer?.value : newFilters.sub_dealer;
 
     if (subDealerId) {
       (async () => {
