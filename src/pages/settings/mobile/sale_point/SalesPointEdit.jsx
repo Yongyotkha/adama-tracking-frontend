@@ -33,6 +33,7 @@ export default function SalesPointEdit() {
   const [saleName, setSaleName] = useState("");
   const [dealerName, setDealerName] = useState("");
   const [subDealerName, setSubDealerName] = useState("");
+  const [farmerName, setFarmerName] = useState("");
 
   const [remark, setRemark] = useState("");
   const [permission, setPermission] = useState({});
@@ -98,6 +99,7 @@ export default function SalesPointEdit() {
         setSaleName(d.user_name || d.sale_name || "");
         setDealerName(d.dealer_name || "");
         setSubDealerName(d.sub_dealer_name || "");
+        setFarmerName(d.farmer_name || "");
 
         setRemark(d.ref_remark || "");
 
@@ -158,6 +160,7 @@ export default function SalesPointEdit() {
           sale: String(d.sale_name || d.user_name || ""),
           dealer: String(d.dealer_name || ""),
           sub_dealer: String(d.sub_dealer_name || ""),
+          farmer: String(d.farmer_name || ""),
           order_no: d.document_number || "",
           order_date: d.document_date || dayjs().format("YYYY-MM-DD"),
         });
@@ -463,6 +466,16 @@ export default function SalesPointEdit() {
       disabled: true,
       required: true,
       value: docDate || dayjs().format("YYYY-MM-DD"),
+    },
+    {
+      key: "farmer",
+      label: "Farmer",
+      name: "farmer",
+      type: "text",
+      disabled: true,
+      required: false,
+      value: "",
+      placeholder: farmerName || "",
     },
   ];
 

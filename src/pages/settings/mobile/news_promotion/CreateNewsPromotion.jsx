@@ -40,8 +40,14 @@ export default function CreateNewsPromotion() {
     value: Number(target.id),
   });
 
-  const normalizeTargetIds = (targets = []) =>
-    (Array.isArray(targets) ? targets : [])
+  const normalizeTargetIds = (targets = []) => {
+    let arr = targets;
+    if (typeof targets === "string") {
+      arr = targets.split(",");
+    } else if (!Array.isArray(targets)) {
+      arr = [];
+    }
+    return arr
       .map((target) =>
         typeof target === "object"
           ? target.id ?? target.target_id ?? target.type_id ?? target.target
@@ -49,6 +55,7 @@ export default function CreateNewsPromotion() {
       )
       .map(Number)
       .filter(Number.isFinite);
+  };
 
   // ---------- โหลด Category (Promotion banner) ----------
   useEffect(() => {

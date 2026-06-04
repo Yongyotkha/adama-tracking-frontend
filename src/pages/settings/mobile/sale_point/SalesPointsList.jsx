@@ -63,6 +63,7 @@ export default function SalesPointsList() {
   const [saleList, setSaleList] = useState([]);
   const [dataDealer, setDataDealer] = useState([]);
   const [subDealerOptions, setSubDealerOptions] = useState([]);
+  const [farmerOptions, setFarmerOptions] = useState([]);
   const [permission, setPermission] = useState([]);
 
   const { confirm } = Modal;
@@ -89,19 +90,31 @@ export default function SalesPointsList() {
     );
   };
 
+  const hasSale = !!filterValues.sale;
+  const hasDealer = !!filterValues.dealer;
+  const hasSubDealer = !!filterValues.sub_dealer;
+
   const filters = [
     { key: "sale", type: "select", label: "Sales", placeholder: "All", options: saleList, moderef: true },
-    { key: "dealer", type: "select", label: "Dealer", placeholder: "All", options: dataDealer, moderef: true },
-    { key: "sub_dealer", type: "select", label: "Sub Dealer", placeholder: "All", options: subDealerOptions },
+    { key: "dealer", type: "select", label: "Dealer", placeholder: "All", options: dataDealer, moderef: true, disabled: !hasSale },
+    { key: "sub_dealer", type: "select", label: "Sub Dealer", placeholder: "All", options: subDealerOptions, disabled: !hasDealer },
+    { key: "farmer", type: "select", label: "Farmer", placeholder: "All", options: farmerOptions, disabled: !hasSubDealer },
     { key: "order_no", type: "text", label: "Order No", placeholder: "Order No" },
     { key: "status_code", type: "select", label: "Status", placeholder: "All", options: STATUS_OPTIONS_LIST },
     { key: "dater", type: "dater", label: "Date", placeholder: "Date" },
   ];
 
+  const reqHasSale = !!requestFiltersValues.sale;
+  const reqHasDealer = !!requestFiltersValues.dealer;
+  const reqHasSubDealer = !!requestFiltersValues.sub_dealer;
+
   const requestFilters = [
     { key: "sale", type: "select", label: "Sales", placeholder: "All", options: saleList, moderef: true },
-    { key: "dealer", type: "select", label: "Dealer", placeholder: "All", options: dataDealer, moderef: true },
-    { key: "sub_dealer", type: "select", label: "Sub Dealer", placeholder: "All", options: subDealerOptions },
+    { key: "dealer", type: "select", label: "Dealer", placeholder: "All", options: dataDealer, moderef: true, disabled: !reqHasSale },
+    { key: "sub_dealer", type: "select", label: "Sub Dealer", placeholder: "All", options: subDealerOptions, disabled: !reqHasDealer },
+    { key: "farmer", type: "select", label: "Farmer", placeholder: "All", options: farmerOptions, disabled: !reqHasSubDealer },
+    { key: "order_no", type: "text", label: "Order No", placeholder: "Order No" },
+    { key: "status_code", type: "select", label: "Status", placeholder: "All", options: STATUS_OPTIONS_LIST },
     { key: "dater", type: "dater", label: "Date", placeholder: "Date" },
   ];
 
@@ -140,6 +153,7 @@ export default function SalesPointsList() {
       user_id: filters.sale || "",
       dealer_id: filters.dealer || "",
       sub_dealer_id: filters.sub_dealer || "",
+      farmer_id: filters.farmer || "",
       keyword: filters.order_no || "",
       status_code: filters.status_code || " ",
       page: "all",
@@ -270,8 +284,9 @@ export default function SalesPointsList() {
       user_id: filters.sale || "",
       dealer_id: filters.dealer || "",
       sub_dealer_id: filters.sub_dealer || "",
-      keyword: "",
-      status_code: "ODI",
+      farmer_id: filters.farmer || "",
+      keyword: filters.order_no || "",
+      status_code: filters.status_code || "ODI",
       page: "all",
       use_flag: 1,
       orderby_column: sortField,
@@ -420,6 +435,7 @@ export default function SalesPointsList() {
     }));
     setDataDealer([]);
     setSubDealerOptions([]);
+    setFarmerOptions([]);
   };
 
   const handleTableChange = (pagination, _filters, sorter) => {
@@ -436,6 +452,27 @@ export default function SalesPointsList() {
 
     const saleId = typeof filters.sale === "object" ? filters.sale.value : filters.sale;
     const dealerId = typeof filters.dealer === "object" ? filters.dealer.value : filters.dealer;
+    const subDealerId = typeof filters.sub_dealer === "object" ? filters.sub_dealer.value : filters.sub_dealer;
+
+    if (subDealerId) {
+      (async () => {
+        try {
+          const res = await useServiceAPI.get(paths.pathMasterFarmer, {
+            sub_dealer_id: subDealerId,
+          });
+          const list = Array.isArray(res?.data?.data) ? res.data.data : Array.isArray(res?.data) ? res.data : [];
+          const normalized = list.map(item => ({
+            id: String(item.farmer_id || item.id),
+            name: item.farmer_name || item.name || String(item.farmer_id || item.id)
+          }));
+          setFarmerOptions(normalized);
+        } catch (error) {
+          // no-op
+        }
+      })();
+    } else {
+      setFarmerOptions([]);
+    }
 
     if (dealerId) {
       (async () => {
@@ -490,6 +527,7 @@ export default function SalesPointsList() {
     }));
     setDataDealer([]);
     setSubDealerOptions([]);
+    setFarmerOptions([]);
   };
 
   const handleTableChangeRequest = (pagination, _filters, sorter) => {
@@ -506,6 +544,27 @@ export default function SalesPointsList() {
 
     const saleId = typeof filters.sale === "object" ? filters.sale.value : filters.sale;
     const dealerId = typeof filters.dealer === "object" ? filters.dealer.value : filters.dealer;
+    const subDealerId = typeof filters.sub_dealer === "object" ? filters.sub_dealer.value : filters.sub_dealer;
+
+    if (subDealerId) {
+      (async () => {
+        try {
+          const res = await useServiceAPI.get(paths.pathMasterFarmer, {
+            sub_dealer_id: subDealerId,
+          });
+          const list = Array.isArray(res?.data?.data) ? res.data.data : Array.isArray(res?.data) ? res.data : [];
+          const normalized = list.map(item => ({
+            id: String(item.farmer_id || item.id),
+            name: item.farmer_name || item.name || String(item.farmer_id || item.id)
+          }));
+          setFarmerOptions(normalized);
+        } catch (error) {
+          // no-op
+        }
+      })();
+    } else {
+      setFarmerOptions([]);
+    }
 
     if (dealerId) {
       (async () => {
