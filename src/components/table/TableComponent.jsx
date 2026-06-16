@@ -20,6 +20,29 @@ const TableComponent = ({
   scrollYHeight = "60vh", // กันต้องส่ง string ทุกครั้ง
   className,
 }) => {
+  const resolvedColumns = (header || []).map((column) => {
+    const isNoColumn =
+      column?.title === "No" &&
+      (column?.dataIndex === "no" || column?.dataIndex === "key");
+
+    if (!isNoColumn) return column;
+
+    const current =
+      typeof pagination === "object" && pagination?.current
+        ? Number(pagination.current)
+        : 1;
+    const size =
+      typeof pagination === "object" && pagination?.pageSize
+        ? Number(pagination.pageSize)
+        : 0;
+    const offset = size > 0 ? (current - 1) * size : 0;
+
+    return {
+      ...column,
+      render: (_, __, index) => offset + index + 1,
+    };
+  });
+
   // ✅ ทำให้พฤติกรรมเดิมไม่เปลี่ยน:
   // - ถ้า scroll เป็น true/false แบบเดิม -> ทำงานเหมือนเดิม
   // - ถ้ามีการส่ง scrollY/scrollX -> เปิดตามที่กำหนด
@@ -54,7 +77,7 @@ const TableComponent = ({
     >
       <Table
         className={className}
-        columns={header}
+        columns={resolvedColumns}
         dataSource={dataSource}
         loading={loading}
         pagination={pagination}

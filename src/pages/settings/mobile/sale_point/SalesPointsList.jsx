@@ -483,7 +483,7 @@ export default function SalesPointsList() {
     if (subDealerId) {
       (async () => {
         try {
-          const res = await useServiceAPI.get(paths.pathMasterFarmer, {
+          const res = await useServiceAPI.get(paths.pathUserLineFarmer, {
             sub_dealer_id: subDealerId,
           });
           const list = Array.isArray(res?.data?.data) ? res.data.data : Array.isArray(res?.data) ? res.data : [];
@@ -597,7 +597,7 @@ export default function SalesPointsList() {
     if (subDealerId) {
       (async () => {
         try {
-          const res = await useServiceAPI.get(paths.pathMasterFarmer, {
+          const res = await useServiceAPI.get(paths.pathUserLineFarmer, {
             sub_dealer_id: subDealerId,
           });
           const list = Array.isArray(res?.data?.data) ? res.data.data : Array.isArray(res?.data) ? res.data : [];

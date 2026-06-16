@@ -32,6 +32,7 @@ export const paths = {
   pathLogPointOne: "sale-point-receive/point-log-one",
   pathUserLineDealer: "user-line/dealers",
   pathUserLineSubDealer: "user-line/sub_dealers",
+  pathUserLineFarmer: "user-line/farmers",
 
   // Login
   pathVerifyOtp: "verify-otp",

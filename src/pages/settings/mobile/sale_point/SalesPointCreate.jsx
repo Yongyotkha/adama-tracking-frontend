@@ -153,7 +153,7 @@ export default function SalesPointCreate() {
       }
       setLoading(true);
       try {
-        const res = await useServiceAPI.get(paths.pathMasterFarmer, { sub_dealer_id: subDealerId });
+        const res = await useServiceAPI.get(paths.pathUserLineFarmer, { sub_dealer_id: subDealerId });
         const list = Array.isArray(res?.data?.data) ? res.data.data : Array.isArray(res?.data) ? res.data : [];
         const normalized = list.map(item => ({
           id: String(item.farmer_id || item.id),

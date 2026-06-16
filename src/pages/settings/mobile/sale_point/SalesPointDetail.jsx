@@ -94,7 +94,7 @@ export default function SalesPointDetail() {
           useServiceAPI.get(paths.pathMasterSaleDropdown, { status: "" }),
           useServiceAPI.get(paths.pathMasterDealerDropdown, { user_id: getUserId }),
           useServiceAPI.get(paths.pathUserLineSubDealer, { dealer_id: getDealerId }),
-          getSubDealerId ? useServiceAPI.get(paths.pathMasterFarmer, { sub_dealer_id: getSubDealerId }) : Promise.resolve({ data: [] }),
+          getSubDealerId ? useServiceAPI.get(paths.pathUserLineFarmer, { sub_dealer_id: getSubDealerId }) : Promise.resolve({ data: [] }),
         ]);
 
         setDataSale(sale.data || []);

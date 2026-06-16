@@ -162,6 +162,15 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     gap: 6,
   },
+  lowerRight: {
+    flex: 1,
+    borderRightWidth: 1,
+    borderBottomWidth: 1,
+    borderColor: "#222",
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    gap: 6,
+  },
   lowerLabel: {
     width: 86,
   },
@@ -219,6 +228,11 @@ const emptyDetail = {
   current_point: 0,
   target_point: 0,
   diff_form_target: 0,
+  current_value: 0,
+  target_value: 0,
+  diff_value_form_target: 0,
+  value_to_point: 0,
+  point_your_get: 0,
   total_point: 0,
   net_amount: 0,
   products: [],
@@ -249,7 +263,10 @@ export default function DraftCampaignPDF() {
               : null;
 
         const pointRes = pointPayload
-          ? await useServiceAPI.get(paths.pathDraftCampaignUserInfo, pointPayload)
+          ? await useServiceAPI.get(paths.pathDraftCampaignUserInfo, {
+              ...pointPayload,
+              platform: "web",
+            })
           : null;
 
         const mapped = mapDraftCampaignDetail(
@@ -272,6 +289,10 @@ export default function DraftCampaignPDF() {
 
         setData({
           ...mapped,
+          current_value:
+            pointRes?.data?.data?.value_of_year ??
+            pointRes?.data?.value_of_year ??
+            mapped.current_value,
           products,
           total_point: products.reduce(
             (sum, item) => sum + getPdfRowPoint(item),
@@ -281,6 +302,9 @@ export default function DraftCampaignPDF() {
             (sum, item) => sum + getPdfSubTotal(item),
             0
           ),
+          point_your_get:
+            toNumber(mapped.value_to_point) *
+            products.reduce((sum, item) => sum + getPdfSubTotal(item), 0),
         });
       } catch (_) {
         setData(emptyDetail);
@@ -300,6 +324,10 @@ export default function DraftCampaignPDF() {
       { qty: 0, point: 0, value: 0 }
     );
   }, [data.products]);
+
+  const hasSubDealer = data.sub_dealer_name && data.sub_dealer_name !== "-";
+  const hasFarmer = data.farmer_name && data.farmer_name !== "-";
+  const isDealerOnly = !hasSubDealer && !hasFarmer;
 
   return (
     <PDFViewer style={{ width: "100%", height: "100vh" }}>
@@ -371,7 +399,32 @@ export default function DraftCampaignPDF() {
                 <Text>{data.farmer_name || "-"}</Text>
               </View>
             </View>
-            <View style={{ flex: 1 }} />
+            {isDealerOnly ? (
+              <View style={styles.lowerRight}>
+                <View style={styles.labelRow}>
+                  <Text style={styles.lowerLabel}>Current Target :</Text>
+                  <Text>{formatNumber(data.current_value, 2)}</Text>
+                </View>
+                <View style={styles.labelRow}>
+                  <Text style={styles.lowerLabel}>Target Value :</Text>
+                  <Text>{formatNumber(data.target_value, 2)}</Text>
+                </View>
+                <View style={styles.labelRow}>
+                  <Text style={styles.lowerLabel}>Diff Value :</Text>
+                  <Text>{formatNumber(data.diff_value_form_target, 2)}</Text>
+                </View>
+                <View style={styles.labelRow}>
+                  <Text style={styles.lowerLabel}>Bath To Point :</Text>
+                  <Text>{formatNumber(data.value_to_point, 2)}</Text>
+                </View>
+                <View style={styles.labelRow}>
+                  <Text style={styles.lowerLabel}>Point Your Get :</Text>
+                  <Text>{formatNumber(data.point_your_get, 2)}</Text>
+                </View>
+              </View>
+            ) : (
+              <View style={{ flex: 1 }} />
+            )}
           </View>
 
           <View style={styles.table}>
@@ -434,7 +487,11 @@ export default function DraftCampaignPDF() {
             <View style={styles.trBorder}>
               <Text style={[styles.totalLabelCell, { width: "77%" }]}>
                 Item : {data.products.length} | QTY (ctn):{" "}
-                {formatNumber(totals.qty)}
+                {formatNumber(totals.qty)} | Total Point :{" "}
+                {formatNumber(totals.point)} | Total:{" "}
+                {formatNumber(totals.value, 2)}
+                {isDealerOnly &&
+                  ` | Point Your Get : ${formatNumber(data.point_your_get, 2)}`}
               </Text>
 
               <Text style={[styles.td, { width: "16%" }, styles.tdRight]}>

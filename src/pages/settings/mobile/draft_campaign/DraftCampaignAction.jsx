@@ -128,6 +128,19 @@ export default function DraftCampaignAction() {
     }));
   };
 
+  const numberInputFormatter = (value) => {
+    if (value === null || value === undefined || value === "") return "";
+
+    const [integer, decimal] = String(value).replace(/,/g, "").split(".");
+    const formattedInteger = integer.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+
+    return decimal !== undefined
+      ? `${formattedInteger}.${decimal}`
+      : formattedInteger;
+  };
+
+  const numberInputParser = (value) => String(value || "").replace(/,/g, "");
+
   const resetCurrentPoint = () => {
     currentPointRequestRef.current += 1;
     setCurrentPointValue(0);
@@ -647,7 +660,7 @@ export default function DraftCampaignAction() {
       )}
 
       <Input
-        value={value}
+        value={numberInputFormatter(value)}
         disabled={readOnly}
         onChange={(event) => updateRow(index, key, event.target.value)}
         className="max-w-[90px] text-center"
@@ -1049,7 +1062,12 @@ export default function DraftCampaignAction() {
         <BoxPrimary>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <Form.Item label="Current Point" name="current_point">
-              <InputNumber className="w-full" disabled />
+              <InputNumber
+                className="w-full"
+                disabled
+                formatter={numberInputFormatter}
+                parser={numberInputParser}
+              />
             </Form.Item>
 
             <Form.Item
@@ -1057,17 +1075,33 @@ export default function DraftCampaignAction() {
               name="target_point"
               rules={[{ required: true, message: "Please enter target point" }]}
             >
-              <InputNumber className="w-full" disabled={readOnly} min={0} />
+              <InputNumber
+                className="w-full"
+                disabled={readOnly}
+                min={0}
+                formatter={numberInputFormatter}
+                parser={numberInputParser}
+              />
             </Form.Item>
 
             <Form.Item label="Diff Form Target" name="diff_form_target">
-              <InputNumber className="w-full" disabled />
+              <InputNumber
+                className="w-full"
+                disabled
+                formatter={numberInputFormatter}
+                parser={numberInputParser}
+              />
             </Form.Item>
 
             {isDealerOnly && (
               <>
                 <Form.Item label="Current Target" name="current_value">
-                  <InputNumber className="w-full" disabled />
+                  <InputNumber
+                    className="w-full"
+                    disabled
+                    formatter={numberInputFormatter}
+                    parser={numberInputParser}
+                  />
                 </Form.Item>
 
                 <Form.Item
@@ -1077,11 +1111,22 @@ export default function DraftCampaignAction() {
                     { required: true, message: "Please enter target value" },
                   ]}
                 >
-                  <InputNumber className="w-full" disabled={readOnly} min={0} />
+                  <InputNumber
+                    className="w-full"
+                    disabled={readOnly}
+                    min={0}
+                    formatter={numberInputFormatter}
+                    parser={numberInputParser}
+                  />
                 </Form.Item>
 
                 <Form.Item label="Diff Value Form Target" name="diff_value_form_target">
-                  <InputNumber className="w-full" disabled />
+                  <InputNumber
+                    className="w-full"
+                    disabled
+                    formatter={numberInputFormatter}
+                    parser={numberInputParser}
+                  />
                 </Form.Item>
 
                 <Form.Item
@@ -1096,11 +1141,18 @@ export default function DraftCampaignAction() {
                     disabled={readOnly}
                     min={0}
                     step={0.01}
+                    formatter={numberInputFormatter}
+                    parser={numberInputParser}
                   />
                 </Form.Item>
 
                 <Form.Item label="Point Your Get" name="point_your_get">
-                  <InputNumber className="w-full" disabled />
+                  <InputNumber
+                    className="w-full"
+                    disabled
+                    formatter={numberInputFormatter}
+                    parser={numberInputParser}
+                  />
                 </Form.Item>
               </>
             )}
