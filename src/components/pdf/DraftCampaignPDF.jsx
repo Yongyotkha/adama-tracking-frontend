@@ -378,6 +378,14 @@ export default function DraftCampaignPDF() {
                 <Text>{formatNumber(data.target_point)}</Text>
               </View>
               <View style={styles.labelRow}>
+                <Text style={styles.lowerLabel}>Sale Plan Point :</Text>
+                <Text>{formatNumber(data.total_point)}</Text>
+              </View>
+              <View style={styles.labelRow}>
+                <Text style={styles.lowerLabel}>Diff Form Plan :</Text>
+                <Text>{formatNumber(toNumber(data.target_point) - toNumber(data.total_point))}</Text>
+              </View>
+              <View style={styles.labelRow}>
                 <Text style={styles.lowerLabel}>Diff Form Target :</Text>
                 <Text>{formatNumber(data.diff_form_target)}</Text>
               </View>
@@ -402,7 +410,7 @@ export default function DraftCampaignPDF() {
             {isDealerOnly ? (
               <View style={styles.lowerRight}>
                 <View style={styles.labelRow}>
-                  <Text style={styles.lowerLabel}>Current Target :</Text>
+                  <Text style={styles.lowerLabel}>Current Value :</Text>
                   <Text>{formatNumber(data.current_value, 2)}</Text>
                 </View>
                 <View style={styles.labelRow}>
@@ -414,11 +422,11 @@ export default function DraftCampaignPDF() {
                   <Text>{formatNumber(data.diff_value_form_target, 2)}</Text>
                 </View>
                 <View style={styles.labelRow}>
-                  <Text style={styles.lowerLabel}>Bath To Point :</Text>
+                  <Text style={styles.lowerLabel}>Bath Per Points :</Text>
                   <Text>{formatNumber(data.value_to_point, 2)}</Text>
                 </View>
                 <View style={styles.labelRow}>
-                  <Text style={styles.lowerLabel}>Point Your Get :</Text>
+                  <Text style={styles.lowerLabel}>Total Point :</Text>
                   <Text>{formatNumber(data.point_your_get, 2)}</Text>
                 </View>
               </View>
@@ -491,7 +499,7 @@ export default function DraftCampaignPDF() {
                 {formatNumber(totals.point)} | Total:{" "}
                 {formatNumber(totals.value, 2)}
                 {isDealerOnly &&
-                  ` | Point Your Get : ${formatNumber(data.point_your_get, 2)}`}
+                  ` | Your Reward (Bath) : ${formatNumber(data.point_your_get, 2)}`}
               </Text>
 
               <Text style={[styles.td, { width: "16%" }, styles.tdRight]}>
@@ -515,3 +523,8 @@ export default function DraftCampaignPDF() {
     </PDFViewer>
   );
 }
+
+
+
+
+

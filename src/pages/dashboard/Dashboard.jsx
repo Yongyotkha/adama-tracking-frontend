@@ -77,10 +77,10 @@ export default function Dashboard() {
   // Sub Dealer by Dealer
   const [selectedSdByD, setSelectedSdByD] = useState(null);
 
-  // Point Users (แยก state)
+  // Actual Sub Dealer Points (แยก state)
   const [selectedSdByPointUser, setSelectedSdByPointUser] = useState("");
 
-  // ✅ Point Users
+  // ✅ Actual Sub Dealer Points
   const [pointUsersData, setPointUsersData] = useState([]);
   const [totalPointUsers, setTotalPointUsers] = useState(0);
 
@@ -730,7 +730,7 @@ export default function Dashboard() {
           setSubdealerByDealerData([]);
         }
       } catch (error) {
-        console.error("Error fetching Sub Dealer By Dealer data:", error);
+        console.error("Error fetching Sub Dealer Sales Plan data:", error);
         setSubdealerByDealerData([]);
       } finally {
         setLoading(false);
@@ -840,7 +840,7 @@ export default function Dashboard() {
   }, [selectedYear, selectedSale, selectedMonthsActivity, selectedDealerActivity, selectedArea]);
 
   // ===============================
-  // ✅ Point Users (ใช้ dealer เดียวกับ Sub Dealer By Dealer)
+  // ✅ Actual Sub Dealer Points (ใช้ dealer เดียวกับ Sub Dealer Sales Plan)
   // ===============================
   useEffect(() => {
     let alive = true;
@@ -875,7 +875,7 @@ export default function Dashboard() {
         setTotalPointUsers(total);
       } catch (error) {
         if (!alive) return;
-        console.error("Error fetching Point Users:", error);
+        console.error("Error fetching Actual Sub Dealer Points:", error);
         setPointUsersData([]);
         setTotalPointUsers(0);
       } finally {
@@ -1425,7 +1425,7 @@ export default function Dashboard() {
           <Card className="shadow-md rounded-lg bg-white border-t-[10px] border-solid border-t-[#00783F] h-full">
             <div className="flex flex-wrap items-center justify-between">
               <h3 className="text-[#00783F] text-lg font-semibold mb-3">
-                Sub Dealer By Dealer
+                Sub Dealer Sales Plan
               </h3>
               <div className="flex flex-wrap gap-2">
                 <Select
@@ -1491,12 +1491,12 @@ export default function Dashboard() {
           </Card>
         </Col>
 
-        {/* Point Users */}
+        {/* Actual Sub Dealer Points */}
         <Col xs={24} lg={24} xl={12}>
           <Card className="shadow-md rounded-lg bg-white border-t-[10px] border-solid border-t-[#00783F] h-full">
             <div className="flex flex-wrap items-center justify-between">
               <h3 className="text-[#00783F] text-lg font-semibold mb-3">
-                Point Users
+                Actual Sub Dealer Points
               </h3>
               <div className="flex flex-wrap gap-2">
                 <Select

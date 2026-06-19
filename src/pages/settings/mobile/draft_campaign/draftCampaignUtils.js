@@ -114,6 +114,8 @@ export const mapDraftCampaignProduct = (item) =>
 
 export const mapDraftCampaignDetail = (item, currentPoint = 0) => {
   const products = Array.isArray(item?.items) ? item.items.map(mapDraftCampaignProduct) : [];
+  const totalPoint = products.reduce((sum, product) => sum + toNumber(product.point), 0);
+  const netAmount = products.reduce((sum, product) => sum + toNumber(product.net_amount), 0);
 
   return {
     document_number: item?.document_number || "",
@@ -133,8 +135,8 @@ export const mapDraftCampaignDetail = (item, currentPoint = 0) => {
     target_value: toNumber(item?.target_value),
     diff_value_form_target: toNumber(item?.diff_value_form_target),
     value_to_point: toNumber(item?.value_to_point),
-    total_point: toNumber(item?.point),
-    net_amount: products.reduce((sum, product) => sum + toNumber(product.net_amount), 0),
+    total_point: totalPoint || toNumber(item?.point),
+    net_amount: netAmount,
     products,
     permission: item?.permission || {},
   };
@@ -176,3 +178,7 @@ export const buildDraftCampaignPayload = ({ values, rows, documentNumber }) => {
 
   return payload;
 };
+
+
+
+

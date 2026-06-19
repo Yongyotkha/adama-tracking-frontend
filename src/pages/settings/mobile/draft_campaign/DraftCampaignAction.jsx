@@ -435,7 +435,7 @@ export default function DraftCampaignAction() {
           quantity: toNumber(item.quantity),
           xpoint: toNumber(item.xpoint) || 1,
 
-          // ราคาต่อ unit จาก detail API
+          // ??????? unit ??? detail API
           unit_convert_order_value:
             item.unit_convert_order_value || item.master_price,
 
@@ -445,11 +445,11 @@ export default function DraftCampaignAction() {
           master_price:
             item.master_price || item.unit_convert_order_value,
 
-          // point ต่อ ctn
+          // point ??? ctn
           master_point:
             item.master_point || item.point,
 
-          // ให้ recalculate คำนวณ point รวมใหม่จาก qty
+          // ??? recalculate ????? point ?????????? qty
           point:
             item.master_point || item.point,
         })
@@ -600,7 +600,7 @@ export default function DraftCampaignAction() {
       const product = {
         ...mapDraftCampaignProduct(productDetail),
 
-        // เพิ่มค่าที่ต้องใช้
+        // ??????????????????
         unit_convert_order_value:
           productDetail.unit_convert_order_value,
 
@@ -828,7 +828,7 @@ export default function DraftCampaignAction() {
         Point : {formatNumber(totals.point)} | Total:{" "}
         {formatNumber(totals.value, 2)}
         {isDealerOnly && (
-          <> | Point Your Get : {formatNumber(pointYourGet, 2)}</>
+          <> | Your Reward (Bath) : {formatNumber(pointYourGet, 2)}</>
         )}
       </td>
     </tr>
@@ -1095,7 +1095,7 @@ export default function DraftCampaignAction() {
 
             {isDealerOnly && (
               <>
-                <Form.Item label="Current Target" name="current_value">
+                <Form.Item label="Current Value" name="current_value">
                   <InputNumber
                     className="w-full"
                     disabled
@@ -1130,7 +1130,7 @@ export default function DraftCampaignAction() {
                 </Form.Item>
 
                 <Form.Item
-                  label="Bath To Point"
+                  label="Bath Per Points"
                   name="value_to_point"
                   rules={[
                     { required: true, message: "Please enter value to point" },
@@ -1146,7 +1146,7 @@ export default function DraftCampaignAction() {
                   />
                 </Form.Item>
 
-                <Form.Item label="Point Your Get" name="point_your_get">
+                <Form.Item label="Total Point" name="point_your_get">
                   <InputNumber
                     className="w-full"
                     disabled
@@ -1238,3 +1238,6 @@ export default function DraftCampaignAction() {
     </MainLayout>
   );
 }
+
+
+

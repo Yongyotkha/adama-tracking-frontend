@@ -189,7 +189,7 @@ export default function LogUser() {
     return (
         <MainLayout loading={loading}>
             <div className="flex items-center justify-between">
-                <div className="title-page">User Log</div>
+                <div className="title-page">Action History</div>
             </div>
 
             <Filter onSearch={handleSearch} onClear={handleClear} filters={filters} />
@@ -206,3 +206,4 @@ export default function LogUser() {
         </MainLayout>
     );
 }
+
