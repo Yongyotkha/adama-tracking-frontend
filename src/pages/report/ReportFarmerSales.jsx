@@ -5,6 +5,7 @@ import MainLayout from "../../layouts/MainLayout";
 import Title from "../../components/title/Title";
 import BoxPrimary from "../../components/box_primary/BoxPrimary";
 import DynamicButton from "../../components/button/DynamicButton";
+import ExportFarmerSalesExcelButton from "../../components/export/ExportFarmerSalesExcelButton";
 import TableCustomComponent from "../../components/table/TableCustomComponent";
 import useServiceAPI from "../../services/CorsService";
 import { paths } from "../../services/CorsPath";
@@ -209,9 +210,10 @@ export default function ReportFarmerSales() {
             <Col xs={24} md={6}><Form.Item label="Month" name="month"><Select options={[{ value: "All", label: "All" }]} allowClear placeholder="All" /></Form.Item></Col>
             <Col xs={24} md={6}><Form.Item label="Year" name="year"><Select options={yearList} allowClear={false} /></Form.Item></Col>
           </Row>
-          <div className="flex justify-end gap-3">
-            <DynamicButton onClick={handleSearch} text="Search" name="search" className="text-white bg-[#7DB41E]" />
-            <DynamicButton onClick={handleClear} text="Clear" name="clear" className="text-white bg-[#B6AEAB]" />
+          <div className="flex justify-end gap-4 px-4 pt-5">
+            <DynamicButton onClick={handleSearch} text="Search" name="search" className="text-white px-4 py-3 rounded-[4px] bg-[#7DB41E]" />
+            <DynamicButton onClick={handleClear} text="Clear" name="clear" className="text-white px-4 py-3 rounded-[4px] bg-[#B6AEAB]" />
+            <ExportFarmerSalesExcelButton rows={data} fileName={`Farmer_Sales_${form.getFieldValue("year") || dayjs().year()}`} className="text-white px-4 py-3 rounded-[4px] bg-[#009845]" />
           </div>
         </Form>
       </BoxPrimary>
@@ -221,4 +223,7 @@ export default function ReportFarmerSales() {
     </MainLayout>
   );
 }
+
+
+
 
