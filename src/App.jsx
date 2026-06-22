@@ -193,6 +193,8 @@ import ReportSellOutBySales from "./pages/report/ReportSellOutBySales";
 import ReportSellOutByDealer from "./pages/report/ReportSellOutByDealer";
 import ReportSellOutBySubDealer from "./pages/report/ReportSellOutBySubDealer";
 import ReportSellOut from "./pages/report/ReportSellOut";
+import ReportFarmerSales from "./pages/report/ReportFarmerSales";
+import ReportSellInByFarmer from "./pages/report/ReportSellInByFarmer";
 import PDFMaterialExpense from "./pages/pdf/PDFMaterialExpense";
 import PDFSampleExpense from "./pages/pdf/PDFSampleExpense";
 import ViewDraftCampaignPDF from "./pages/pdf/DraftCampaignPDF";
@@ -702,6 +704,14 @@ const App = () => {
             />
             <Route path="/report/stock-report" element={<ReportStock />} />
             <Route
+              path="/report/farmer-sales"
+              element={<ReportFarmerSales />}
+            />
+            <Route
+              path="/report/sell-in-farmer"
+              element={<ReportSellInByFarmer />}
+            />
+            <Route
               path="/report/sell-out-report-sales"
               element={<ReportSellOut />}
             />
@@ -816,3 +826,4 @@ const App = () => {
 };
 
 export default App;
+
