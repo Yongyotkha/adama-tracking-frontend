@@ -204,7 +204,7 @@ export default function SettingProduct() {
   const header = [
     { title: "No", width: 50, dataIndex: "key", align: "left" },
     {
-      title: "Product Code",
+      title: "Keyword",
       width: 190,
       dataIndex: "product_code",
       align: "left",
@@ -393,9 +393,9 @@ export default function SettingProduct() {
       <div className="flex items-center justify-between">
         <div className="title-page">Product Management</div>
         <ActionButton
-          mode="sync"
-          text="Sync SAP"
-          onClick={() => console.log("Sync SAP clicked")}
+          mode="create"
+          text="Create Product"
+          onClick={() => navigate("/setting/product/create", { state: { mode: "create" } })}
           className="ms-auto me-2"
         />
       </div>

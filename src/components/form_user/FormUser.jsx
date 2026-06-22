@@ -42,12 +42,14 @@ export default function FormUser({ fields, title, profile, form, onChange, disab
         } else if (field.type === "time" && field.value) {
           values[field.name] = dayjs(field.value, "HH:mm");
         } else {
-          values[field.name] = field.value || null;
+          values[field.name] = field.value ?? null;
         }
 
         if (field.type === "select") {
           values[field.name] =
-            field.options?.find((opt) => opt.selected)?.id || null;
+            field.value !== undefined && field.value !== null
+              ? field.value
+              : field.options?.find((opt) => opt.selected)?.id ?? null;
         }
         return values;
       },
@@ -62,7 +64,7 @@ export default function FormUser({ fields, title, profile, form, onChange, disab
           ? field.value
             ? dayjs(field.value, dateFormat)
             : null
-          : field.value || null;
+          : field.value ?? null;
       return acc;
     }, {});
     // console.log(initialValues);
