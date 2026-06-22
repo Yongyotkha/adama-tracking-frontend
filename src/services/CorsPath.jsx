@@ -113,7 +113,9 @@ export const paths = {
   //Products
   pathSaleManagementProductsList: "products-management/list",
   pathSaleManagementProductsDetail: "products-management/detail",
+  pathSaleManagementProductsCreate: "products-management/create",
   pathSaleManagementProductsUpdate: "products-management/update",
+  pathSaleManagementProductsDelete: "products-management/delete",
 
   //Dealer
   pathCustomerDealer: "sale-customer-dealer/list",
