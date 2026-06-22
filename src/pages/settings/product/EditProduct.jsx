@@ -22,6 +22,34 @@ const parseInteger = (value) => {
   return Number.isNaN(parsed) ? null : parsed;
 };
 
+const buildProductPayload = (values, selectedCrops, productImageFallback) => ({
+  product_name: values.product_name,
+  ai_and_content: values.ai_and_content,
+  product_type: values.product_type,
+  product_group: values.product_group,
+  product_category: values.product_category,
+  product_image: values.profile ?? productImageFallback,
+  packing_list: values.packing_list,
+  packing_unit_size: parseNumber(values.packing_unit_size),
+  net_price: parseNumber(values.net_price),
+  bath_ltkg: parseNumber(values.bath_ltkg),
+  bath_unit: parseNumber(values.bath_unit),
+  sub_dealer: parseNumber(values.sub_dealer),
+  farmer: parseNumber(values.farmer),
+  remark: values.remark,
+  unit_convert_value: parseNumber(values.unit_convert_value),
+  product_campaign_order_min_foc: parseInteger(values.product_campaign_order_min_foc),
+  product_campaign_foc: parseInteger(values.product_campaign_foc),
+  use_flag: parseInteger(values.use_flag) ?? 1,
+  status: parseInteger(values.status),
+  order_by: parseInteger(values.order_by),
+  unit_convert_order_value: parseNumber(values.unit_convert_order_value),
+  point: parseInteger(values.point),
+  unit_convert_sales_order: parseInteger(values.unit_convert_sales_order),
+  unit_size: parseInteger(values.unit_size),
+  crop_list: selectedCrops,
+});
+
 export default function EditProduct() {
   const [loading, setLoading] = useState(false);
   const location = useLocation();
@@ -30,7 +58,9 @@ export default function EditProduct() {
   const navigate = useNavigate();
 
   const productId = location.state?.id;
-  const mode = location.state?.mode || "view";
+  const mode = location.state?.mode || (location.pathname.endsWith("/create") ? "create" : "view");
+  const isCreateMode = mode === "create";
+  const isViewMode = mode === "view";
 
   const [productInfo, setProductInfo] = useState({});
   const [productTypes, setProductTypes] = useState([]);
@@ -39,13 +69,12 @@ export default function EditProduct() {
   const [cropOptions, setCropOptions] = useState([]);
   const [selectedCrops, setSelectedCrops] = useState([]);
   const [dataLoaded, setDataLoaded] = useState(false);
-  const [canEdit, setCanEdit] = useState(false);
+  const [canEdit, setCanEdit] = useState(isCreateMode);
 
-  const isViewMode = mode === "view";
-  const isFieldDisabled = isViewMode || !canEdit;
+  const isFieldDisabled = isViewMode || (!isCreateMode && !canEdit);
 
   useEffect(() => {
-    if (!productId) {
+    if (!isCreateMode && !productId) {
       showMsg("error", "ไม่พบข้อมูลสินค้า");
       navigate("/setting/product");
       return;
@@ -54,19 +83,32 @@ export default function EditProduct() {
     const fetchData = async () => {
       setLoading(true);
       try {
-        const [
-          productResponse,
-          typesResponse,
-          groupsResponse,
-          categoriesResponse,
-          cropsResponse,
-        ] = await Promise.all([
-          useServiceAPI.get(`${paths.pathSaleManagementProductsDetail}/${productId}`),
+        const masterRequests = [
           useServiceAPI.get(paths.pathMasterProductTypes, {}),
           useServiceAPI.get(paths.pathMasterProductGroups, {}),
           useServiceAPI.get(paths.pathMasterProductCategorys, {}),
           useServiceAPI.get(paths.pathMasterCrop, {}),
-        ]);
+        ];
+
+        if (isCreateMode) {
+          const [typesResponse, groupsResponse, categoriesResponse, cropsResponse] =
+            await Promise.all(masterRequests);
+
+          setProductTypes(typesResponse.data || []);
+          setProductGroups(groupsResponse.data || []);
+          setCategories(categoriesResponse.data || []);
+          setCropOptions(cropsResponse.data || []);
+          setSelectedCrops([]);
+          setCanEdit(true);
+          setDataLoaded(true);
+          return;
+        }
+
+        const [productResponse, typesResponse, groupsResponse, categoriesResponse, cropsResponse] =
+          await Promise.all([
+            useServiceAPI.get(`${paths.pathSaleManagementProductsDetail}/${productId}`),
+            ...masterRequests,
+          ]);
 
         if (productResponse.status !== 200) {
           showMsg("error", productResponse.message || "ไม่พบข้อมูลสินค้า");
@@ -91,7 +133,7 @@ export default function EditProduct() {
     };
 
     fetchData();
-  }, [productId, navigate, showMsg]);
+  }, [productId, isCreateMode, navigate, showMsg]);
 
   const useFlagOptions = [
     { name: "Active", id: 1 },
@@ -104,15 +146,16 @@ export default function EditProduct() {
   ];
 
   const formFields = useMemo(() => {
-    const useFlagValue =
-      productInfo.use_flag === 1 ||
-      productInfo.use_flag === "1" ||
-      productInfo.use_flag === true
+    const useFlagValue = isCreateMode
+      ? 1
+      : productInfo.use_flag === 1 ||
+          productInfo.use_flag === "1" ||
+          productInfo.use_flag === true
         ? 1
         : 0;
 
     const statusCode = parseInteger(productInfo.status_code ?? productInfo.status);
-    const statusValue = statusCode === 1 ? 1 : 0;
+    const statusValue = isCreateMode ? 1 : statusCode === 1 ? 1 : 0;
 
     return [
       {
@@ -127,10 +170,10 @@ export default function EditProduct() {
         label: "Product Code",
         name: "product_code",
         type: "text",
-        required: true,
+        required: false,
         col: 6,
         disabled: true,
-        value: productInfo.product_code,
+        value: isCreateMode ? "" : productInfo.product_code,
       },
       {
         label: "Product Name",
@@ -351,45 +394,32 @@ export default function EditProduct() {
     productGroups,
     categories,
     isFieldDisabled,
+    isCreateMode,
   ]);
 
   const handleSave = () => {
     form
       .validateFields()
       .then((values) => {
-        const dataToSend = {
-          id: productId,
-          product_name: values.product_name,
-          ai_and_content: values.ai_and_content,
-          product_type: values.product_type,
-          product_group: values.product_group,
-          product_category: values.product_category,
-          product_image: values.profile ?? productInfo.product_image,
-          packing_list: values.packing_list,
-          packing_unit_size: parseNumber(values.packing_unit_size),
-          net_price: parseNumber(values.net_price),
-          bath_ltkg: parseNumber(values.bath_ltkg),
-          bath_unit: parseNumber(values.bath_unit),
-          sub_dealer: parseNumber(values.sub_dealer),
-          farmer: parseNumber(values.farmer),
-          remark: values.remark,
-          unit_convert_value: parseNumber(values.unit_convert_value),
-          product_campaign_order_min_foc: parseInteger(
-            values.product_campaign_order_min_foc
-          ),
-          product_campaign_foc: parseInteger(values.product_campaign_foc),
-          use_flag: parseInteger(values.use_flag),
-          status: parseInteger(values.status),
-          order_by: parseInteger(values.order_by),
-          unit_convert_order_value: parseNumber(values.unit_convert_order_value),
-          point: parseInteger(values.point),
-          unit_convert_sales_order: parseInteger(values.unit_convert_sales_order),
-          unit_size: parseInteger(values.unit_size),
-          crop_list: selectedCrops,
-        };
+        const payload = buildProductPayload(
+          values,
+          selectedCrops,
+          productInfo.product_image
+        );
 
-        useServiceAPI
-          .put(paths.pathSaleManagementProductsUpdate, dataToSend, setLoading)
+        const request = isCreateMode
+          ? useServiceAPI.post(
+              paths.pathSaleManagementProductsCreate,
+              payload,
+              setLoading
+            )
+          : useServiceAPI.put(
+              paths.pathSaleManagementProductsUpdate,
+              { ...payload, id: productId },
+              setLoading
+            );
+
+        request
           .then((response) => {
             if (response.status === 200) {
               navigate("/setting/product");
@@ -418,11 +448,15 @@ export default function EditProduct() {
     value: Number(option.id),
   }));
 
+  const pageTitle = isCreateMode
+    ? "Create Product"
+    : isViewMode
+      ? "View Product"
+      : "Edit Product";
+
   return (
     <MainLayout loading={loading}>
-      <div className="title-page">
-        {isViewMode ? "View Product" : "Edit Product"}
-      </div>
+      <div className="title-page">{pageTitle}</div>
 
       {dataLoaded ? (
         <FormUser
@@ -460,7 +494,15 @@ export default function EditProduct() {
           path="/setting/product"
         />
 
-        {!isViewMode && canEdit && (
+        {isCreateMode && (
+          <ActionButton
+            text="Create"
+            mode="create"
+            onClick={handleSave}
+          />
+        )}
+
+        {!isCreateMode && !isViewMode && canEdit && (
           <ActionButton
             text="Update"
             mode="update"
