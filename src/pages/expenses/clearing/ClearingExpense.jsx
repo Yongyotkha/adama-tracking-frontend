@@ -16,10 +16,12 @@ import { ExclamationCircleFilled } from "@ant-design/icons";
 import { loadListPageState, saveListPageState } from "../../../utils/listPageState";
 import {
   findStatusLabel,
+  getBulkApproveFeedback,
   getRowStatusCode,
   getRowStatusKey,
   getRowStatusName,
-  isExcludedApprovalStatus,
+  isBlockedClearingApprovalStatus,
+  isCompleteStatus,
 } from "../../../utils/approvalRowSelection";
 
 export default function ClearingExpense() {
@@ -459,7 +461,11 @@ const newDataSource = (data || []).map((row, index) => ({
       if (response.status === 200) {
         setApprovalStatusList(
           (response.data.data || [])
-            .filter((s) => !["draft", "reject", "convert"].includes(s.code.toLowerCase()))
+            .filter(
+              (s) =>
+                !["draft", "reject", "convert"].includes(s.code.toLowerCase()) &&
+                !isCompleteStatus({ transaction_status_code: s.code, transaction_status_name: s.name })
+            )
             .map((s) => ({
               label: s.name,
               value: s.code,
@@ -497,23 +503,27 @@ const newDataSource = (data || []).map((row, index) => ({
 
   const handleBulkApprove = async () => {
     const effectiveStatus = updateAll ? selectedStatus : lockedTableStatus;
-    if (!effectiveStatus || selectedRowKeys.length === 0) return;
+    if (!effectiveStatus) return;
 
-    const documentNumbers = selectedRowKeys.map((key) => {
-      const row = dataSource.find((r) => r.key === key);
-      return row?.raw?.document_number;
-    }).filter(Boolean);
+    if (!updateAll && selectedRowKeys.length === 0) return;
 
-    if (documentNumbers.length === 0) return;
+    const documentNumbers = selectedRowKeys
+      .map((key) => {
+        const row = dataSource.find((r) => r.key === key);
+        return row?.raw?.document_number;
+      })
+      .filter(Boolean);
+
+    if (!updateAll && documentNumbers.length === 0) return;
 
     try {
       let response;
+
       if (updateAll) {
         response = await useServiceAPI.put(paths.pathActivityExpenseUpdateStatusStep, {
           step: effectiveStatus,
           action_code: "approved",
           page_code: pageCode,
-          document_numbers: documentNumbers,
         });
       } else {
         response = await useServiceAPI.put(paths.pathActivityExpenseUpdateStatusDocs, {
@@ -523,15 +533,21 @@ const newDataSource = (data || []).map((row, index) => ({
         });
       }
 
-      if (response?.result || response?.data?.Result) {
-        showNotification("success", "Success", ["Status updated successfully"]);
+      const { isSuccess, messageHeader, messageLines } = getBulkApproveFeedback(
+        response,
+        "Status updated successfully",
+        "Failed to update status"
+      );
+
+      if (isSuccess) {
+        showNotification("success", messageHeader, messageLines);
         setSelectedRowKeys([]);
         setSelectedStatus(null);
         setLockedTableStatus(null);
         setUpdateAll(false);
         fetchData();
       } else {
-        showNotification("error", "Failed", [response?.message || "Failed to update status"]);
+        showNotification("error", messageHeader, messageLines);
       }
     } catch (error) {
       console.error(error);
@@ -557,9 +573,9 @@ const newDataSource = (data || []).map((row, index) => ({
 
       const selectedRows = dataSource.filter((row) => keys.includes(row.key));
 
-      if (selectedRows.some((row) => isExcludedApprovalStatus(row))) {
+      if (selectedRows.some((row) => isBlockedClearingApprovalStatus(row))) {
         showNotification("warning", "Status Selection", [
-          "Cannot select items with draft, reject, or convert status",
+          "Cannot select items with draft, reject, convert, or complete status",
         ]);
         return;
       }
@@ -587,7 +603,7 @@ const newDataSource = (data || []).map((row, index) => ({
     columnWidth: 50,
     hideSelectAll: !activeLockStatus,
     getCheckboxProps: (record) => {
-      if (isExcludedApprovalStatus(record)) {
+      if (isBlockedClearingApprovalStatus(record)) {
         return { disabled: true };
       }
 
@@ -662,7 +678,7 @@ const newDataSource = (data || []).map((row, index) => ({
           pagination={tableParams.pagination}
           loading={tableLoading}
           onChange={handleTableChange}
-          rowSelection={isApprovalMode && (!updateAll || selectedStatus) ? rowSelection : undefined}
+          rowSelection={isApprovalMode && !updateAll ? rowSelection : undefined}
         />
       </BoxPrimary>
     </MainLayout>

@@ -14,8 +14,6 @@ const ApprovalMode = ({
   lockedTableStatus,
   lockedTableStatusLabel,
 }) => {
-  const effectiveStatus = updateAll ? selectedStatus : lockedTableStatus;
-
   return (
     <div className="flex items-center gap-3 mb-3">
       <ActionButton
@@ -56,7 +54,11 @@ const ApprovalMode = ({
             mode="save"
             text="Approve"
             onClick={onApprove}
-            disabled={!effectiveStatus || selectedRowKeys.length === 0}
+            disabled={
+              updateAll
+                ? !selectedStatus
+                : !lockedTableStatus || selectedRowKeys.length === 0
+            }
           />
         </>
       )}

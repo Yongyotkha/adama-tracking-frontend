@@ -16,9 +16,11 @@ import { ExclamationCircleFilled } from "@ant-design/icons";
 import { loadListPageState, saveListPageState } from "../../../utils/listPageState";
 import {
   findStatusLabel,
+  getBulkApproveFeedback,
   getRowStatusCode,
   getRowStatusKey,
   getRowStatusName,
+  isCompleteStatus,
   isExcludedApprovalStatus,
 } from "../../../utils/approvalRowSelection";
 
@@ -495,31 +497,32 @@ const newDataSource = (data || []).map((row, index) => ({
 
   const handleBulkApprove = async () => {
     const effectiveStatus = updateAll ? selectedStatus : lockedTableStatus;
-    if (!effectiveStatus || selectedRowKeys.length === 0) return;
+    if (!effectiveStatus) return;
 
-    const documentNumbers = selectedRowKeys.map((key) => {
-      const row = dataSource.find((r) => r.key === key);
-      return row?.raw?.document_number;
-    }).filter(Boolean);
+    if (!updateAll && selectedRowKeys.length === 0) return;
 
-    if (documentNumbers.length === 0) return;
+    const documentNumbers = selectedRowKeys
+      .map((key) => {
+        const row = dataSource.find((r) => r.key === key);
+        return row?.raw?.document_number;
+      })
+      .filter(Boolean);
+
+    if (!updateAll && documentNumbers.length === 0) return;
 
     try {
-      const isAdvanceConvertAction = getRowStatusKey({ transaction_status_code: effectiveStatus }) === "eac";
-
       let response;
-      if (isAdvanceConvertAction) {
-        response = await useServiceAPI.put(paths.pathActivityExpenseConvertClearing, {
-          document_numbers: documentNumbers,
-          platform: "web",
-          action_code: "convert_clearing",
-        });
-      } else if (updateAll) {
+
+      if (updateAll) {
         response = await useServiceAPI.put(paths.pathActivityExpenseUpdateStatusStep, {
           step: effectiveStatus,
           action_code: "approved",
           page_code: pageCode,
+        });
+      } else if (isCompleteStatus(effectiveStatus)) {
+        response = await useServiceAPI.put(paths.pathActivityExpenseConvertClearing, {
           document_numbers: documentNumbers,
+          action_code: "convert_clearing",
         });
       } else {
         response = await useServiceAPI.put(paths.pathActivityExpenseUpdateStatusDocs, {
@@ -529,15 +532,21 @@ const newDataSource = (data || []).map((row, index) => ({
         });
       }
 
-      if (response?.result || response?.data?.Result) {
-        showNotification("success", "Success", ["Status updated successfully"]);
+      const { isSuccess, messageHeader, messageLines } = getBulkApproveFeedback(
+        response,
+        "Status updated successfully",
+        "Failed to update status"
+      );
+
+      if (isSuccess) {
+        showNotification("success", messageHeader, messageLines);
         setSelectedRowKeys([]);
         setSelectedStatus(null);
         setLockedTableStatus(null);
         setUpdateAll(false);
         fetchData();
       } else {
-        showNotification("error", "Failed", [response?.message || "Failed to update status"]);
+        showNotification("error", messageHeader, messageLines);
       }
     } catch (error) {
       console.error(error);
@@ -669,7 +678,7 @@ const newDataSource = (data || []).map((row, index) => ({
           pagination={tableParams.pagination}
           loading={tableLoading}
           onChange={handleTableChange}
-          rowSelection={isApprovalMode && (!updateAll || selectedStatus) ? rowSelection : undefined}
+          rowSelection={isApprovalMode && !updateAll ? rowSelection : undefined}
         />
       </BoxPrimary>
     </MainLayout>
