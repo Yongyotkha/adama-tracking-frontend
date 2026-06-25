@@ -11,13 +11,10 @@ const ApprovalMode = ({
   selectedRowKeys,
   updateAll,
   onUpdateAllChange,
+  lockedTableStatus,
+  lockedTableStatusLabel,
 }) => {
-  const filteredStatusOptions = selectedStatus
-    ? statusOptions.map((opt) => ({
-        ...opt,
-        disabled: opt.value !== selectedStatus,
-      }))
-    : statusOptions;
+  const effectiveStatus = updateAll ? selectedStatus : lockedTableStatus;
 
   return (
     <div className="flex items-center gap-3 mb-3">
@@ -43,13 +40,13 @@ const ApprovalMode = ({
                   placeholder="Select status to approve"
                   style={{ width: 250 }}
                   allowClear
-                  options={filteredStatusOptions}
+                  options={statusOptions}
                 />
               </>
             ) : (
-              selectedStatus && (
+              lockedTableStatus && (
                 <span className="text-sm font-medium text-gray-700">
-                  Status locked: {statusOptions.find((opt) => opt.value === selectedStatus)?.label || selectedStatus}
+                  Status locked: {lockedTableStatusLabel || lockedTableStatus}
                 </span>
               )
             )}
@@ -59,7 +56,7 @@ const ApprovalMode = ({
             mode="save"
             text="Approve"
             onClick={onApprove}
-            disabled={!selectedStatus || selectedRowKeys.length === 0}
+            disabled={!effectiveStatus || selectedRowKeys.length === 0}
           />
         </>
       )}

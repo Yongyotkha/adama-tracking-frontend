@@ -14,6 +14,13 @@ import { paths } from "../../../services/CorsPath";
 import { AuthContext } from "../../../contexts/AuthContext";
 import { ExclamationCircleFilled } from "@ant-design/icons";
 import { loadListPageState, saveListPageState } from "../../../utils/listPageState";
+import {
+  findStatusLabel,
+  getRowStatusCode,
+  getRowStatusKey,
+  getRowStatusName,
+  isExcludedApprovalStatus,
+} from "../../../utils/approvalRowSelection";
 
 export default function ClearingExpense() {
   const { confirm } = Modal;
@@ -45,6 +52,7 @@ export default function ClearingExpense() {
   const [isApprovalMode, setIsApprovalMode] = useState(false);
   const [selectedRowKeys, setSelectedRowKeys] = useState([]);
   const [selectedStatus, setSelectedStatus] = useState(null);
+  const [lockedTableStatus, setLockedTableStatus] = useState(null);
   const [approvalStatusList, setApprovalStatusList] = useState([]);
   const [updateAll, setUpdateAll] = useState(false);
 
@@ -355,6 +363,7 @@ const newDataSource = (data || []).map((row, index) => ({
            key: index + 1 + (current - 1) * pageSize,
            raw: row,
            transaction_status_code: row.transaction_status_code,
+           transaction_status_name: row.transaction_status_name,
            customer: row.sub_dealer_name,
           dealer: row.dealer_name,
           expenseNo: row.document_number,
@@ -470,22 +479,25 @@ const newDataSource = (data || []).map((row, index) => ({
     setIsApprovalMode((prev) => !prev);
     setSelectedRowKeys([]);
     setSelectedStatus(null);
+    setLockedTableStatus(null);
     setUpdateAll(false);
   };
 
   const handleStatusChange = (value) => {
     setSelectedStatus(value);
+    setSelectedRowKeys([]);
   };
 
   const handleUpdateAllChange = (checked) => {
     setUpdateAll(checked);
-    if (!checked) {
-      setSelectedStatus(null);
-    }
+    setSelectedStatus(null);
+    setSelectedRowKeys([]);
+    setLockedTableStatus(null);
   };
 
   const handleBulkApprove = async () => {
-    if (!selectedStatus || selectedRowKeys.length === 0) return;
+    const effectiveStatus = updateAll ? selectedStatus : lockedTableStatus;
+    if (!effectiveStatus || selectedRowKeys.length === 0) return;
 
     const documentNumbers = selectedRowKeys.map((key) => {
       const row = dataSource.find((r) => r.key === key);
@@ -498,7 +510,7 @@ const newDataSource = (data || []).map((row, index) => ({
       let response;
       if (updateAll) {
         response = await useServiceAPI.post(paths.pathActivityExpenseUpdateStatusStep, {
-          step: selectedStatus,
+          step: effectiveStatus,
           action_code: "approved",
           page_code: pageCode,
           document_numbers: documentNumbers,
@@ -515,6 +527,7 @@ const newDataSource = (data || []).map((row, index) => ({
         showNotification("success", "Success", ["Status updated successfully"]);
         setSelectedRowKeys([]);
         setSelectedStatus(null);
+        setLockedTableStatus(null);
         setUpdateAll(false);
         fetchData();
       } else {
@@ -526,61 +539,80 @@ const newDataSource = (data || []).map((row, index) => ({
     }
   };
 
+  const activeLockStatus = updateAll ? selectedStatus : lockedTableStatus;
+
   const rowSelection = {
     type: "checkbox",
     selectedRowKeys,
     onChange: (keys) => {
+      if (updateAll && !selectedStatus) return;
+
       if (keys.length === 0) {
         setSelectedRowKeys([]);
+        if (!updateAll) {
+          setLockedTableStatus(null);
+        }
         return;
       }
 
       const selectedRows = dataSource.filter((row) => keys.includes(row.key));
-      const excludedStatuses = ["draft", "reject", "convert"];
-      const lowerStatuses = selectedRows
-        .map((row) => row.transaction_status_code?.toString()?.toLowerCase())
-        .filter(Boolean);
 
-      if (lowerStatuses.some((status) => excludedStatuses.includes(status))) {
+      if (selectedRows.some((row) => isExcludedApprovalStatus(row))) {
         showNotification("warning", "Status Selection", [
           "Cannot select items with draft, reject, or convert status",
         ]);
         return;
       }
 
-      const lockedStatusLower = (selectedStatus || (selectedRowKeys.length > 0
-        ? dataSource.find((r) => r.key === selectedRowKeys[0])?.transaction_status_code
-        : null))?.toString()?.toLowerCase();
+      const statusKeys = selectedRows.map((row) => getRowStatusKey(row)).filter(Boolean);
 
-      if (lockedStatusLower && lowerStatuses.some((status) => status !== lockedStatusLower)) {
-        showNotification("warning", "Status Selection", [
-          "Can only select items with the same status.",
-        ]);
+      if (statusKeys.length === 0) {
+        showNotification("warning", "Status Selection", ["Cannot determine row status"]);
         return;
       }
 
-      if (!selectedStatus) {
-        setSelectedStatus(selectedRows[0]?.transaction_status_code);
+      const lockStatusKey = activeLockStatus ? getRowStatusKey({ transaction_status_code: activeLockStatus }) : null;
+
+      if (lockStatusKey && statusKeys.some((status) => status !== lockStatusKey)) {
+        showNotification("warning", "Status Selection", ["Can only select items with the same status."]);
+        return;
+      }
+
+      if (!updateAll && !lockedTableStatus) {
+        setLockedTableStatus(getRowStatusCode(selectedRows[0]) || getRowStatusName(selectedRows[0]));
       }
 
       setSelectedRowKeys(keys);
     },
     columnWidth: 50,
-    hideSelectAll: !selectedStatus,
+    hideSelectAll: !activeLockStatus,
     getCheckboxProps: (record) => {
-      const rowStatusCode = record.transaction_status_code?.toString()?.toLowerCase();
-      const excludedStatuses = ["draft", "reject", "convert"];
-      const lockedStatusLower = (selectedStatus || (selectedRowKeys.length > 0
-        ? dataSource.find((r) => r.key === selectedRowKeys[0])?.transaction_status_code
-        : null))?.toString()?.toLowerCase();
-
-      if (lockedStatusLower && rowStatusCode !== lockedStatusLower) {
+      if (isExcludedApprovalStatus(record)) {
         return { disabled: true };
       }
 
-      return { disabled: excludedStatuses.includes(rowStatusCode) };
+      if (updateAll && !selectedStatus) {
+        return { disabled: true };
+      }
+
+      const rowStatusKey = getRowStatusKey(record);
+      const lockStatusKey = activeLockStatus
+        ? getRowStatusKey({ transaction_status_code: activeLockStatus })
+        : null;
+
+      if (lockStatusKey && rowStatusKey !== lockStatusKey) {
+        return { disabled: true };
+      }
+
+      return { disabled: false };
     },
   };
+
+  const lockedTableStatusLabel = lockedTableStatus
+    ? findStatusLabel(lockedTableStatus, approvalStatusList) ||
+      dataSource.find((row) => getRowStatusCode(row) === lockedTableStatus || getRowStatusName(row) === lockedTableStatus)
+        ?.transaction_status_name
+    : "";
 
   return (
     <MainLayout loading={loading}>
@@ -611,6 +643,8 @@ const newDataSource = (data || []).map((row, index) => ({
         selectedRowKeys={selectedRowKeys}
         updateAll={updateAll}
         onUpdateAllChange={handleUpdateAllChange}
+        lockedTableStatus={lockedTableStatus}
+        lockedTableStatusLabel={lockedTableStatusLabel}
       />
 
       <Filter
@@ -628,7 +662,7 @@ const newDataSource = (data || []).map((row, index) => ({
           pagination={tableParams.pagination}
           loading={tableLoading}
           onChange={handleTableChange}
-          rowSelection={isApprovalMode ? rowSelection : undefined}
+          rowSelection={isApprovalMode && (!updateAll || selectedStatus) ? rowSelection : undefined}
         />
       </BoxPrimary>
     </MainLayout>
