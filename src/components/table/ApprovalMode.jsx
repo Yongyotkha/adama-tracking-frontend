@@ -34,16 +34,25 @@ const ApprovalMode = ({
             <Checkbox checked={updateAll} onChange={(e) => onUpdateAllChange(e.target.checked)}>
               Update All
             </Checkbox>
-            <span className="text-sm font-medium text-gray-700">Select Status:</span>
-            <Select
-              value={selectedStatus}
-              onChange={onStatusChange}
-              placeholder="Select status to approve"
-              style={{ width: 250 }}
-              allowClear
-              options={filteredStatusOptions}
-              disabled={!updateAll}
-            />
+            {updateAll ? (
+              <>
+                <span className="text-sm font-medium text-gray-700">Select Status:</span>
+                <Select
+                  value={selectedStatus}
+                  onChange={onStatusChange}
+                  placeholder="Select status to approve"
+                  style={{ width: 250 }}
+                  allowClear
+                  options={filteredStatusOptions}
+                />
+              </>
+            ) : (
+              selectedStatus && (
+                <span className="text-sm font-medium text-gray-700">
+                  Status locked: {statusOptions.find((opt) => opt.value === selectedStatus)?.label || selectedStatus}
+                </span>
+              )
+            )}
           </div>
 
           <ActionButton

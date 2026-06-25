@@ -495,16 +495,8 @@ const newDataSource = (data || []).map((row, index) => ({
     if (documentNumbers.length === 0) return;
 
     try {
-      const isCompleteAction = selectedStatus === "EAC";
-
       let response;
-      if (isCompleteAction) {
-        response = await useServiceAPI.post(paths.pathActivityExpenseConvertClearing, {
-          document_numbers: documentNumbers,
-          platform: "web",
-          action_code: "convert_clearing",
-        });
-      } else if (updateAll) {
+      if (updateAll) {
         response = await useServiceAPI.post(paths.pathActivityExpenseUpdateStatusStep, {
           step: selectedStatus,
           action_code: "approved",
@@ -535,6 +527,7 @@ const newDataSource = (data || []).map((row, index) => ({
   };
 
   const rowSelection = {
+    type: "checkbox",
     selectedRowKeys,
     onChange: (keys) => {
       if (keys.length === 0) {
@@ -542,37 +535,32 @@ const newDataSource = (data || []).map((row, index) => ({
         return;
       }
 
-      const firstRow = dataSource.find((r) => r.key === keys[0]);
-      const firstStatusCode = firstRow?.transaction_status_code;
+      const selectedRows = dataSource.filter((row) => keys.includes(row.key));
       const excludedStatuses = ["draft", "reject", "convert"];
+      const lowerStatuses = selectedRows
+        .map((row) => row.transaction_status_code?.toString()?.toLowerCase())
+        .filter(Boolean);
 
-      if (firstStatusCode && excludedStatuses.includes(firstStatusCode.toLowerCase())) {
+      if (lowerStatuses.some((status) => excludedStatuses.includes(status))) {
         showNotification("warning", "Status Selection", [
-          "Cannot select items with draft, reject, or convert status"
+          "Cannot select items with draft, reject, or convert status",
+        ]);
+        return;
+      }
+
+      const lockedStatusLower = (selectedStatus || (selectedRowKeys.length > 0
+        ? dataSource.find((r) => r.key === selectedRowKeys[0])?.transaction_status_code
+        : null))?.toString()?.toLowerCase();
+
+      if (lockedStatusLower && lowerStatuses.some((status) => status !== lockedStatusLower)) {
+        showNotification("warning", "Status Selection", [
+          "Can only select items with the same status.",
         ]);
         return;
       }
 
       if (!selectedStatus) {
-        setSelectedStatus(firstStatusCode);
-      }
-
-      if (selectedRowKeys.length > 0) {
-        const existingStatusCode = dataSource.find((r) => r.key === selectedRowKeys[0])?.transaction_status_code;
-
-        if (existingStatusCode && firstStatusCode !== existingStatusCode) {
-          showNotification("warning", "Status Selection", [
-            "Can only select items with the same status. Previous selection cleared."
-          ]);
-          setSelectedRowKeys([]);
-          setTimeout(() => {
-            const validKeys = dataSource
-              .filter((r) => r.transaction_status_code === firstStatusCode)
-              .map((r) => r.key);
-            setSelectedRowKeys(validKeys);
-          }, 0);
-          return;
-        }
+        setSelectedStatus(selectedRows[0]?.transaction_status_code);
       }
 
       setSelectedRowKeys(keys);
@@ -580,18 +568,17 @@ const newDataSource = (data || []).map((row, index) => ({
     columnWidth: 50,
     hideSelectAll: !selectedStatus,
     getCheckboxProps: (record) => {
-      const rowStatusCode = record.transaction_status_code;
+      const rowStatusCode = record.transaction_status_code?.toString()?.toLowerCase();
       const excludedStatuses = ["draft", "reject", "convert"];
+      const lockedStatusLower = (selectedStatus || (selectedRowKeys.length > 0
+        ? dataSource.find((r) => r.key === selectedRowKeys[0])?.transaction_status_code
+        : null))?.toString()?.toLowerCase();
 
-      if (selectedRowKeys.length > 0) {
-        const lockedStatus = dataSource.find((r) => r.key === selectedRowKeys[0])?.transaction_status_code;
-        if (lockedStatus && rowStatusCode !== lockedStatus) {
-          return { disabled: true };
-        }
+      if (lockedStatusLower && rowStatusCode !== lockedStatusLower) {
+        return { disabled: true };
       }
 
-      const disabled = excludedStatuses.includes(rowStatusCode?.toLowerCase?.());
-      return { disabled };
+      return { disabled: excludedStatuses.includes(rowStatusCode) };
     },
   };
 
