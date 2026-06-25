@@ -362,6 +362,119 @@ export default function CreateOrder() {
     );
   };
 
+  useEffect(() => {
+    if (dealerId) {
+      formCustom.setFieldsValue({
+        dealer: dealerId,
+      });
+    }
+  }, [dealerId]);
+
+  const handleChange = (filter, value) => {
+    if (filter === "sale") {
+      setDataSaleId(value);
+      setDealerId(undefined);
+      setDataDealer([]);
+
+      formCustom.setFieldsValue({
+        dealer: undefined,
+      });
+    }
+
+    if (filter === "dealer") {
+      setDealerId(value);
+    }
+  };
+
+  const formFields = [
+    {
+      label: "Sales",
+      name: "sale",
+      type: "select",
+      options: dataSale,
+      disabled: false,
+      required: true,
+      moderef: true,
+      placeholder: "กรุณาเลือก Sales",
+      value: dataSaleId || undefined,
+    },
+    {
+      label: "Dealer",
+      name: "dealer",
+      type: "select",
+      options: dataDealer,
+      disabled: !dataSaleId,
+      required: true,
+      moderef: false,
+      placeholder: dataSaleId ? "กรุณาเลือก Dealer" : "กรุณาเลือก Sales ก่อน",
+      value: dealerId || undefined,
+    },
+    {
+      label: "Order No",
+      name: "order_no",
+      type: "text",
+      disabled: true,
+      required: false,
+      moderef: false,
+      placeholder: "Generate order no",
+      value: undefined,
+    },
+    {
+      label: "Date",
+      name: "order_date",
+      type: "date",
+      disabled: true,
+      required: false,
+      moderef: false,
+      value: dayjs().format("YYYY-MM-DD"),
+    },
+  ];
+
+  const handleEditPrice = (key) => {
+    if (!canEditProduct) return;
+
+    setEditingPriceKeys((prev) => ({
+      ...prev,
+      [key]: true,
+    }));
+  };
+
+  const handleUnitPriceChange = (key, value) => {
+    if (!canEditProduct) return;
+
+    setDataSource((prev) =>
+      prev.map((item) => {
+        if (item.key === key) {
+          const quantity = parseInt(item.quantity || 0);
+          const price = parseFloat(String(value || "0").replace(/,/g, ""));
+          const net_amount = (quantity * price).toFixed(2);
+
+          return {
+            ...item,
+            product_unit_thb: value,
+            net_amount,
+          };
+        }
+
+        return item;
+      })
+    );
+  };
+
+  const handleDeleteProductRow = (key) => {
+    if (!canEditProduct) return;
+
+    setDataSource((prev) =>
+      prev
+        .filter((item) => item.key !== key)
+        .map((item, index) => ({
+          ...item,
+          key: index + 1,
+          no: index + 1,
+        }))
+    );
+  };
+
   const handleQuantityChange = (key, newQuantity) => {
     setDataSource((prevData) =>
       prevData.map((item) => {
