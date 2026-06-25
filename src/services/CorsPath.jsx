@@ -297,6 +297,11 @@ export const paths = {
   pathActivityExpenseDelete: "/activity-expense/delete",
   pathActivityExpenseLog: "/activity-expense/log",
 
+  pathActivityExpenseUpdateStatusStep: "/activity-expense/update-status-step",
+  pathActivityExpenseUpdateStatusDocs: "/activity-expense/update-status-docs",
+  pathActivityExpenseConvertClearing: "/activity-expense/convert-clearing",
+  pathActivityExpenseStatusApprove: "/activity-expense/status-approve",
+
   // Activity Calendar
   pathActivityCalendarList: "/activity/calendar/list",
   // Activity Mapping

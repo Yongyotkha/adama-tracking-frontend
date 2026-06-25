@@ -6,6 +6,7 @@ import ActionButton from "../../../components/button/ActionButton";
 import BadgeStatus from "../../../components/badge/BadgeStatus";
 import BoxPrimary from "../../../components/box_primary/BoxPrimary";
 import TableComponent from "../../../components/table/TableComponent";
+import ApprovalMode from "../../../components/table/ApprovalMode";
 import { useNavigate } from "react-router-dom";
 import ItemDropDown from "../../../components/dropdown/ItemDropDown";
 import useServiceAPI from "../../../services/CorsService";
@@ -15,6 +16,7 @@ import { ExclamationCircleFilled } from "@ant-design/icons";
 import { loadListPageState, saveListPageState } from "../../../utils/listPageState";
 
 const PAGE_STATE_KEY = "advance-expense-list";
+const pageCode = "advance";
 
 export default function AdvanceExpense() {
   const { confirm } = Modal;
@@ -40,6 +42,12 @@ export default function AdvanceExpense() {
   const [dealerList, setDealerList] = useState([]);
   const [subDealerList, setSubDealerList] = useState([]);
   const [statusList, setStatusList] = useState([]);
+
+  const [isApprovalMode, setIsApprovalMode] = useState(false);
+  const [selectedRowKeys, setSelectedRowKeys] = useState([]);
+  const [selectedStatus, setSelectedStatus] = useState(null);
+  const [approvalStatusList, setApprovalStatusList] = useState([]);
+  const [updateAll, setUpdateAll] = useState(false);
 
   const [filterValues, setFilterValues] = useState(fallbackFilters);
   const [tableParams, setTableParams] = useState({
@@ -342,10 +350,11 @@ export default function AdvanceExpense() {
 
         setPagePermission(permission || {});
 
-        const newDataSource = (data || []).map((row, index) => ({
-          key: index + 1 + (current - 1) * pageSize,
-          raw: row,
-          customer: row.sub_dealer_name,
+const newDataSource = (data || []).map((row, index) => ({
+           key: index + 1 + (current - 1) * pageSize,
+           raw: row,
+           transaction_status_code: row.transaction_status_code,
+           customer: row.sub_dealer_name,
           dealersd: row.dealer_name,
           expenseNo: row.document_number,
           advanceExp: Number(row.expense_advance || 0).toLocaleString("en-US", {
@@ -431,22 +440,189 @@ export default function AdvanceExpense() {
     }));
   }, [defaultSaleValue]);
 
+  const fetchApprovalStatusList = async () => {
+    try {
+      const response = await useServiceAPI.get(paths.pathActivityExpenseStatusApprove, {
+        page_code: pageCode,
+      });
+      if (response.status === 200) {
+        setApprovalStatusList(
+          (response.data.data || [])
+            .filter((s) => !["draft", "reject", "convert"].includes(s.code.toLowerCase()))
+            .map((s) => ({
+              label: s.name,
+              value: s.code,
+            }))
+        );
+      }
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  useEffect(() => {
+    fetchApprovalStatusList();
+  }, []);
+
+  const handleToggleApprovalMode = () => {
+    setIsApprovalMode((prev) => !prev);
+    setSelectedRowKeys([]);
+    setSelectedStatus(null);
+    setUpdateAll(false);
+  };
+
+  const handleStatusChange = (value) => {
+    setSelectedStatus(value);
+  };
+
+  const handleUpdateAllChange = (checked) => {
+    setUpdateAll(checked);
+    if (!checked) {
+      setSelectedStatus(null);
+    }
+  };
+
+  const handleBulkApprove = async () => {
+    if (!selectedStatus || selectedRowKeys.length === 0) return;
+
+    const documentNumbers = selectedRowKeys.map((key) => {
+      const row = dataSource.find((r) => r.key === key);
+      return row?.raw?.document_number;
+    }).filter(Boolean);
+
+    if (documentNumbers.length === 0) return;
+
+    try {
+      const isCompleteAction = selectedStatus === "EAC";
+
+      let response;
+      if (isCompleteAction) {
+        response = await useServiceAPI.post(paths.pathActivityExpenseConvertClearing, {
+          document_numbers: documentNumbers,
+          platform: "web",
+          action_code: "convert_clearing",
+        });
+      } else if (updateAll) {
+        response = await useServiceAPI.post(paths.pathActivityExpenseUpdateStatusStep, {
+          step: selectedStatus,
+          action_code: "approved",
+          page_code: pageCode,
+          document_numbers: documentNumbers,
+        });
+      } else {
+        response = await useServiceAPI.post(paths.pathActivityExpenseUpdateStatusDocs, {
+          document_numbers: documentNumbers,
+          action_code: "approved",
+          page_code: pageCode,
+        });
+      }
+
+      if (response?.result || response?.data?.Result) {
+        showNotification("success", "Success", ["Status updated successfully"]);
+        setSelectedRowKeys([]);
+        setSelectedStatus(null);
+        setUpdateAll(false);
+        fetchData();
+      } else {
+        showNotification("error", "Failed", [response?.message || "Failed to update status"]);
+      }
+    } catch (error) {
+      console.error(error);
+      showNotification("error", "Transaction failed", ["Please try again later."]);
+    }
+  };
+
+  const rowSelection = {
+    selectedRowKeys,
+    onChange: (keys) => {
+      if (keys.length === 0) {
+        setSelectedRowKeys([]);
+        return;
+      }
+
+      const firstRow = dataSource.find((r) => r.key === keys[0]);
+      const firstStatusCode = firstRow?.transaction_status_code;
+      const excludedStatuses = ["draft", "reject", "convert"];
+
+      if (firstStatusCode && excludedStatuses.includes(firstStatusCode.toLowerCase())) {
+        showNotification("warning", "Status Selection", [
+          "Cannot select items with draft, reject, or convert status"
+        ]);
+        return;
+      }
+
+      if (!selectedStatus) {
+        setSelectedStatus(firstStatusCode);
+      }
+
+      if (selectedRowKeys.length > 0) {
+        const existingStatusCode = dataSource.find((r) => r.key === selectedRowKeys[0])?.transaction_status_code;
+
+        if (existingStatusCode && firstStatusCode !== existingStatusCode) {
+          showNotification("warning", "Status Selection", [
+            "Can only select items with the same status. Previous selection cleared."
+          ]);
+          setSelectedRowKeys([]);
+          setTimeout(() => {
+            const validKeys = dataSource
+              .filter((r) => r.transaction_status_code === firstStatusCode)
+              .map((r) => r.key);
+            setSelectedRowKeys(validKeys);
+          }, 0);
+          return;
+        }
+      }
+
+      setSelectedRowKeys(keys);
+    },
+    columnWidth: 50,
+    hideSelectAll: !selectedStatus,
+    getCheckboxProps: (record) => {
+      const rowStatusCode = record.transaction_status_code;
+      const excludedStatuses = ["draft", "reject", "convert"];
+
+      if (selectedRowKeys.length > 0) {
+        const lockedStatus = dataSource.find((r) => r.key === selectedRowKeys[0])?.transaction_status_code;
+        if (lockedStatus && rowStatusCode !== lockedStatus) {
+          return { disabled: true };
+        }
+      }
+
+      const disabled = excludedStatuses.includes(rowStatusCode?.toLowerCase?.());
+      return { disabled };
+    },
+  };
+
   return (
     <MainLayout loading={loading}>
       <div className="flex items-center justify-between">
         <div className="title-page">Advance Expense</div>
-        {pagePermission?.btn_create && (
-          <ActionButton
-            mode="create"
-            text="Create"
-            onClick={() =>
-              navigate("/activity/create", {
-                state: { pageCode: "expense_advance", page_mode: "create" },
-              })
-            }
-          />
-        )}
+        <div className="flex items-center gap-3">
+          {pagePermission?.btn_create && (
+            <ActionButton
+              mode="create"
+              text="Create"
+              onClick={() =>
+                navigate("/activity/create", {
+                  state: { pageCode: "expense_advance", page_mode: "create" },
+                })
+              }
+            />
+          )}
+        </div>
       </div>
+
+      <ApprovalMode
+        isApprovalMode={isApprovalMode}
+        onToggleApprovalMode={handleToggleApprovalMode}
+        selectedStatus={selectedStatus}
+        onStatusChange={handleStatusChange}
+        statusOptions={approvalStatusList}
+        onApprove={handleBulkApprove}
+        selectedRowKeys={selectedRowKeys}
+        updateAll={updateAll}
+        onUpdateAllChange={handleUpdateAllChange}
+      />
 
       <Filter
         filters={filters}
@@ -463,6 +639,7 @@ export default function AdvanceExpense() {
           pagination={tableParams.pagination}
           loading={tableLoading}
           onChange={handleTableChange}
+          rowSelection={isApprovalMode ? rowSelection : undefined}
         />
       </BoxPrimary>
     </MainLayout>
