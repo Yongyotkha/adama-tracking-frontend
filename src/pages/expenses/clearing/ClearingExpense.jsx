@@ -509,14 +509,14 @@ const newDataSource = (data || []).map((row, index) => ({
     try {
       let response;
       if (updateAll) {
-        response = await useServiceAPI.post(paths.pathActivityExpenseUpdateStatusStep, {
+        response = await useServiceAPI.put(paths.pathActivityExpenseUpdateStatusStep, {
           step: effectiveStatus,
           action_code: "approved",
           page_code: pageCode,
           document_numbers: documentNumbers,
         });
       } else {
-        response = await useServiceAPI.post(paths.pathActivityExpenseUpdateStatusDocs, {
+        response = await useServiceAPI.put(paths.pathActivityExpenseUpdateStatusDocs, {
           document_numbers: documentNumbers,
           action_code: "approved",
           page_code: pageCode,

@@ -509,20 +509,20 @@ const newDataSource = (data || []).map((row, index) => ({
 
       let response;
       if (isAdvanceConvertAction) {
-        response = await useServiceAPI.post(paths.pathActivityExpenseConvertClearing, {
+        response = await useServiceAPI.put(paths.pathActivityExpenseConvertClearing, {
           document_numbers: documentNumbers,
           platform: "web",
           action_code: "convert_clearing",
         });
       } else if (updateAll) {
-        response = await useServiceAPI.post(paths.pathActivityExpenseUpdateStatusStep, {
+        response = await useServiceAPI.put(paths.pathActivityExpenseUpdateStatusStep, {
           step: effectiveStatus,
           action_code: "approved",
           page_code: pageCode,
           document_numbers: documentNumbers,
         });
       } else {
-        response = await useServiceAPI.post(paths.pathActivityExpenseUpdateStatusDocs, {
+        response = await useServiceAPI.put(paths.pathActivityExpenseUpdateStatusDocs, {
           document_numbers: documentNumbers,
           action_code: "approved",
           page_code: pageCode,
