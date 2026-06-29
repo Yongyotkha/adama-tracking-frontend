@@ -328,6 +328,7 @@ export default function DraftCampaignPDF() {
   const hasSubDealer = data.sub_dealer_name && data.sub_dealer_name !== "-";
   const hasFarmer = data.farmer_name && data.farmer_name !== "-";
   const isDealerOnly = !hasSubDealer && !hasFarmer;
+  const hideMoney = !isDealerOnly;
 
   return (
     <PDFViewer style={{ width: "100%", height: "100vh" }}>
@@ -407,18 +408,59 @@ export default function DraftCampaignPDF() {
                 <Text>{data.farmer_name || "-"}</Text>
               </View>
             </View>
-            <View style={{ flex: 1 }} />
+            {isDealerOnly ? (
+              <View style={styles.lowerRight}>
+                <View style={styles.labelRow}>
+                  <Text style={styles.lowerLabel}>Current Value :</Text>
+                  <Text>{formatNumber(data.current_value, 2)}</Text>
+                </View>
+                <View style={styles.labelRow}>
+                  <Text style={styles.lowerLabel}>Target Value :</Text>
+                  <Text>{formatNumber(data.target_value, 2)}</Text>
+                </View>
+                <View style={styles.labelRow}>
+                  <Text style={styles.lowerLabel}>Diff Value :</Text>
+                  <Text>{formatNumber(data.diff_value_form_target, 2)}</Text>
+                </View>
+                <View style={styles.labelRow}>
+                  <Text style={styles.lowerLabel}>Bath Per Points :</Text>
+                  <Text>{formatNumber(data.value_to_point, 2)}</Text>
+                </View>
+                <View style={styles.labelRow}>
+                  <Text style={styles.lowerLabel}>Total Point :</Text>
+                  <Text>{formatNumber(data.point_your_get, 2)}</Text>
+                </View>
+              </View>
+            ) : (
+              <View style={{ flex: 1 }} />
+            )}
           </View>
 
           <View style={styles.table}>
             <View style={styles.tr}>
-              <Text style={[styles.th, { width: "18%" }]}>SKU</Text>
-              <Text style={[styles.th, { width: "28%" }]}>Product Name</Text>
-              <Text style={[styles.th, { width: "16%" }]}>Unit</Text>
-              <Text style={[styles.th, { width: "11%" }]}>Point / Ctn</Text>
+              <Text style={[styles.th, { width: hideMoney ? "18%" : "12%" }]}>SKU</Text>
+              <Text style={[styles.th, { width: hideMoney ? "28%" : "22%" }]}>Product Name</Text>
+              <Text style={[styles.th, { width: hideMoney ? "16%" : "11%" }]}>Unit</Text>
+              {!hideMoney && (
+                <Text style={[styles.th, { width: "10%" }]}>THB / Unit</Text>
+              )}
+              <Text style={[styles.th, { width: hideMoney ? "11%" : "9%" }]}>Point / Ctn</Text>
               <Text style={[styles.th, { width: "9%" }]}>QTY (ctn)</Text>
-              <Text style={[styles.th, { width: "9%" }]}>X Point</Text>
-              <Text style={[styles.th, { width: "9%" }, styles.lastCell]}>Point</Text>
+              <Text style={[styles.th, { width: hideMoney ? "9%" : "8%" }]}>X Point</Text>
+              <Text
+                style={[
+                  styles.th,
+                  { width: hideMoney ? "9%" : "8%" },
+                  hideMoney ? styles.lastCell : {},
+                ]}
+              >
+                Point
+              </Text>
+              {!hideMoney && (
+                <Text style={[styles.th, { width: "11%" }, styles.lastCell]}>
+                  Sub Total (THB)
+                </Text>
+              )}
             </View>
 
             {data.products.map((item, index) => (
@@ -426,54 +468,86 @@ export default function DraftCampaignPDF() {
                 key={`${item.product_id || item.product_code}-${index}`}
                 style={styles.trBorder}
               >
-                <Text style={[styles.td, { width: "18%" }]}>
+                <Text style={[styles.td, { width: hideMoney ? "18%" : "12%" }]}>
                   {item.product_code}
                 </Text>
-                <Text style={[styles.td, { width: "28%" }]}>
+                <Text style={[styles.td, { width: hideMoney ? "28%" : "22%" }]}>
                   {item.product_name}
                 </Text>
-                <Text style={[styles.td, { width: "16%" }]}>
+                <Text style={[styles.td, { width: hideMoney ? "16%" : "11%" }]}>
                   {item.packing_list}
                 </Text>
-                <Text style={[styles.td, { width: "11%" }, styles.tdRight]}>
+                {!hideMoney && (
+                  <Text style={[styles.td, { width: "10%" }, styles.tdRight]}>
+                    {formatNumber(getPdfUnitPrice(item), 2)}
+                  </Text>
+                )}
+                <Text style={[styles.td, { width: hideMoney ? "11%" : "9%" }, styles.tdRight]}>
                   {formatNumber(getPdfMasterPoint(item))}
                 </Text>
                 <Text style={[styles.td, { width: "9%" }, styles.tdCenter]}>
                   {formatNumber(item.quantity)}
                 </Text>
-                <Text style={[styles.td, { width: "9%" }, styles.tdCenter]}>
+                <Text style={[styles.td, { width: hideMoney ? "9%" : "8%" }, styles.tdCenter]}>
                   {formatNumber(item.xpoint)}
                 </Text>
                 <Text
                   style={[
                     styles.td,
-                    { width: "9%" },
+                    { width: hideMoney ? "9%" : "8%" },
                     styles.tdRight,
-                    styles.lastCell,
+                    hideMoney ? styles.lastCell : {},
                   ]}
                 >
                   {formatNumber(getPdfRowPoint(item))}
                 </Text>
+                {!hideMoney && (
+                  <Text
+                    style={[
+                      styles.td,
+                      { width: "11%" },
+                      styles.tdRight,
+                      styles.lastCell,
+                    ]}
+                  >
+                    {formatNumber(getPdfSubTotal(item), 2)}
+                  </Text>
+                )}
               </View>
             ))}
 
             <View style={styles.trBorder}>
-              <Text style={[styles.totalLabelCell, { width: "91%" }]}>
+              <Text style={[styles.totalLabelCell, { width: hideMoney ? "91%" : "73%" }]}>
                 Item : {data.products.length} | QTY (ctn):{" "}
                 {formatNumber(totals.qty)} | Total Point :{" "}
                 {formatNumber(totals.point)}
+                {!hideMoney && ` | Total: ${formatNumber(totals.value, 2)}`}
+                {isDealerOnly && ` | Your Reward (Bath) : ${formatNumber(data.point_your_get, 2)}`}
               </Text>
 
               <Text
                 style={[
                   styles.td,
-                  { width: "9%" },
+                  { width: hideMoney ? "9%" : "16%" },
                   styles.tdRight,
-                  styles.lastCell,
+                  hideMoney ? styles.lastCell : {},
                 ]}
               >
                 {formatNumber(totals.point)}
               </Text>
+
+              {!hideMoney && (
+                <Text
+                  style={[
+                    styles.td,
+                    { width: "11%" },
+                    styles.tdRight,
+                    styles.lastCell,
+                  ]}
+                >
+                  {formatNumber(totals.value, 2)}
+                </Text>
+              )}
             </View>
           </View>
         </Page>
