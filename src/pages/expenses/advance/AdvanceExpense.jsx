@@ -174,6 +174,11 @@ export default function AdvanceExpense() {
   };
 
   const handleApprovalAction = async (row, action) => {
+    if ([4, 5, 6, 7].includes(Number(userInfo?.role_id))) {
+      showNotification("error", "Permission Denied", ["Sales role is not allowed to approve."]);
+      return;
+    }
+
     let remark = "";
     const { approveText, rejectText } = getApproveRejectText();
 
@@ -510,48 +515,56 @@ const newDataSource = (data || []).map((row, index) => ({
 
     if (!updateAll && documentNumbers.length === 0) return;
 
-    try {
-      let response;
+    confirm({
+      title: "ยืนยันการดำเนินการ",
+      icon: <ExclamationCircleFilled />,
+      content: "คุณต้องการอนุมัติรายการที่เลือกใช่หรือไม่?",
+      centered: true,
+      async onOk() {
+        try {
+          let response;
 
-      if (updateAll) {
-        response = await useServiceAPI.put(paths.pathActivityExpenseUpdateStatusStep, {
-          step: effectiveStatus,
-          action_code: "approved",
-          page_code: pageCode,
-        });
-      } else if (isCompleteStatus(effectiveStatus)) {
-        response = await useServiceAPI.put(paths.pathActivityExpenseConvertClearing, {
-          document_numbers: documentNumbers,
-          action_code: "convert_clearing",
-        });
-      } else {
-        response = await useServiceAPI.put(paths.pathActivityExpenseUpdateStatusDocs, {
-          document_numbers: documentNumbers,
-          action_code: "approved",
-          page_code: pageCode,
-        });
-      }
+          if (updateAll) {
+            response = await useServiceAPI.put(paths.pathActivityExpenseUpdateStatusStep, {
+              step: effectiveStatus,
+              action_code: "approved",
+              page_code: pageCode,
+            });
+          } else if (isCompleteStatus(effectiveStatus)) {
+            response = await useServiceAPI.put(paths.pathActivityExpenseConvertClearing, {
+              document_numbers: documentNumbers,
+              action_code: "convert_clearing",
+            });
+          } else {
+            response = await useServiceAPI.put(paths.pathActivityExpenseUpdateStatusDocs, {
+              document_numbers: documentNumbers,
+              action_code: "approved",
+              page_code: pageCode,
+            });
+          }
 
-      const { isSuccess, messageHeader, messageLines } = getBulkApproveFeedback(
-        response,
-        "Status updated successfully",
-        "Failed to update status"
-      );
+          const { isSuccess, messageHeader, messageLines } = getBulkApproveFeedback(
+            response,
+            "Status updated successfully",
+            "Failed to update status"
+          );
 
-      if (isSuccess) {
-        showNotification("success", messageHeader, messageLines);
-        setSelectedRowKeys([]);
-        setSelectedStatus(null);
-        setLockedTableStatus(null);
-        setUpdateAll(false);
-        fetchData();
-      } else {
-        showNotification("error", messageHeader, messageLines);
-      }
-    } catch (error) {
-      console.error(error);
-      showNotification("error", "Transaction failed", ["Please try again later."]);
-    }
+          if (isSuccess) {
+            showNotification("success", messageHeader, messageLines);
+            setSelectedRowKeys([]);
+            setSelectedStatus(null);
+            setLockedTableStatus(null);
+            setUpdateAll(false);
+            fetchData();
+          } else {
+            showNotification("error", messageHeader, messageLines);
+          }
+        } catch (error) {
+          console.error(error);
+          showNotification("error", "Transaction failed", ["Please try again later."]);
+        }
+      },
+    });
   };
 
   const activeLockStatus = updateAll ? selectedStatus : lockedTableStatus;
@@ -649,6 +662,14 @@ const newDataSource = (data || []).map((row, index) => ({
         </div>
       </div>
 
+      <Filter
+        filters={filters}
+        values={filterValues}
+        onChange={handleFilterChange}
+        onSearch={handleSearch}
+        onClear={handleClear}
+      />
+
       <ApprovalMode
         isApprovalMode={isApprovalMode}
         onToggleApprovalMode={handleToggleApprovalMode}
@@ -661,14 +682,7 @@ const newDataSource = (data || []).map((row, index) => ({
         onUpdateAllChange={handleUpdateAllChange}
         lockedTableStatus={lockedTableStatus}
         lockedTableStatusLabel={lockedTableStatusLabel}
-      />
-
-      <Filter
-        filters={filters}
-        values={filterValues}
-        onChange={handleFilterChange}
-        onSearch={handleSearch}
-        onClear={handleClear}
+        showUpdateAll={![4, 5, 6, 7].includes(Number(userInfo?.role_id))}
       />
 
       <BoxPrimary>
