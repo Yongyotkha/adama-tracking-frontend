@@ -45,6 +45,7 @@ import CreateSubDealer from "./pages/customer/sub_dealer/CreateSubDealer";
 import EditSubDealer from "./pages/customer/sub_dealer/EditSubDealer";
 import Farmer from "./pages/customer/Farmers/FarmersList";
 import FarmerCreate from "./pages/customer/Farmers/FarmersCreate";
+import CustomerMapping from "./pages/customer/mapping/CustomerMapping";
 import CameraView from "./pages/mobile/collect_points/CameraView";
 import CustomerContactList from "./pages/customer/contact/List";
 import CustomerContactFrom from "./pages/customer/contact/From";
@@ -192,6 +193,8 @@ import ReportSellOutBySales from "./pages/report/ReportSellOutBySales";
 import ReportSellOutByDealer from "./pages/report/ReportSellOutByDealer";
 import ReportSellOutBySubDealer from "./pages/report/ReportSellOutBySubDealer";
 import ReportSellOut from "./pages/report/ReportSellOut";
+import ReportFarmerSales from "./pages/report/ReportFarmerSales";
+import ReportSellInByFarmer from "./pages/report/ReportSellInByFarmer";
 import PDFMaterialExpense from "./pages/pdf/PDFMaterialExpense";
 import PDFSampleExpense from "./pages/pdf/PDFSampleExpense";
 import ViewDraftCampaignPDF from "./pages/pdf/DraftCampaignPDF";
@@ -435,6 +438,7 @@ const App = () => {
 
             <Route path="/customer/farmers" element={<Farmer />} />
             <Route path="/customer/farmers/create" element={<FarmerCreate />} />
+            <Route path="/customer/mapping" element={<CustomerMapping />} />
 
             <Route path="/customer/contact" element={<CustomerContactList />} />
             <Route
@@ -461,6 +465,7 @@ const App = () => {
             <Route path="/setting/sale/create" element={<CreateSale />} />
             <Route path="/setting/sale/edit" element={<EditSale />} />
             <Route path="/setting/product" element={<SettingProduct />} />
+            <Route path="/setting/product/create" element={<EditProduct />} />
             <Route path="/setting/product/edit" element={<EditProduct />} />
             <Route path="/setting/promotion" element={<SettingPromotion />} />
             <Route
@@ -700,6 +705,14 @@ const App = () => {
             />
             <Route path="/report/stock-report" element={<ReportStock />} />
             <Route
+              path="/report/farmer-sales"
+              element={<ReportFarmerSales />}
+            />
+            <Route
+              path="/report/sell-in-farmer"
+              element={<ReportSellInByFarmer />}
+            />
+            <Route
               path="/report/sell-out-report-sales"
               element={<ReportSellOut />}
             />
@@ -814,3 +827,4 @@ const App = () => {
 };
 
 export default App;
+

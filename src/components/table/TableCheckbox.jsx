@@ -11,6 +11,22 @@ const TableCheckbox = ({
   scroll,
   rowSelection, // Add rowSelection prop here
 }) => {
+  const resolvedPagination =
+    pagination === false ? pagination : { pageSize: pageSize ?? 10 };
+
+  const resolvedColumns = (header || []).map((column) => {
+    const isNoColumn =
+      column?.title === "No" &&
+      (column?.dataIndex === "no" || column?.dataIndex === "key");
+
+    if (!isNoColumn) return column;
+
+    return {
+      ...column,
+      render: (_, __, index) => index + 1,
+    };
+  });
+
   return (
     <ConfigProvider
       theme={{
@@ -32,11 +48,9 @@ const TableCheckbox = ({
       }}
     >
       <Table
-        columns={header}
+        columns={resolvedColumns}
         dataSource={dataSource}
-        pagination={
-          pagination === false ? pagination : { pageSize: pageSize ?? 10 }
-        }
+        pagination={resolvedPagination}
         scroll={{
           x: scroll ? "max-content" : 1000,
         }}

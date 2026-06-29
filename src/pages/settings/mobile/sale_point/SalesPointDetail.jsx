@@ -26,6 +26,7 @@ export default function SalesPointDetail() {
   const [dataSale, setDataSale] = useState([]);
   const [dataDealer, setDataDealer] = useState([]);
   const [dataSubDealer, setSubDataDealer] = useState([]);
+  const [dataFarmer, setDataFarmer] = useState([]);
 
   const [getDocumentDate, setGetDocumentDate] = useState(
     location.state?.data?.document_date
@@ -33,6 +34,7 @@ export default function SalesPointDetail() {
   const [getUserId, setGetUserId] = useState(location.state?.data?.user_id);
   const [getDealerId, setGetDealerId] = useState(location.state?.data?.dealer_id);
   const [getSubDealerId, setGetSubDealerId] = useState(location.state?.data?.sub_dealer_id);
+  const [getFarmerId, setGetFarmerId] = useState(location.state?.data?.farmer_id);
   const [getRemark, setGetRemark] = useState(location.state?.data?.remark || "");
   const request_id = location.state?.data?.request_id;
 
@@ -88,15 +90,23 @@ export default function SalesPointDetail() {
     const getMaster = async () => {
       setLoading(true);
       try {
-        const [sale, dealer, sub_dealer] = await Promise.all([
+        const [sale, dealer, sub_dealer, farmer] = await Promise.all([
           useServiceAPI.get(paths.pathMasterSaleDropdown, { status: "" }),
           useServiceAPI.get(paths.pathMasterDealerDropdown, { user_id: getUserId }),
           useServiceAPI.get(paths.pathUserLineSubDealer, { dealer_id: getDealerId }),
+          getSubDealerId ? useServiceAPI.get(paths.pathUserLineFarmer, { sub_dealer_id: getSubDealerId }) : Promise.resolve({ data: [] }),
         ]);
 
         setDataSale(sale.data || []);
         setDataDealer(dealer.data || []);
         setSubDataDealer(sub_dealer.data || []);
+
+        const list = Array.isArray(farmer?.data?.data) ? farmer.data.data : Array.isArray(farmer?.data) ? farmer.data : [];
+        const normalized = list.map(item => ({
+          id: String(item.farmer_id || item.id),
+          name: item.farmer_name || item.name || String(item.farmer_id || item.id)
+        }));
+        setDataFarmer(normalized);
       } catch (error) {
         showMsg("error", error.message || "เกิดข้อผิดพลาด");
       } finally {
@@ -243,6 +253,16 @@ export default function SalesPointDetail() {
       value: getSubDealerId,
     },
     {
+      key: "farmer",
+      label: "Farmer",
+      name: "farmer",
+      type: "select",
+      disabled: true,
+      options: dataFarmer,
+      placeholder: "",
+      value: getFarmerId,
+    },
+    {
       key: "order_no",
       label: "Order No",
       name: "order_no",
@@ -279,6 +299,7 @@ export default function SalesPointDetail() {
       status_code: "ODW",
       dealer_id: getDealerId,
       sub_dealer_id: getSubDealerId,
+      farmer_id: getFarmerId,
       remark: getRemark,
       products: dataSource,
       others: dataSourceOther,
@@ -312,6 +333,54 @@ export default function SalesPointDetail() {
     }
   };
 
+  const handleSaveOrderComplete = () => {
+    const formattedDate = formatDate(getDocumentDate);
+
+    const body = {
+      document_date: formattedDate,
+      user_id: getUserId,
+      status_code: "ODC", // ✅ Receive ส่ง ODW
+      dealer_id: getDealerId,
+      sub_dealer_id: getSubDealerId,
+      farmer_id: getFarmerId,
+      remark: getRemark,
+      products: dataSource,
+      others: dataSourceOther,
+      request_id,
+      bill: fileList.map((f) => f.url),
+      product: fileListReceive.map((f) => f.url),
+      platform: "web",
+    };
+
+    if (dataSource.length > 0) {
+      const saveOrder = async () => {
+        setLoading(true);
+        try {
+          const response = await useServiceAPI.post(
+            paths.pathSalePointOrderCreate,
+            body
+          );
+
+          showNotification(
+            "success",
+            response.data.message,
+            response.data.message_line
+          ).then(() => {
+            navigate("/points/line/sales-points-list");
+          });
+        } catch (error) {
+          showMsg("error", error.message || "เกิดข้อผิดพลาด");
+          console.log(error);
+        } finally {
+          setLoading(false);
+        }
+      };
+
+      saveOrder();
+    } else {
+      showNotification("warning", "โปรดเลือกรายการ อย่างน้อย 1 รายการ", "");
+    }
+  };
 
   return (
     <MainLayout loading={loading}>

@@ -2,7 +2,8 @@ import React, { useEffect, useState, useContext } from "react";
 import MainLayout from "../../../layouts/MainLayout";
 import Filter from "../../../components/filter/Filter";
 import FilterByOrder from "../../../components/filter/FilterByOrder";
-import { Dropdown } from "antd";
+import { Dropdown, Modal } from "antd";
+import { ExclamationCircleFilled } from "@ant-design/icons";
 import ActionButton from "../../../components/button/ActionButton";
 import BadgeStatus from "../../../components/badge/BadgeStatus";
 import BoxPrimary from "../../../components/box_primary/BoxPrimary";
@@ -14,6 +15,7 @@ import { paths } from "../../../services/CorsPath";
 import { AuthContext } from "../../../contexts/AuthContext";
 
 export default function Traveling() {
+  const { confirm } = Modal;
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [dataSource, setDataSource] = useState([]);
@@ -22,7 +24,8 @@ export default function Traveling() {
   const [dataYear, setDataYear] = useState([]);
   const [dataMonth, setDataMonth] = useState([]);
   const [dataStatus, setDataStatus] = useState([]);
-  const { showMsg, showNotification } = useContext(AuthContext);
+  const { showMsg, showNotification, userInfo } = useContext(AuthContext);
+  const isAdmin = Number(userInfo?.role_id) === 1;
 
   const [permission, setPermission] = useState([]);
   const [tableLoading, setTableLoading] = useState(false);
@@ -32,8 +35,8 @@ export default function Traveling() {
       pageSize: 10,
     },
     filters: {},
-    sortOrder: null,
-    sortField: null,
+    sortOrder: "desc",
+    sortField: "document_date",
   });
 
   // Get Master
@@ -138,14 +141,94 @@ export default function Traveling() {
     { title: "Action", width: 100, dataIndex: "action", align: "center" },
   ];
 
+  const handleDelete = (row) => {
+    confirm({
+      title: "Do you want to delete this traveling expense?",
+      icon: <ExclamationCircleFilled />,
+      centered: true,
+      onOk: async () => {
+        try {
+          setLoading(true);
+
+          const response = await useServiceAPI.delete(
+            paths.pathGetExpenseTravelingDelete,
+            {
+              platform: "web",
+              year: Number(row.year),
+              month: Number(row.month),
+              user_id: Number(row.user_id),
+            }
+          );
+
+          if (response.status === 200) {
+            const messageData = response.data?.Message || response.data?.message;
+            showNotification(
+              "success",
+              messageData?.Message_Header || response.data?.message || "Notification",
+              messageData?.Message_Line || response.data?.message_line || ["Delete successful"]
+            );
+            fetchData();
+          } else {
+            showNotification(
+              "error",
+              response.message || "Delete failed",
+              response.message_line || ["Please try again later."]
+            );
+          }
+        } catch (error) {
+          showNotification("error", "Delete failed", [error.message || "Please try again later."]);
+        } finally {
+          setLoading(false);
+        }
+      },
+    });
+  };
+
+  const buildActionMenuItems = (row) => {
+    const apiActions = Array.isArray(row.action) && row.action.length > 0
+      ? row.action
+      : [{ action: "View" }, { action: "Edit" }];
+
+    return apiActions
+      .filter((actionItem) => {
+        const action = String(actionItem.action || "").toLowerCase();
+        return action !== "delete" || isAdmin;
+      })
+      .map((actionItem, actionIndex) => {
+        const action = String(actionItem.action || "").toLowerCase();
+
+        return {
+          key: actionIndex,
+          label: (
+            <ItemDropDown
+              mode={action}
+              onClick={() => {
+                if (action === "delete") {
+                  handleDelete(row);
+                  return;
+                }
+
+                if (action === "view" || action === "edit") {
+                  navigate(`/expenses/traveling/${action}`, {
+                    state: {
+                      year_code: row.year,
+                      month_code: row.month,
+                      user_id: row.user_id,
+                    },
+                  });
+                }
+              }}
+            />
+          ),
+        };
+      });
+  };
+
   ////////////////////////////////////////////// table ///////////////////////////////////////////////
   const fetchData = async () => {
     setTableLoading(true);
     const { current, pageSize } = tableParams.pagination;
     const filters = tableParams.filters || {};
-    const sortOrder = tableParams.sortOrder || "desc";
-    const sortField = tableParams.sortField || "year";
-
     const requestData = {
       user_id: filters.sale || "",
       year: filters.year || "",
@@ -153,8 +236,8 @@ export default function Traveling() {
       status_code: filters.status || "",
       page: "all",
       use_flag: filters.use_flag || "",
-      orderby_column: sortField,
-      orderby: sortOrder,
+      orderby_column: "document_date",
+      orderby: "desc",
       page_length: current,
       page_size: pageSize,
     };
@@ -191,61 +274,8 @@ export default function Traveling() {
           // ),
           action: (
             <Dropdown
-              // menu={{
-              //   items: order.action.map((actionItem, actionIndex) => ({
-              //     key: actionIndex,
-              //     label: (
-              //       <ItemDropDown mode={actionItem.action.toLowerCase()}
-              //       onClick={() => {
-              //         navigate("/order/view", {
-              //           state: {
-              //             document_number: order.document_number,
-              //           },
-              //         });
-              //       }}
-
-              //       />
-              //     ),
-              //   })),
-              // }}
-
               menu={{
-                items: [
-                  {
-                    key: 1,
-                    label: (
-                      <ItemDropDown
-                        mode="view"
-                        onClick={() => {
-                          navigate("/expenses/traveling/view", {
-                            state: {
-                              year_code: data.year,
-                              month_code: data.month,
-                              user_id: data.user_id,
-                            },
-                          });
-                        }}
-                      />
-                    ),
-                  },
-                  {
-                    key: 2,
-                    label: (
-                      <ItemDropDown
-                        mode="edit"
-                        onClick={() => {
-                          navigate("/expenses/traveling/edit", {
-                            state: {
-                              year_code: data.year,
-                              month_code: data.month,
-                              user_id: data.user_id,
-                            },
-                          });
-                        }}
-                      />
-                    ),
-                  },
-                ],
+                items: buildActionMenuItems(data),
               }}
               placement="bottom"
             >
@@ -327,8 +357,8 @@ export default function Traveling() {
     setTableParams({
       pagination,
       filters: tableParams.filters, // รักษาค่าฟิลเตอร์เดิม
-      sortOrder: sorter.order === "descend" ? "desc" : "asc",
-      sortField: sorter.field,
+      sortOrder: sorter?.order === "descend" ? "desc" : tableParams.sortOrder || "desc",
+      sortField: sorter?.field || tableParams.sortField || "document_date",
     });
   };
   return (

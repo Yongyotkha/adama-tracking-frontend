@@ -32,6 +32,7 @@ export const paths = {
   pathLogPointOne: "sale-point-receive/point-log-one",
   pathUserLineDealer: "user-line/dealers",
   pathUserLineSubDealer: "user-line/sub_dealers",
+  pathUserLineFarmer: "user-line/farmers",
 
   // Login
   pathVerifyOtp: "verify-otp",
@@ -107,11 +108,14 @@ export const paths = {
   pathExpenseMaterialEdit: "expense-material/edit",
   pathExpenseMaterialDel: "expense-material/del",
   pathExpenseMaterialItem: "expense-material/item",
+  pathExpenseMaterialStatus: "expense-material/status",
 
   //Products
   pathSaleManagementProductsList: "products-management/list",
   pathSaleManagementProductsDetail: "products-management/detail",
+  pathSaleManagementProductsCreate: "products-management/create",
   pathSaleManagementProductsUpdate: "products-management/update",
+  pathSaleManagementProductsDelete: "products-management/delete",
 
   //Dealer
   pathCustomerDealer: "sale-customer-dealer/list",
@@ -148,6 +152,9 @@ export const paths = {
   pathCustomerContactList: "sale-customer-contact/list",
   pathCustomerContactCreate: "sale-customer-contact/create",
   pathCustomerContactDetail: "sale-customer-contact/detail",
+  pathCustomerMappingFarmers: "/sale-customer-mapping/farmers",
+  pathCustomerMappingSubDealers: "/sale-customer-mapping/sub-dealers",
+  pathCustomerMappingDealers: "/sale-customer-mapping/dealers",
   // dashbord
   pathDashBordCustomer: "dashboard/customer",
   pathDashBordExpense: "dashboard/expense",
@@ -187,7 +194,7 @@ export const paths = {
   // master/dealer-all-team
   pathMasterDealerAllTeam: "master/dealer-all-team",
   pathMasterDealerBySale: "master/dealers",
-
+  pathMasterDealerAssistant: "master/dealer-assistant",
   pathMasterSaleByArea: "/master/area_user_sale",
   pathMasterUserByArea: "/master/area_user",
 
@@ -290,6 +297,11 @@ export const paths = {
   pathActivityExpenseDelete: "/activity-expense/delete",
   pathActivityExpenseLog: "/activity-expense/log",
 
+  pathActivityExpenseUpdateStatusStep: "/activity-expense/update-status-step",
+  pathActivityExpenseUpdateStatusDocs: "/activity-expense/update-status-docs",
+  pathActivityExpenseConvertClearing: "/activity-expense/convert-clearing",
+  pathActivityExpenseStatusApprove: "/activity-expense/status-approve",
+
   // Activity Calendar
   pathActivityCalendarList: "/activity/calendar/list",
   // Activity Mapping
@@ -350,6 +362,7 @@ export const paths = {
   pathGetExpenseTravelingDetail: "expense/traveling/detail",
   pathGetExpenseTravelingCreate: "expense/traveling/detail",
   pathGetExpenseTravelingUpdate: "expense/traveling/detail",
+  pathGetExpenseTravelingDelete: "expense/traveling/delete",
 
   // Expense Sample
   pathSampleExpenseList: "expense/sample/list",

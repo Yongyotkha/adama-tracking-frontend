@@ -63,6 +63,7 @@ export default function SalesPointsList() {
   const [saleList, setSaleList] = useState([]);
   const [dataDealer, setDataDealer] = useState([]);
   const [subDealerOptions, setSubDealerOptions] = useState([]);
+  const [farmerOptions, setFarmerOptions] = useState([]);
   const [permission, setPermission] = useState([]);
 
   const { confirm } = Modal;
@@ -89,19 +90,31 @@ export default function SalesPointsList() {
     );
   };
 
+  const hasSale = !!filterValues.sale;
+  const hasDealer = !!filterValues.dealer;
+  const hasSubDealer = !!filterValues.sub_dealer;
+
   const filters = [
     { key: "sale", type: "select", label: "Sales", placeholder: "All", options: saleList, moderef: true },
-    { key: "dealer", type: "select", label: "Dealer", placeholder: "All", options: dataDealer, moderef: true },
-    { key: "sub_dealer", type: "select", label: "Sub Dealer", placeholder: "All", options: subDealerOptions },
+    { key: "dealer", type: "select", label: "Dealer", placeholder: "All", options: dataDealer, moderef: true, disabled: !hasSale },
+    { key: "sub_dealer", type: "select", label: "Sub Dealer", placeholder: "All", options: subDealerOptions, disabled: !hasDealer },
+    { key: "farmer", type: "select", label: "Farmer", placeholder: "All", options: farmerOptions, disabled: !hasSubDealer },
     { key: "order_no", type: "text", label: "Order No", placeholder: "Order No" },
     { key: "status_code", type: "select", label: "Status", placeholder: "All", options: STATUS_OPTIONS_LIST },
     { key: "dater", type: "dater", label: "Date", placeholder: "Date" },
   ];
 
+  const reqHasSale = !!requestFiltersValues.sale;
+  const reqHasDealer = !!requestFiltersValues.dealer;
+  const reqHasSubDealer = !!requestFiltersValues.sub_dealer;
+
   const requestFilters = [
     { key: "sale", type: "select", label: "Sales", placeholder: "All", options: saleList, moderef: true },
-    { key: "dealer", type: "select", label: "Dealer", placeholder: "All", options: dataDealer, moderef: true },
-    { key: "sub_dealer", type: "select", label: "Sub Dealer", placeholder: "All", options: subDealerOptions },
+    { key: "dealer", type: "select", label: "Dealer", placeholder: "All", options: dataDealer, moderef: true, disabled: !reqHasSale },
+    { key: "sub_dealer", type: "select", label: "Sub Dealer", placeholder: "All", options: subDealerOptions, disabled: !reqHasDealer },
+    { key: "farmer", type: "select", label: "Farmer", placeholder: "All", options: farmerOptions, disabled: !reqHasSubDealer },
+    { key: "order_no", type: "text", label: "Order No", placeholder: "Order No" },
+    { key: "status_code", type: "select", label: "Status", placeholder: "All", options: STATUS_OPTIONS_LIST },
     { key: "dater", type: "dater", label: "Date", placeholder: "Date" },
   ];
 
@@ -111,6 +124,7 @@ export default function SalesPointsList() {
     { title: "Sales", width: 200, dataIndex: "sale", align: "left" },
     { title: "Dealer", width: 200, dataIndex: "dealer", align: "left" },
     { title: "Sub Dealer", width: 200, dataIndex: "sub_dealer", align: "left" },
+    { title: "Farmer", width: 200, dataIndex: "farmer", align: "left" },
     { title: "Value (THB)", width: 100, dataIndex: "value", align: "right" },
     { title: "Order Date", width: 150, dataIndex: "orderDate", align: "center" },
     { title: "Points", width: 150, dataIndex: "point", align: "center" },
@@ -124,6 +138,7 @@ export default function SalesPointsList() {
     { title: "Sales", width: 200, dataIndex: "sale", align: "left" },
     { title: "Dealer", width: 220, dataIndex: "dealer", align: "left" },
     { title: "Sub Dealer", width: 200, dataIndex: "sub_dealer", align: "left" },
+    { title: "Farmer", width: 200, dataIndex: "farmer", align: "left" },
     { title: "Request Date", width: 160, dataIndex: "document_date", align: "center" },
     { title: "Status", width: 160, dataIndex: "status", align: "center" },
     { title: "Action", width: 120, dataIndex: "action", align: "center" },
@@ -140,6 +155,7 @@ export default function SalesPointsList() {
       user_id: filters.sale || "",
       dealer_id: filters.dealer || "",
       sub_dealer_id: filters.sub_dealer || "",
+      farmer_id: filters.farmer || "",
       keyword: filters.order_no || "",
       status_code: filters.status_code || " ",
       page: "all",
@@ -167,6 +183,7 @@ export default function SalesPointsList() {
           sale: order.sale_name,
           sub_dealer: order.sub_dealer_name,
           dealer: order.dealer_name,
+          farmer: order.farmer_name || "-",
           value: order.net_amount_display,
           point: order.point,
           orderDate: order.document_date,
@@ -270,8 +287,9 @@ export default function SalesPointsList() {
       user_id: filters.sale || "",
       dealer_id: filters.dealer || "",
       sub_dealer_id: filters.sub_dealer || "",
-      keyword: "",
-      status_code: "ODI",
+      farmer_id: filters.farmer || "",
+      keyword: filters.order_no || "",
+      status_code: filters.status_code || "ODI",
       page: "all",
       use_flag: 1,
       orderby_column: sortField,
@@ -301,6 +319,7 @@ export default function SalesPointsList() {
             document_number: item.document_number,
             dealer: item.dealer_name ?? "-",
             sub_dealer: item.sub_dealer_name ?? "-",
+            farmer: item.farmer_name ?? "-",
             sale: item.sale_name ?? "-",
             document_date: requestDate,
             status: (
@@ -420,6 +439,7 @@ export default function SalesPointsList() {
     }));
     setDataDealer([]);
     setSubDealerOptions([]);
+    setFarmerOptions([]);
   };
 
   const handleTableChange = (pagination, _filters, sorter) => {
@@ -432,10 +452,53 @@ export default function SalesPointsList() {
   };
 
   const handleChange = (filters) => {
-    setFilterValues(filters);
+    let newFilters = { ...filters };
 
-    const saleId = typeof filters.sale === "object" ? filters.sale.value : filters.sale;
-    const dealerId = typeof filters.dealer === "object" ? filters.dealer.value : filters.dealer;
+    const oldSale = typeof filterValues.sale === "object" ? filterValues.sale?.value : filterValues.sale;
+    const newSale = typeof newFilters.sale === "object" ? newFilters.sale?.value : newFilters.sale;
+
+    const oldDealer = typeof filterValues.dealer === "object" ? filterValues.dealer?.value : filterValues.dealer;
+    const newDealer = typeof newFilters.dealer === "object" ? newFilters.dealer?.value : newFilters.dealer;
+
+    const oldSubDealer = typeof filterValues.sub_dealer === "object" ? filterValues.sub_dealer?.value : filterValues.sub_dealer;
+    const newSubDealer = typeof newFilters.sub_dealer === "object" ? newFilters.sub_dealer?.value : newFilters.sub_dealer;
+
+    if (oldSale !== newSale) {
+      newFilters.dealer = undefined;
+      newFilters.sub_dealer = undefined;
+      newFilters.farmer = undefined;
+    } else if (oldDealer !== newDealer) {
+      newFilters.sub_dealer = undefined;
+      newFilters.farmer = undefined;
+    } else if (oldSubDealer !== newSubDealer) {
+      newFilters.farmer = undefined;
+    }
+
+    setFilterValues(newFilters);
+
+    const saleId = typeof newFilters.sale === "object" ? newFilters.sale?.value : newFilters.sale;
+    const dealerId = typeof newFilters.dealer === "object" ? newFilters.dealer?.value : newFilters.dealer;
+    const subDealerId = typeof newFilters.sub_dealer === "object" ? newFilters.sub_dealer?.value : newFilters.sub_dealer;
+
+    if (subDealerId) {
+      (async () => {
+        try {
+          const res = await useServiceAPI.get(paths.pathUserLineFarmer, {
+            sub_dealer_id: subDealerId,
+          });
+          const list = Array.isArray(res?.data?.data) ? res.data.data : Array.isArray(res?.data) ? res.data : [];
+          const normalized = list.map(item => ({
+            id: String(item.farmer_id || item.id),
+            name: item.farmer_name || item.name || String(item.farmer_id || item.id)
+          }));
+          setFarmerOptions(normalized);
+        } catch (error) {
+          // no-op
+        }
+      })();
+    } else {
+      setFarmerOptions([]);
+    }
 
     if (dealerId) {
       (async () => {
@@ -490,6 +553,7 @@ export default function SalesPointsList() {
     }));
     setDataDealer([]);
     setSubDealerOptions([]);
+    setFarmerOptions([]);
   };
 
   const handleTableChangeRequest = (pagination, _filters, sorter) => {
@@ -502,10 +566,53 @@ export default function SalesPointsList() {
   };
 
   const handleChangeRequestFilters = (filters) => {
-    setRequestFiltersValues(filters);
+    let newFilters = { ...filters };
 
-    const saleId = typeof filters.sale === "object" ? filters.sale.value : filters.sale;
-    const dealerId = typeof filters.dealer === "object" ? filters.dealer.value : filters.dealer;
+    const oldSale = typeof requestFiltersValues.sale === "object" ? requestFiltersValues.sale?.value : requestFiltersValues.sale;
+    const newSale = typeof newFilters.sale === "object" ? newFilters.sale?.value : newFilters.sale;
+
+    const oldDealer = typeof requestFiltersValues.dealer === "object" ? requestFiltersValues.dealer?.value : requestFiltersValues.dealer;
+    const newDealer = typeof newFilters.dealer === "object" ? newFilters.dealer?.value : newFilters.dealer;
+
+    const oldSubDealer = typeof requestFiltersValues.sub_dealer === "object" ? requestFiltersValues.sub_dealer?.value : requestFiltersValues.sub_dealer;
+    const newSubDealer = typeof newFilters.sub_dealer === "object" ? newFilters.sub_dealer?.value : newFilters.sub_dealer;
+
+    if (oldSale !== newSale) {
+      newFilters.dealer = undefined;
+      newFilters.sub_dealer = undefined;
+      newFilters.farmer = undefined;
+    } else if (oldDealer !== newDealer) {
+      newFilters.sub_dealer = undefined;
+      newFilters.farmer = undefined;
+    } else if (oldSubDealer !== newSubDealer) {
+      newFilters.farmer = undefined;
+    }
+
+    setRequestFiltersValues(newFilters);
+
+    const saleId = typeof newFilters.sale === "object" ? newFilters.sale?.value : newFilters.sale;
+    const dealerId = typeof newFilters.dealer === "object" ? newFilters.dealer?.value : newFilters.dealer;
+    const subDealerId = typeof newFilters.sub_dealer === "object" ? newFilters.sub_dealer?.value : newFilters.sub_dealer;
+
+    if (subDealerId) {
+      (async () => {
+        try {
+          const res = await useServiceAPI.get(paths.pathUserLineFarmer, {
+            sub_dealer_id: subDealerId,
+          });
+          const list = Array.isArray(res?.data?.data) ? res.data.data : Array.isArray(res?.data) ? res.data : [];
+          const normalized = list.map(item => ({
+            id: String(item.farmer_id || item.id),
+            name: item.farmer_name || item.name || String(item.farmer_id || item.id)
+          }));
+          setFarmerOptions(normalized);
+        } catch (error) {
+          // no-op
+        }
+      })();
+    } else {
+      setFarmerOptions([]);
+    }
 
     if (dealerId) {
       (async () => {

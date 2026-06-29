@@ -6,196 +6,420 @@ import BoxPrimary from "../../../components/box_primary/BoxPrimary";
 import { Select, Form } from "antd";
 import { useLocation, useNavigate } from "react-router-dom";
 import { AuthContext } from "../../../contexts/AuthContext";
-import useServiceAPI from "../../../services/corsService";
+import useServiceAPI from "../../../services/CorsService";
 import { paths } from "../../../services/CorsPath";
 import ActionButton from "../../../components/button/ActionButton";
 
-const { Option } = Select;
+const parseNumber = (value) => {
+  if (value === null || value === undefined || value === "") return null;
+  const parsed = Number(value);
+  return Number.isNaN(parsed) ? null : parsed;
+};
+
+const parseInteger = (value) => {
+  if (value === null || value === undefined || value === "") return null;
+  const parsed = parseInt(value, 10);
+  return Number.isNaN(parsed) ? null : parsed;
+};
+
+const buildProductPayload = (values, selectedCrops, productImageFallback) => ({
+  product_name: values.product_name,
+  ai_and_content: values.ai_and_content,
+  product_type: values.product_type,
+  product_group: values.product_group,
+  product_category: values.product_category,
+  product_image: values.profile ?? productImageFallback,
+  packing_list: values.packing_list,
+  packing_unit_size: parseNumber(values.packing_unit_size),
+  net_price: parseNumber(values.net_price),
+  bath_ltkg: parseNumber(values.bath_ltkg),
+  bath_unit: parseNumber(values.bath_unit),
+  sub_dealer: parseNumber(values.sub_dealer),
+  farmer: parseNumber(values.farmer),
+  remark: values.remark,
+  unit_convert_value: parseNumber(values.unit_convert_value),
+  product_campaign_order_min_foc: parseInteger(values.product_campaign_order_min_foc),
+  product_campaign_foc: parseInteger(values.product_campaign_foc),
+  use_flag: parseInteger(values.use_flag) ?? 1,
+  status: parseInteger(values.status),
+  order_by: parseInteger(values.order_by),
+  unit_convert_order_value: parseNumber(values.unit_convert_order_value),
+  point: parseInteger(values.point),
+  unit_convert_sales_order: parseInteger(values.unit_convert_sales_order),
+  unit_size: parseInteger(values.unit_size),
+  crop_list: selectedCrops,
+});
 
 export default function EditProduct() {
   const [loading, setLoading] = useState(false);
   const location = useLocation();
   const [form] = Form.useForm();
   const { showMsg, showNotification } = useContext(AuthContext);
-  const id = location.state?.id; // รับค่า id จาก state
-  const [roles, setRoles] = useState([]);
-  const [position, setPosition] = useState([]);
+  const navigate = useNavigate();
+
+  const productId = location.state?.id;
+  const mode = location.state?.mode || (location.pathname.endsWith("/create") ? "create" : "view");
+  const isCreateMode = mode === "create";
+  const isViewMode = mode === "view";
+
+  const [productInfo, setProductInfo] = useState({});
+  const [productTypes, setProductTypes] = useState([]);
+  const [productGroups, setProductGroups] = useState([]);
+  const [categories, setCategories] = useState([]);
   const [cropOptions, setCropOptions] = useState([]);
   const [selectedCrops, setSelectedCrops] = useState([]);
-  const [selectedCropsIDs, setSelectedCropsIDs] = useState([]);
-  const [selectedCropsName, setSelectedCropsName] = useState([]);
-  const [userinfo, setUserInfo] = useState([]);
-  const navigate = useNavigate();
-  const [cropList, setCropList] = useState([]); // state สำหรับ crop_list
-  const [defaultSelectedCrops, setDefaultSelectedCrops] = useState([]); // กำหนด state สำหรับ defaultSelectedCrops
-  const [isDataLoaded, setIsDataLoaded] = useState(false); // เพิ่ม state สำหรับเช็คข้อมูล
   const [dataLoaded, setDataLoaded] = useState(false);
-  const [profileImage, setProfileImage] = useState("/img/Image-not-found.png"); // Default value
-  const [permission, setPermission] = useState({});
-  const [categories, setCategories] = useState([]);
+  const [canEdit, setCanEdit] = useState(isCreateMode);
+
+  const isFieldDisabled = isViewMode || (!isCreateMode && !canEdit);
 
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        await fetchProductDetails(location.state.id);
+    if (!isCreateMode && !productId) {
+      showMsg("error", "ไม่พบข้อมูลสินค้า");
+      navigate("/setting/product");
+      return;
+    }
 
-        const [positions, productGroups, productCategories, crops] = await Promise.all([
+    const fetchData = async () => {
+      setLoading(true);
+      try {
+        const masterRequests = [
           useServiceAPI.get(paths.pathMasterProductTypes, {}),
           useServiceAPI.get(paths.pathMasterProductGroups, {}),
           useServiceAPI.get(paths.pathMasterProductCategorys, {}),
           useServiceAPI.get(paths.pathMasterCrop, {}),
-        ]);
+        ];
 
-        setPosition(positions.data || []);
-        setRoles(productGroups.data || []);
-        setCategories(productCategories.data || []);
-        setCropOptions(crops.data || []);
-        setCropList(crops.data || []);
+        if (isCreateMode) {
+          const [typesResponse, groupsResponse, categoriesResponse, cropsResponse] =
+            await Promise.all(masterRequests);
 
-        setIsDataLoaded(true);
+          setProductTypes(typesResponse.data || []);
+          setProductGroups(groupsResponse.data || []);
+          setCategories(categoriesResponse.data || []);
+          setCropOptions(cropsResponse.data || []);
+          setSelectedCrops([]);
+          setCanEdit(true);
+          setDataLoaded(true);
+          return;
+        }
 
+        const [productResponse, typesResponse, groupsResponse, categoriesResponse, cropsResponse] =
+          await Promise.all([
+            useServiceAPI.get(`${paths.pathSaleManagementProductsDetail}/${productId}`),
+            ...masterRequests,
+          ]);
+
+        if (productResponse.status !== 200) {
+          showMsg("error", productResponse.message || "ไม่พบข้อมูลสินค้า");
+          navigate("/setting/product");
+          return;
+        }
+
+        const data = productResponse.data;
+        setProductInfo(data);
+        setCanEdit(Boolean(data.permission?.edit));
+        setProductTypes(typesResponse.data || []);
+        setProductGroups(groupsResponse.data || []);
+        setCategories(categoriesResponse.data || []);
+        setCropOptions(cropsResponse.data || []);
+        setSelectedCrops((data.crop_list || []).map((crop) => Number(crop.id)));
+        setDataLoaded(true);
       } catch (error) {
         showMsg("error", error.message || "เกิดข้อผิดพลาด");
+      } finally {
+        setLoading(false);
       }
     };
+
     fetchData();
-  }, [location.state.id]);
+  }, [productId, isCreateMode, navigate, showMsg]);
 
-  useEffect(() => {
-    // console.log("Roles:", roles);
-    // console.log("Crop Options:", cropOptions);
-  }, [roles, cropOptions]);
+  const useFlagOptions = [
+    { name: "Active", id: 1 },
+    { name: "Inactive", id: 0 },
+  ];
 
-  const fetchProductDetails = async (id) => {
-    setLoading(true);
-    try {
-      const response = await useServiceAPI.get(`${paths.pathSaleManagementProductsDetail}/${id}`);
-      if (response.status === 200) {
-        const { data } = response;
-        console.log(data.permission.edit);
+  const statusOptions = [
+    { name: "Active", id: 1 },
+    { name: "InActive", id: 0 },
+  ];
 
-        setPermission(data.permission.edit);
-        setUserInfo(data);
-        setProfileImage(data.product_image);
-        setCropList(data.crop_list || []);
-        setCropOptions(data.crop_list);
-        setSelectedCrops(data.crop_list.map((crop) => crop.id));
-        const cropNames = data.crop_list?.map((crop) => Number(crop.id)) || [];
-        setDefaultSelectedCrops(cropNames);
-        setDataLoaded(true);
+  const formFields = useMemo(() => {
+    const useFlagValue = isCreateMode
+      ? 1
+      : productInfo.use_flag === 1 ||
+          productInfo.use_flag === "1" ||
+          productInfo.use_flag === true
+        ? 1
+        : 0;
 
-        const Test = response.data.data;
-        const territoryData = Test.map((item, index) => ({
-          key: index + 1,
-          name: item.name,
-          territory: item.territory_name,
-          position: item.position_name,
-        }));
-        setUserList(territoryData);
+    const statusCode = parseInteger(productInfo.status_code ?? productInfo.status);
+    const statusValue = isCreateMode ? 1 : statusCode === 1 ? 1 : 0;
 
-      } else {
-        console.error("Failed to fetch promotion details:", response.message);
-      }
-    } catch (error) {
-      console.error("Error fetching promotion details:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-
-  const mode = location.state?.mode || "view"; // fallback to 'view' if not provided
-
-  useEffect(() => {
-    console.log("Mode:", mode); // ← shows "edit", "view", etc.
-
-    if (mode === "view") {
-      form.setFieldsValue({
-        ...userinfo,
-        use_flag: userinfo.use_flag === "1" ? "Active" : "Inactive",
-      });
-    }
-  }, [mode, userinfo]);
-
-  const updatedFields = useMemo(() => [
-    { label: "", name: "profile", type: "picture", required: false, col: 24, value: userinfo.product_image },
-    { label: "Product Code", name: "product_code", type: "text", required: true, col: 6, disabled: true, value: userinfo.product_code },
-    { label: "Product Name", name: "product_name", type: "text", required: true, col: 6, disabled: true, value: userinfo.product_name },
-    { label: "Common Name", name: "ai_content", type: "text", required: false, col: 12, disabled: true, value: userinfo.ai_and_content },
-    { label: "Product Type", name: "product_type", type: "select", required: false, col: 6, disabled: mode === "view", options: position, value: userinfo.product_type },
-    { label: "Product Group", name: "product_group", type: "select", required: false, col: 6, disabled: mode === "view", options: roles, value: userinfo.product_group },
-    {
-      label: "Category",
-      name: "category",
-      type: "select",
-      required: false,
-      col: 6,
-      disabled: mode === "view",
-      options: categories,
-      value: userinfo.product_category,
-    },
-    { label: "Packing list", name: "packing_list", type: "text", required: false, col: 6, disabled: true, value: userinfo.packing_list },
-    { label: "Packing unit size (lt,kg)", name: "packing_unit_size", type: "text", required: false, col: 6, disabled: true, value: userinfo.packing_unit_size },
-    { label: "Net Price", name: "net_price", type: "text", required: false, col: 6, disabled: true, value: userinfo.net_price },
-    {
-      label: "Status", name: "use_flag", type: "select", required: false, col: 6,
-      options: [
-        { name: "Active", id: 1, selected: true },
-        { name: "Inactive", id: 0, selected: false },
-      ],
-      value: userinfo.use_flag === "1" ? "Active" : "Inactive",
-      disabled: mode === "view",
-    },
-  ], [userinfo, position, roles, categories, mode]);
-
-  // const updatedFields = [
-  //   { label: "", name: "profile", type: "picture", required: false, col: 24, value: userinfo.product_image},
-  //   { label: "Product Code", name: "product_code", type: "text", required: true, col: 6, disabled: true, value: userinfo.product_code },
-  //   { label: "Product Name", name: "product_name", type: "text", required: true, col: 6, disabled: true, value: userinfo.product_name },
-  //   { label: "AI and content", name: "ai_content", type: "text", required: false, col: 12, disabled: true, value: userinfo.ai_and_content },
-  //   { label: "Product Type", name: "product_type", type: "select", required: false, col: 6, options: position, value:userinfo.product_type },
-  //   { label: "Product Group", name: "product_group", type: "select", required: false, col: 6, options: roles ,value:userinfo.product_group},
-  //   { label: "Category", name: "category", type: "text", required: false, col: 6, disabled: true, value: userinfo.product_category},
-  //   { label: "Packing list", name: "packing_list", type: "text", required: false, col: 6, disabled: true, value: userinfo.packing_list },
-  //   { label: "Packing unit size (lt,kg)", name: "packing_unit_size", type: "text", required: false, col: 6, disabled: true, value: userinfo.packing_unit_size },
-  //   { label: "Net Price", name: "net_price", type: "text", required: false, col: 6, disabled: true, value: userinfo.net_price },
-  //   { label: "Status", name: "use_flag", type: "select", required: false, col: 6,
-  //     options: [
-  //       { name: "Active", id: 1, selected: true },
-  //       { name: "Inactive", id: 0, selected: false },
-  //     ],
-  //     value: userinfo.use_flag === "1" ? "Active" : "Inactive" 
-  //   },
-  // ];
+    return [
+      {
+        label: "",
+        name: "profile",
+        type: "picture",
+        required: false,
+        col: 24,
+        value: productInfo.product_image,
+      },
+      {
+        label: "Product Code",
+        name: "product_code",
+        type: "text",
+        required: false,
+        col: 6,
+        disabled: true,
+        value: isCreateMode ? "" : productInfo.product_code,
+      },
+      {
+        label: "Product Name",
+        name: "product_name",
+        type: "text",
+        required: true,
+        col: 6,
+        disabled: isFieldDisabled,
+        value: productInfo.product_name,
+      },
+      {
+        label: "Common Name",
+        name: "ai_and_content",
+        type: "text",
+        required: false,
+        col: 12,
+        disabled: isFieldDisabled,
+        value: productInfo.ai_and_content,
+      },
+      {
+        label: "Product Type",
+        name: "product_type",
+        type: "select",
+        required: false,
+        col: 6,
+        disabled: isFieldDisabled,
+        options: productTypes,
+        value: productInfo.product_type,
+      },
+      {
+        label: "Product Group",
+        name: "product_group",
+        type: "select",
+        required: false,
+        col: 6,
+        disabled: isFieldDisabled,
+        options: productGroups,
+        value: productInfo.product_group,
+      },
+      {
+        label: "Category",
+        name: "product_category",
+        type: "select",
+        required: false,
+        col: 6,
+        disabled: isFieldDisabled,
+        options: categories,
+        value: productInfo.product_category,
+      },
+      {
+        label: "Packing List",
+        name: "packing_list",
+        type: "text",
+        required: false,
+        col: 6,
+        disabled: isFieldDisabled,
+        value: productInfo.packing_list,
+      },
+      {
+        label: "Packing Unit Size (lt,kg)",
+        name: "packing_unit_size",
+        type: "text",
+        required: false,
+        col: 6,
+        disabled: isFieldDisabled,
+        value: productInfo.packing_unit_size,
+      },
+      {
+        label: "Net Price",
+        name: "net_price",
+        type: "text",
+        required: false,
+        col: 6,
+        disabled: isFieldDisabled,
+        value: productInfo.net_price,
+      },
+      {
+        label: "Baht/lt,kg",
+        name: "bath_ltkg",
+        type: "text",
+        required: false,
+        col: 6,
+        disabled: isFieldDisabled,
+        value: productInfo.bath_ltkg,
+      },
+      {
+        label: "Baht/Unit",
+        name: "bath_unit",
+        type: "text",
+        required: false,
+        col: 6,
+        disabled: isFieldDisabled,
+        value: productInfo.bath_unit,
+      },
+      {
+        label: "Sub Dealer",
+        name: "sub_dealer",
+        type: "text",
+        required: false,
+        col: 6,
+        disabled: isFieldDisabled,
+        value: productInfo.sub_dealer,
+      },
+      {
+        label: "Farmer",
+        name: "farmer",
+        type: "text",
+        required: false,
+        col: 6,
+        disabled: isFieldDisabled,
+        value: productInfo.farmer,
+      },
+      {
+        label: "Unit Convert Value",
+        name: "unit_convert_value",
+        type: "text",
+        required: false,
+        col: 6,
+        disabled: isFieldDisabled,
+        value: productInfo.unit_convert_value,
+      },
+      {
+        label: "Unit Convert Order Value",
+        name: "unit_convert_order_value",
+        type: "text",
+        required: false,
+        col: 6,
+        disabled: isFieldDisabled,
+        value: productInfo.unit_convert_order_value,
+      },
+      {
+        label: "Unit Convert Sales Order",
+        name: "unit_convert_sales_order",
+        type: "text",
+        required: false,
+        col: 6,
+        disabled: isFieldDisabled,
+        value: productInfo.unit_convert_sales_order,
+      },
+      {
+        label: "Unit Size",
+        name: "unit_size",
+        type: "text",
+        required: false,
+        col: 6,
+        disabled: isFieldDisabled,
+        value: productInfo.unit_size,
+      },
+      {
+        label: "Campaign Order Min FOC",
+        name: "product_campaign_order_min_foc",
+        type: "text",
+        required: false,
+        col: 6,
+        disabled: isFieldDisabled,
+        value: productInfo.product_campaign_order_min_foc,
+      },
+      {
+        label: "Campaign FOC",
+        name: "product_campaign_foc",
+        type: "text",
+        required: false,
+        col: 6,
+        disabled: isFieldDisabled,
+        value: productInfo.product_campaign_foc,
+      },
+      {
+        label: "Point",
+        name: "point",
+        type: "text",
+        required: false,
+        col: 6,
+        disabled: isFieldDisabled,
+        value: productInfo.point,
+      },
+      {
+        label: "Order By",
+        name: "order_by",
+        type: "text",
+        required: false,
+        col: 6,
+        disabled: isFieldDisabled,
+        value: productInfo.order_by,
+      },
+      {
+        label: "Status",
+        name: "status",
+        type: "select",
+        required: false,
+        col: 6,
+        disabled: isFieldDisabled,
+        options: statusOptions,
+        value: statusValue,
+      },
+      {
+        label: "Use Flag",
+        name: "use_flag",
+        type: "select",
+        required: false,
+        col: 6,
+        disabled: isFieldDisabled,
+        options: useFlagOptions,
+        value: useFlagValue,
+      },
+      {
+        label: "Remark",
+        name: "remark",
+        type: "text",
+        required: false,
+        col: 12,
+        disabled: isFieldDisabled,
+        value: productInfo.remark,
+      },
+    ];
+  }, [
+    productInfo,
+    productTypes,
+    productGroups,
+    categories,
+    isFieldDisabled,
+    isCreateMode,
+  ]);
 
   const handleSave = () => {
     form
       .validateFields()
       .then((values) => {
-        // const useFlagValue = values.use_flag === "Active" ? 1 : 0;
-        const cropListToSend = selectedCrops.length > 0
-          ? selectedCrops
-          : form.getFieldValue("crop_ID");
+        const payload = buildProductPayload(
+          values,
+          selectedCrops,
+          productInfo.product_image
+        );
 
-        let useFlagValue;
-        if (values.use_flag === 1 || values.use_flag === 0) {
-          useFlagValue = values.use_flag; // ถ้าค่าเป็น 1 หรือ 0 อยู่แล้ว ใช้ค่าเดิม
-        } else {
-          useFlagValue = values.use_flag === "Active" ? 1 : 0; // แปลงค่าจาก "Active" หรือ "Inactive"
-        }
-        const product_image = values.profile;
-        const dataToSend = {
-          ...values,
-          id: location.state.id,
-          use_flag: useFlagValue,
-          crop_list: defaultSelectedCrops,
-          product_image: product_image,
-          product_category: values.category,
-          category: values.category,
-        };
+        const request = isCreateMode
+          ? useServiceAPI.post(
+              paths.pathSaleManagementProductsCreate,
+              payload,
+              setLoading
+            )
+          : useServiceAPI.put(
+              paths.pathSaleManagementProductsUpdate,
+              { ...payload, id: productId },
+              setLoading
+            );
 
-        useServiceAPI
-          .put(paths.pathSaleManagementProductsUpdate, dataToSend, setLoading)
+        request
           .then((response) => {
             if (response.status === 200) {
               navigate("/setting/product");
@@ -207,11 +431,10 @@ export default function EditProduct() {
             }
           })
           .catch((error) => {
-            console.error(error);
             if (error.status === 422) {
               showMsg("error", error.message);
             } else {
-              showMsg("error", "เกิดข้อผิดพลาด");
+              showMsg("error", error.message || "เกิดข้อผิดพลาด");
             }
           });
       })
@@ -220,103 +443,31 @@ export default function EditProduct() {
       });
   };
 
-  const handleCropChange = (value) => {
-    const intValues = value.map((v) => parseInt(v, 10)); // แปลง string เป็น integer
-    setSelectedCrops(value.map((v) => parseInt(v, 10))); // เก็บค่าเป็น integer
-
-    // setSelectedCrops(intValues);
-
-  };
-
-
-
-  // const cropOptions = [
-  //   "Rice", "Wheat", "Corn", "Soybean", "Cotton", "Barley", "Sugarcane", "Potato", "Tomato", "Lettuce"
-  // ];
-
-  // const handleSave = () => {
-  //   form
-  //     .validateFields()
-  //     .then((values) => {
-  //       const cropListToSend = selectedCrops.length > 0 
-  //       ? selectedCrops 
-  //       : form.getFieldValue("crop_ID"); 
-  //       const dataToSend = {
-  //         ...values,
-  //         id: location.state.id, 
-  //         // crop_list: selectedCrops.length > 0 ? selectedCrops : form.getFieldValue("crop_ID"),
-  //         // crop_list: selectedCropsIDs,
-  //         crop_list: cropListToSend, // ส่ง crop_list
-
-  //       };
-
-  //       useServiceAPI
-  //         .put(paths.pathSaleManagementProductsUpdate, dataToSend, setLoading)
-  //         .then((response) => {
-  //           if (response.status === 201) {
-  //             showMsg("success", response.data.message).then(() => {
-  //               navigate("/setting/product");
-  //             });
-  //           }
-  //         })
-  //         .catch((error) => {
-  //           console.error(error);
-  //           if (error.status === 422) {
-  //             showMsg("error", error.message);
-  //           } else {
-  //             showMsg("error", "เกิดข้อผิดพลาด");
-  //           }
-  //         });
-  //     })
-  //     .catch((errorInfo) => {
-  //       console.error("Validation Failed:", errorInfo);
-  //     });
-  // };
-
-
-  // const handleCropChange = (value) => {    
-  //   // setSelectedCrops(value.target.value); 
-  //     setSelectedCrops(value); 
-  //     console.log(value);
-  // };
-
-  // const formFields = [
-  //   { label: "Product Code", name: "product_code", type: "text", required: true, col: 6, disabled: true, value: "303710131300" },
-  //   { label: "Product Name", name: "product_name", type: "text", required: true, col: 6, disabled: true, value: "Apopo 20%SE" },
-  //   { label: "AI and content", name: "ai_content", type: "text", required: false, col: 12, disabled: true, value: "Azoxystrobin + propiconazole 7.5+12.5% SE" },
-  //   { label: "Product Type", name: "product_type", type: "select", required: true, col: 6, options: ["Special", "Commodity", "3rd Party", "SAS"], value: "Special" },
-  //   { label: "Product Group", name: "product_group", type: "select", required: true, col: 6, options: ["Gold", "Silver", "Bronz"], value: "Gold" },
-  //   { label: "Category", name: "category", type: "text", required: false, col: 6, disabled: true, value: "FUN" },
-  //   { label: "Packing list", name: "packing_list", type: "text", required: false, col: 6, disabled: true, value: "0.5 ltX20" },
-  //   { label: "Packing unit size (lt,kg)", name: "packing_unit_size", type: "text", required: false, col: 6, disabled: true, value: "0.5" },
-  //   { label: "Net Price", name: "net_price", type: "text", required: false, col: 6, disabled: true, value: "440.63" },
-  // ];
-
   const transformedCropOptions = cropOptions.map((option) => ({
-    label: option.name, // เปลี่ยนจาก name เป็น label
-    value: option.id, // คงค่า value เดิมไว้
+    label: option.name,
+    value: Number(option.id),
   }));
+
+  const pageTitle = isCreateMode
+    ? "Create Product"
+    : isViewMode
+      ? "View Product"
+      : "Edit Product";
 
   return (
     <MainLayout loading={loading}>
-      <div className="title-page">
-        {mode === "view" ? "View Product" : "Edit Product"}
-      </div>
-      {/* <FormUser  profile={profileImage} fields={updatedFields} form={form}/> */}
+      <div className="title-page">{pageTitle}</div>
 
       {dataLoaded ? (
-        // <FormUser profile={profileImage} fields={updatedFields} form={form} />
-        // <FormUser profile={userinfo.product_image} fields={updatedFields} form={form} />
         <FormUser
-          profile={userinfo.product_image}
-          fields={updatedFields}
+          profile={productInfo.product_image}
+          fields={formFields}
           form={form}
-          disableImageUpload={mode === "view"} // 👈 ปิดเฉพาะใน view mode
+          disableImageUpload={isFieldDisabled}
         />
       ) : (
-        <div></div>
+        <div />
       )}
-
 
       <BoxPrimary>
         <Form layout="vertical">
@@ -325,14 +476,13 @@ export default function EditProduct() {
               mode="multiple"
               showSearch
               placeholder="Select Crop(s)"
-              optionFilterProp="children"
+              optionFilterProp="label"
               className="w-full"
-              value={defaultSelectedCrops}
-              onChange={(value) => setDefaultSelectedCrops(value)} // จัดการการเปลี่ยนแปลงค่า
+              value={selectedCrops}
+              onChange={(value) => setSelectedCrops(value)}
               options={transformedCropOptions}
-              disabled={mode === "view"}
+              disabled={isFieldDisabled}
             />
-
           </Form.Item>
         </Form>
       </BoxPrimary>
@@ -341,28 +491,26 @@ export default function EditProduct() {
         <DynamicButton
           text="Back"
           className="bg-[#B6AEAB] min-w-[96px] text-[#ffff] rounded-sm p-2"
-          path='/setting/product'
+          path="/setting/product"
         />
 
-        {/* <ActionButton 
-          text="Update" 
-          mode="update" 
-          onClick={handleSave} 
-          path='/setting/product'
-        /> */}
+        {isCreateMode && (
+          <ActionButton
+            text="Create"
+            mode="create"
+            onClick={handleSave}
+          />
+        )}
 
-        {mode === "edit" && permission === true && (
+        {!isCreateMode && !isViewMode && canEdit && (
           <ActionButton
             text="Update"
             mode="update"
             onClick={handleSave}
-            path='/setting/product'
+            path="/setting/product"
           />
         )}
-
-
       </div>
-
     </MainLayout>
   );
 }

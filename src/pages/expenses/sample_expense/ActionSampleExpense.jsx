@@ -481,6 +481,28 @@ export default function ActionSampleExpense() {
 
   const canExportPdf = permission?.btn_pdf ?? !isCreateMode;
 
+  const canApprove = permission?.btn_approve ?? false;
+
+  const handleApprove = async () => {
+    try {
+      setLoading(true);
+      const payload = {
+        platform: "web",
+        document_number: data?.document_number
+      };
+      const res = await useServiceAPI.post(paths.pathSampleStatus, payload);
+      if (res.status === 200) {
+        showNotification("success", res.data?.message || "Approve successful").then(() => navigate("/expenses/sample"));
+      } else {
+        showNotification("error", res.data?.message || "ไม่สามารถทำรายการได้");
+      }
+    } catch (err) {
+      showNotification("error", err.message || "เกิดข้อผิดพลาด");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleSave = async (actionMode = "save") => {
     const documentDate = data?.document_datetime
       ? dayjs(data.document_datetime).format("YYYY-MM-DD")
@@ -1120,6 +1142,14 @@ export default function ActionSampleExpense() {
               const targetUrl = `/expenses/sample/pdf?sample_number=${data?.document_number}`;
               window.open(targetUrl, "_blank");
             }}
+          />
+        )}
+
+        {canApprove && (
+          <ActionButton
+            mode="save"
+            text="Approve"
+            onClick={handleApprove}
           />
         )}
       </div>

@@ -37,11 +37,13 @@ export default function SalesPointCreate() {
   const [dataSale, setDataSale] = useState([]);
   const [dataDealer, setDataDealer] = useState([]);
   const [dataSubDealer, setSubDataDealer] = useState([]);
+  const [dataFarmer, setDataFarmer] = useState([]);
 
   // ค่าที่เลือก (ใช้ undefined เมื่อยังไม่เลือก เพื่อกัน NaN/0)
   const [dataSaleId, setDataSaleId] = useState(undefined);
   const [dealerId, setDealerId] = useState(undefined);
   const [subDealerId, setSubDealerId] = useState(undefined);
+  const [farmerId, setFarmerId] = useState(undefined);
 
   const [searchProductData, setSearchProductData] = useState([]);
   const [getOtherProductData, setGetOtherProductData] = useState([]);
@@ -53,12 +55,13 @@ export default function SalesPointCreate() {
   // ===== โหลดค่าจาก state กรณีมาจากหน้า previous =====
   useEffect(() => {
     if (location.state?.data) {
-      const { user_id, dealer_id, sub_dealer_id, others, products, remark } =
+      const { user_id, dealer_id, sub_dealer_id, farmer_id, others, products, remark } =
         location.state?.data;
 
       setDataSaleId(user_id ? Number(user_id) : undefined);
       setDealerId(dealer_id ? Number(dealer_id) : undefined);
       setSubDealerId(sub_dealer_id ? Number(sub_dealer_id) : undefined);
+      setFarmerId(farmer_id ? String(farmer_id) : undefined);
       setDataSource(products || []);
       setDataSourceOther(others || []);
       setInputRemark(remark || "");
@@ -79,13 +82,16 @@ export default function SalesPointCreate() {
           setDataSaleId(undefined);
           setDealerId(undefined);
           setSubDealerId(undefined);
+          setFarmerId(undefined);
           setDataDealer([]);
           setSubDataDealer([]);
+          setDataFarmer([]);
 
           formCustom.setFieldsValue({
             sale: undefined,
             dealer: undefined,
             sub_dealer: undefined,
+            farmer: undefined,
           });
         }
       } catch (error) {
@@ -137,6 +143,31 @@ export default function SalesPointCreate() {
     };
     fetchSubDealer();
   }, [dealerId]);
+
+  // ===== โหลด farmer เมื่อเลือก sub dealer =====
+  useEffect(() => {
+    const fetchFarmer = async () => {
+      if (!subDealerId) {
+        setDataFarmer([]);
+        return;
+      }
+      setLoading(true);
+      try {
+        const res = await useServiceAPI.get(paths.pathUserLineFarmer, { sub_dealer_id: subDealerId });
+        const list = Array.isArray(res?.data?.data) ? res.data.data : Array.isArray(res?.data) ? res.data : [];
+        const normalized = list.map(item => ({
+          id: String(item.farmer_id || item.id),
+          name: item.farmer_name || item.name || String(item.farmer_id || item.id)
+        }));
+        setDataFarmer(normalized);
+      } catch (e) {
+        // no-op
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchFarmer();
+  }, [subDealerId]);
 
   // ===== Upload handlers =====
   const handleFileRemove = (file) =>
@@ -216,23 +247,37 @@ export default function SalesPointCreate() {
       setDataSaleId(value || undefined);
       setDealerId(undefined);
       setSubDealerId(undefined);
+      setFarmerId(undefined);
       setDataDealer([]);
       setSubDataDealer([]);
+      setDataFarmer([]);
 
       formCustom.setFieldsValue({
         dealer: undefined,
         sub_dealer: undefined,
+        farmer: undefined,
       });
     } else if (field === "dealer") {
       setDealerId(value || undefined);
       setSubDealerId(undefined);
+      setFarmerId(undefined);
       setSubDataDealer([]);
+      setDataFarmer([]);
 
       formCustom.setFieldsValue({
         sub_dealer: undefined,
+        farmer: undefined,
       });
     } else if (field === "sub_dealer") {
       setSubDealerId(value || undefined);
+      setFarmerId(undefined);
+      setDataFarmer([]);
+      
+      formCustom.setFieldsValue({
+        farmer: undefined,
+      });
+    } else if (field === "farmer") {
+      setFarmerId(value || undefined);
     }
   };
 
@@ -414,6 +459,7 @@ export default function SalesPointCreate() {
           user_id: dataSaleId,
           dealer_id: dealerId,
           sub_dealer_id: subDealerId,
+          farmer_id: farmerId,
           remark: inputRemark,
           products: dataSource,
           others: dataSourceOther,
@@ -465,6 +511,17 @@ export default function SalesPointCreate() {
       placeholder: dealerId ? "Select sub dealer" : "Please select dealer first",
       moderef: false,
       value: subDealerId ?? undefined,
+    },
+    {
+      label: "Farmer",
+      name: "farmer",
+      type: "select",
+      options: dataFarmer,
+      disabled: !subDealerId,
+      required: false,
+      placeholder: subDealerId ? "Select farmer" : "Please select sub dealer first",
+      moderef: false,
+      value: farmerId ?? undefined,
     },
     {
       label: "Order No",

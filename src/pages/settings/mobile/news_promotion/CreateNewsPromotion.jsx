@@ -1,16 +1,17 @@
 // src/pages/settings/mobile/news_promotion/CreateNewsPromotion.jsx
 import React, { useContext, useState, useEffect, useMemo, useRef } from "react";
 import MainLayout from "../../../../layouts/MainLayout";
-import FormCustom from "../../../../components/form_custom/FormCustom";
 import { useNavigate, useParams, useLocation } from "react-router-dom";
 import ActionButton from "../../../../components/button/ActionButton";
-import { Form, Input, message } from "antd";
+import { Checkbox, Col, DatePicker, Form, Input, message, Row, Switch } from "antd";
 import { AuthContext } from "../../../../contexts/AuthContext";
 import dayjs from "dayjs";
 import useServiceAPI from "../../../../services/CorsService";
 import { paths } from "../../../../services/CorsPath";
 import BoxPrimary from "../../../../components/box_primary/BoxPrimary";
 import FileUploadComponent from "../../../../components/file_upload/FileUploadComponent";
+
+const { RangePicker } = DatePicker;
 
 export default function CreateNewsPromotion() {
   const [loading, setLoading] = useState(false);
@@ -27,6 +28,34 @@ export default function CreateNewsPromotion() {
 
   const [fileListReceive, setFileListReceive] = useState([]); // picture
   const [categoryOptions, setCategoryOptions] = useState([]);
+  const [targetOptions, setTargetOptions] = useState({
+    dealer: [],
+    subDealer: [],
+    farmer: [],
+  });
+  const [selectedTargetIds, setSelectedTargetIds] = useState([]);
+
+  const toCheckboxOption = (target) => ({
+    label: target.name || target.customer_type || "-",
+    value: Number(target.id),
+  });
+
+  const normalizeTargetIds = (targets = []) => {
+    let arr = targets;
+    if (typeof targets === "string") {
+      arr = targets.split(",");
+    } else if (!Array.isArray(targets)) {
+      arr = [];
+    }
+    return arr
+      .map((target) =>
+        typeof target === "object"
+          ? target.id ?? target.target_id ?? target.type_id ?? target.target
+          : target
+      )
+      .map(Number)
+      .filter(Number.isFinite);
+  };
 
   // ---------- โหลด Category (Promotion banner) ----------
   useEffect(() => {
@@ -52,6 +81,46 @@ export default function CreateNewsPromotion() {
       }
     };
     fetchCategories();
+  }, []);
+
+  useEffect(() => {
+    const fetchTargets = async () => {
+      try {
+        setLoading(true);
+        const res = await useServiceAPI.get(paths.pathPromotionTarget);
+        if (res?.status === 200) {
+          const list = Array.isArray(res?.data?.data) ? res.data.data : res.data;
+          const dealer = [];
+          const subDealer = [];
+          const farmer = [];
+
+          (list || []).forEach((target) => {
+            const groupName = String(target.customer_type || target.type_name || "").toLowerCase();
+            const option = toCheckboxOption(target);
+            if (!option.value) return;
+
+            if (groupName.includes("farmer")) {
+              farmer.push(option);
+            } else if (groupName.includes("sub")) {
+              subDealer.push(option);
+            } else if (groupName.includes("dealer")) {
+              dealer.push(option);
+            }
+          });
+
+          setTargetOptions({ dealer, subDealer, farmer });
+        } else {
+          message.error("Unable to load customer group");
+        }
+      } catch (err) {
+        console.error("Error fetching targets:", err);
+        message.error("Unable to load customer group");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchTargets();
   }, []);
 
   // ---------- ถ้าเป็น VIEW/EDIT: โหลดรายละเอียด ----------
@@ -86,6 +155,12 @@ export default function CreateNewsPromotion() {
           cost: promotion.cost ?? "",
           use_flag: promotion.use_flag === "1" || promotion.use_flag === 1,
         });
+
+        setSelectedTargetIds(
+          normalizeTargetIds(
+            promotion.targets || promotion.target || res?.data?.targets || res?.data?.target
+          )
+        );
 
         const images = Array.isArray(promotion.image)
           ? promotion.image
@@ -145,7 +220,7 @@ export default function CreateNewsPromotion() {
       description: values.description,
       date_start,
       date_end,
-      category_id: Number(values.category),
+      category_id: Number(values.category || categoryOptions?.[0]?.id || 0),
       unit: "ชุด",
       value: 0,
       remark: "",
@@ -157,15 +232,20 @@ export default function CreateNewsPromotion() {
       public: 1,
       cost: values.cost ? Number(values.cost) : 0,
       stock: values.stock ? Number(values.stock) : 0,
+      targets: selectedTargetIds,
+      platform: "web",
     };
   };
 
   const handleSave = async () => {
-    try {
-      setLoading(true);
-      const values = await form.validateFields();
-      const payload = buildPayload(values);
-      const res = await useServiceAPI.post(paths.pathPromotionBannerCreate, payload);
+      try {
+        setLoading(true);
+        const values = await form.validateFields();
+        if (!selectedTargetIds.length) {
+          throw new Error("Please select customer group");
+        }
+        const payload = buildPayload(values);
+        const res = await useServiceAPI.post(`${paths.pathPromotionBannerCreate}?platform=web`, payload);
 
       if (res?.status === 200) {
         showNotification("success", "Created", "Campaign has been saved.");
@@ -185,6 +265,9 @@ export default function CreateNewsPromotion() {
     try {
       setLoading(true);
       const values = await form.validateFields();
+      if (!selectedTargetIds.length) {
+        throw new Error("Please select customer group");
+      }
       const payload = buildPayload(values);
 
       const id = Number(location?.state?.id);
@@ -212,6 +295,23 @@ export default function CreateNewsPromotion() {
       ...prev,
       { uid: d.file_key, name: d.file_name, status: "done", url: d.file_url },
     ]);
+  };
+
+  const handleTargetChange = (values, groupKey) => {
+    const groupValues = targetOptions[groupKey].map((option) => option.value);
+    setSelectedTargetIds((prev) => {
+      const withoutCurrentGroup = (prev || []).filter(
+        (id) => !groupValues.includes(Number(id))
+      );
+      return [...withoutCurrentGroup, ...values.map(Number)];
+    });
+  };
+
+  const getSelectedTargetsByGroup = (groupKey) => {
+    const selectedSet = new Set((selectedTargetIds || []).map(Number));
+    return targetOptions[groupKey]
+      .map((option) => option.value)
+      .filter((value) => selectedSet.has(Number(value)));
   };
 
   // ---------- ป้องกัน refresh หน้า view/edit แล้ว state หาย ----------
@@ -247,7 +347,91 @@ export default function CreateNewsPromotion() {
         />
       </BoxPrimary>
 
-      <FormCustom fields={formFields} form={form} />
+      <BoxPrimary>
+        <Form layout="vertical" form={form} initialValues={{ use_flag: true }}>
+          <Form.Item name="category" hidden>
+            <Input />
+          </Form.Item>
+
+          <Form.Item label="Reward Code" name="code">
+            <Input placeholder="Code" disabled />
+          </Form.Item>
+
+          <Form.Item
+            label="Name"
+            name="name"
+            rules={[{ required: true, message: "Please enter name" }]}
+          >
+            <Input placeholder="Enter" disabled={isView} />
+          </Form.Item>
+
+          <Form.Item
+            label="Detail"
+            name="product_detail"
+            rules={[{ required: true, message: "Please enter detail" }]}
+          >
+            <Input.TextArea rows={4} placeholder="Enter" disabled={isView} />
+          </Form.Item>
+
+          <Row gutter={[24, 8]} align="bottom">
+            <Col xs={24} lg={14}>
+              <div className="font-semibold mb-1">
+                Customer Group <span className="text-[#ff4d4f]">*</span>
+              </div>
+              <Row gutter={[24, 8]}>
+                <Col xs={24} md={7}>
+                  <div className="font-medium mb-1">Dealer</div>
+                  <Checkbox.Group
+                    options={targetOptions.dealer}
+                    value={getSelectedTargetsByGroup("dealer")}
+                    disabled={isView}
+                    onChange={(values) => handleTargetChange(values, "dealer")}
+                  />
+                </Col>
+                <Col xs={24} md={9}>
+                  <div className="font-medium mb-1">Sub Dealer</div>
+                  <Checkbox.Group
+                    options={targetOptions.subDealer}
+                    value={getSelectedTargetsByGroup("subDealer")}
+                    disabled={isView}
+                    onChange={(values) => handleTargetChange(values, "subDealer")}
+                  />
+                </Col>
+                <Col xs={24} md={8}>
+                  <div className="font-medium mb-1">Farmer</div>
+                  <Checkbox.Group
+                    options={targetOptions.farmer}
+                    value={getSelectedTargetsByGroup("farmer")}
+                    disabled={isView}
+                    onChange={(values) => handleTargetChange(values, "farmer")}
+                  />
+                </Col>
+              </Row>
+            </Col>
+
+            <Col xs={24} lg={8}>
+              <Form.Item
+                label="Period Date"
+                name="date_range"
+                rules={[{ required: true, message: "Please select period date" }]}
+              >
+                <RangePicker
+                  style={{ width: "100%" }}
+                  format="YYYY-MM-DD"
+                  disabled={isView}
+                  placeholder={["Start date", "End date"]}
+                />
+              </Form.Item>
+            </Col>
+
+            <Col xs={24} lg={2}>
+              <Form.Item label="Publish" name="use_flag" valuePropName="checked">
+                <Switch className="custom-switch" disabled={isView} />
+              </Form.Item>
+            </Col>
+          </Row>
+        </Form>
+      </BoxPrimary>
 
       {/* ไม่มี Customer Group แล้ว */}
 

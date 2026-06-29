@@ -6,6 +6,7 @@ import ActionButton from "../../../components/button/ActionButton";
 import BadgeStatus from "../../../components/badge/BadgeStatus";
 import BoxPrimary from "../../../components/box_primary/BoxPrimary";
 import TableComponent from "../../../components/table/TableComponent";
+import ApprovalMode from "../../../components/table/ApprovalMode";
 import { useNavigate } from "react-router-dom";
 import ItemDropDown from "../../../components/dropdown/ItemDropDown";
 import useServiceAPI from "../../../services/CorsService";
@@ -13,6 +14,15 @@ import { paths } from "../../../services/CorsPath";
 import { AuthContext } from "../../../contexts/AuthContext";
 import { ExclamationCircleFilled } from "@ant-design/icons";
 import { loadListPageState, saveListPageState } from "../../../utils/listPageState";
+import {
+  findStatusLabel,
+  getBulkApproveFeedback,
+  getRowStatusCode,
+  getRowStatusKey,
+  getRowStatusName,
+  isBlockedClearingApprovalStatus,
+  isCompleteStatus,
+} from "../../../utils/approvalRowSelection";
 
 export default function ClearingExpense() {
   const { confirm } = Modal;
@@ -24,6 +34,7 @@ export default function ClearingExpense() {
   const isAutoSaleSelf = saleAutoRoles.includes(Number(userInfo?.role_id));
   const defaultSaleValue = isAutoSaleSelf ? userInfo?.id : undefined;
   const PAGE_STATE_KEY = "clearing-expense-list";
+  const pageCode = "clearing";
   const persistedState = loadListPageState(PAGE_STATE_KEY, {});
   const fallbackFilters = persistedState.filterValues || (defaultSaleValue ? { sale: defaultSaleValue } : {});
   const fallbackTableFilters =
@@ -40,6 +51,13 @@ export default function ClearingExpense() {
   const [subDealerList, setSubDealerList] = useState([]);
   const [statusList, setStatusList] = useState([]);
 
+  const [isApprovalMode, setIsApprovalMode] = useState(false);
+  const [selectedRowKeys, setSelectedRowKeys] = useState([]);
+  const [selectedStatus, setSelectedStatus] = useState(null);
+  const [lockedTableStatus, setLockedTableStatus] = useState(null);
+  const [approvalStatusList, setApprovalStatusList] = useState([]);
+  const [updateAll, setUpdateAll] = useState(false);
+
   const [filterValues, setFilterValues] = useState(fallbackFilters);
 
   const [tableParams, setTableParams] = useState({
@@ -49,8 +67,8 @@ export default function ClearingExpense() {
       total: 0,
     },
     filters: fallbackTableFilters,
-    sortOrder: persistedState.tableParams?.sortOrder ?? null,
-    sortField: persistedState.tableParams?.sortField ?? null,
+    sortOrder: persistedState.tableParams?.sortOrder ?? "desc",
+    sortField: persistedState.tableParams?.sortField ?? "document_date",
   });
 
   const getId = (v) => {
@@ -155,6 +173,11 @@ export default function ClearingExpense() {
   };
 
   const handleApprovalAction = async (row, action) => {
+    if ([4, 5, 6, 7].includes(Number(userInfo?.role_id))) {
+      showNotification("error", "Permission Denied", ["Sales role is not allowed to approve."]);
+      return;
+    }
+
     let remark = "";
     const { approveText, rejectText } = getApproveRejectText();
 
@@ -313,9 +336,6 @@ export default function ClearingExpense() {
     const { current, pageSize } = tableParams.pagination;
     const f = tableParams.filters || {};
 
-    const sortOrder = tableParams.sortOrder || "desc";
-    const sortField = tableParams.sortField || "document_number";
-
     const requestData = {
       page_code: "expense_clearing",
       keyword: f.expense_no || "",
@@ -331,8 +351,8 @@ export default function ClearingExpense() {
       customer_name: "",
       page: "all",
       page_mode: "list",
-      orderby_column: sortField,
-      orderby: sortOrder,
+      orderby_column: "document_date",
+      orderby: "desc",
       page_length: current,
       page_size: pageSize,
       platform: "web",
@@ -346,10 +366,12 @@ export default function ClearingExpense() {
 
         setPagePermission(permission || {});
 
-        const newDataSource = (data || []).map((row, index) => ({
-          key: index + 1 + (current - 1) * pageSize,
-          raw: row,
-          customer: row.sub_dealer_name,
+const newDataSource = (data || []).map((row, index) => ({
+           key: index + 1 + (current - 1) * pageSize,
+           raw: row,
+           transaction_status_code: row.transaction_status_code,
+           transaction_status_name: row.transaction_status_name,
+           customer: row.sub_dealer_name,
           dealer: row.dealer_name,
           expenseNo: row.document_number,
           actualExp: Number(row.expense_actual_exp || 0).toLocaleString("en-US", {
@@ -436,21 +458,208 @@ export default function ClearingExpense() {
     }));
   }, [defaultSaleValue]);
 
+  const fetchApprovalStatusList = async () => {
+    try {
+      const response = await useServiceAPI.get(paths.pathActivityExpenseStatusApprove, {
+        page_code: pageCode,
+      });
+      if (response.status === 200) {
+        setApprovalStatusList(
+          (response.data.data || [])
+            .filter(
+              (s) =>
+                !["draft", "reject", "convert"].includes(s.code.toLowerCase()) &&
+                !isCompleteStatus({ transaction_status_code: s.code, transaction_status_name: s.name })
+            )
+            .map((s) => ({
+              label: s.name,
+              value: s.code,
+            }))
+        );
+      }
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  useEffect(() => {
+    fetchApprovalStatusList();
+  }, []);
+
+  const handleToggleApprovalMode = () => {
+    setIsApprovalMode((prev) => !prev);
+    setSelectedRowKeys([]);
+    setSelectedStatus(null);
+    setLockedTableStatus(null);
+    setUpdateAll(false);
+  };
+
+  const handleStatusChange = (value) => {
+    setSelectedStatus(value);
+    setSelectedRowKeys([]);
+  };
+
+  const handleUpdateAllChange = (checked) => {
+    setUpdateAll(checked);
+    setSelectedStatus(null);
+    setSelectedRowKeys([]);
+    setLockedTableStatus(null);
+  };
+
+  const handleBulkApprove = async () => {
+    const effectiveStatus = updateAll ? selectedStatus : lockedTableStatus;
+    if (!effectiveStatus) return;
+
+    if (!updateAll && selectedRowKeys.length === 0) return;
+
+    const documentNumbers = selectedRowKeys
+      .map((key) => {
+        const row = dataSource.find((r) => r.key === key);
+        return row?.raw?.document_number;
+      })
+      .filter(Boolean);
+
+    if (!updateAll && documentNumbers.length === 0) return;
+
+    confirm({
+      title: "ยืนยันการดำเนินการ",
+      icon: <ExclamationCircleFilled />,
+      content: "คุณต้องการอนุมัติรายการที่เลือกใช่หรือไม่?",
+      centered: true,
+      async onOk() {
+        try {
+          let response;
+
+          if (updateAll) {
+            response = await useServiceAPI.put(paths.pathActivityExpenseUpdateStatusStep, {
+              step: effectiveStatus,
+              action_code: "approved",
+              page_code: pageCode,
+            });
+          } else {
+            response = await useServiceAPI.put(paths.pathActivityExpenseUpdateStatusDocs, {
+              document_numbers: documentNumbers,
+              action_code: "approved",
+              page_code: pageCode,
+            });
+          }
+
+          const { isSuccess, messageHeader, messageLines } = getBulkApproveFeedback(
+            response,
+            "Status updated successfully",
+            "Failed to update status"
+          );
+
+          if (isSuccess) {
+            showNotification("success", messageHeader, messageLines);
+            setSelectedRowKeys([]);
+            setSelectedStatus(null);
+            setLockedTableStatus(null);
+            setUpdateAll(false);
+            fetchData();
+          } else {
+            showNotification("error", messageHeader, messageLines);
+          }
+        } catch (error) {
+          console.error(error);
+          showNotification("error", "Transaction failed", ["Please try again later."]);
+        }
+      },
+    });
+  };
+
+  const activeLockStatus = updateAll ? selectedStatus : lockedTableStatus;
+
+  const rowSelection = {
+    type: "checkbox",
+    selectedRowKeys,
+    onChange: (keys) => {
+      if (updateAll && !selectedStatus) return;
+
+      if (keys.length === 0) {
+        setSelectedRowKeys([]);
+        if (!updateAll) {
+          setLockedTableStatus(null);
+        }
+        return;
+      }
+
+      const selectedRows = dataSource.filter((row) => keys.includes(row.key));
+
+      if (selectedRows.some((row) => isBlockedClearingApprovalStatus(row))) {
+        showNotification("warning", "Status Selection", [
+          "Cannot select items with draft, reject, convert, or complete status",
+        ]);
+        return;
+      }
+
+      const statusKeys = selectedRows.map((row) => getRowStatusKey(row)).filter(Boolean);
+
+      if (statusKeys.length === 0) {
+        showNotification("warning", "Status Selection", ["Cannot determine row status"]);
+        return;
+      }
+
+      const lockStatusKey = activeLockStatus ? getRowStatusKey({ transaction_status_code: activeLockStatus }) : null;
+
+      if (lockStatusKey && statusKeys.some((status) => status !== lockStatusKey)) {
+        showNotification("warning", "Status Selection", ["Can only select items with the same status."]);
+        return;
+      }
+
+      if (!updateAll && !lockedTableStatus) {
+        setLockedTableStatus(getRowStatusCode(selectedRows[0]) || getRowStatusName(selectedRows[0]));
+      }
+
+      setSelectedRowKeys(keys);
+    },
+    columnWidth: 50,
+    hideSelectAll: !activeLockStatus,
+    getCheckboxProps: (record) => {
+      if (isBlockedClearingApprovalStatus(record)) {
+        return { disabled: true };
+      }
+
+      if (updateAll && !selectedStatus) {
+        return { disabled: true };
+      }
+
+      const rowStatusKey = getRowStatusKey(record);
+      const lockStatusKey = activeLockStatus
+        ? getRowStatusKey({ transaction_status_code: activeLockStatus })
+        : null;
+
+      if (lockStatusKey && rowStatusKey !== lockStatusKey) {
+        return { disabled: true };
+      }
+
+      return { disabled: false };
+    },
+  };
+
+  const lockedTableStatusLabel = lockedTableStatus
+    ? findStatusLabel(lockedTableStatus, approvalStatusList) ||
+      dataSource.find((row) => getRowStatusCode(row) === lockedTableStatus || getRowStatusName(row) === lockedTableStatus)
+        ?.transaction_status_name
+    : "";
+
   return (
     <MainLayout loading={loading}>
       <div className="flex items-center justify-between">
         <div className="title-page">Clearing Expense</div>
-        {pagePermission?.btn_create && (
-          <ActionButton
-            mode="create"
-            text="Create"
-            onClick={() =>
-              navigate("/activity/create", {
-                state: { pageCode: "expense_clearing" },
-              })
-            }
-          />
-        )}
+        <div className="flex items-center gap-3">
+          {pagePermission?.btn_create && (
+            <ActionButton
+              mode="create"
+              text="Create"
+              onClick={() =>
+                navigate("/activity/create", {
+                  state: { pageCode: "expense_clearing" },
+                })
+              }
+            />
+          )}
+        </div>
       </div>
 
       <Filter
@@ -461,6 +670,21 @@ export default function ClearingExpense() {
         onClear={handleClear}
       />
 
+      <ApprovalMode
+        isApprovalMode={isApprovalMode}
+        onToggleApprovalMode={handleToggleApprovalMode}
+        selectedStatus={selectedStatus}
+        onStatusChange={handleStatusChange}
+        statusOptions={approvalStatusList}
+        onApprove={handleBulkApprove}
+        selectedRowKeys={selectedRowKeys}
+        updateAll={updateAll}
+        onUpdateAllChange={handleUpdateAllChange}
+        lockedTableStatus={lockedTableStatus}
+        lockedTableStatusLabel={lockedTableStatusLabel}
+        showUpdateAll={![4, 5, 6, 7].includes(Number(userInfo?.role_id))}
+      />
+
       <BoxPrimary>
         <TableComponent
           header={header}
@@ -468,6 +692,7 @@ export default function ClearingExpense() {
           pagination={tableParams.pagination}
           loading={tableLoading}
           onChange={handleTableChange}
+          rowSelection={isApprovalMode && !updateAll ? rowSelection : undefined}
         />
       </BoxPrimary>
     </MainLayout>

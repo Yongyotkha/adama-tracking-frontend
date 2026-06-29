@@ -118,11 +118,10 @@ export default function TargetGroupList() {
     const { current, pageSize } = tableParams.pagination;
     const f = tableParams.filters || {};
 
-    // ✅ ให้ตรงตามตัวอย่าง API:
-    // page_length = limit
-    // page_size   = page
+    // ✅ ตามตัวอย่าง API ของ /setting/info/list:
+    // page_length = limit/page size
+    // page_size   = page number
     const requestData = {
-      platform: "web",
       orderby_column: "created_at",
       orderby: "desc",
       page_length: pageSize,
@@ -136,12 +135,12 @@ export default function TargetGroupList() {
     };
 
     try {
-      const res = await useServiceAPI.get(paths.pathInfoList, requestData);
-      if (res?.status === 200) {
-        const result = res?.data || {};
-        const list = result;
+      const response = await useServiceAPI.get(paths.pathInfoList, requestData);
+      if (response?.status === 200) {
+        const { data, records_filtered, recordsFiltered } = response;
+        const list = Array.isArray(data) ? data : [];
 
-        const formatted = list.map((item, index) => {
+        const formatted = (list || []).map((item, index) => {
           const id = item.id;
 
           const items = [
@@ -221,12 +220,12 @@ export default function TargetGroupList() {
 
         setDataSource(formatted);
 
-        // ✅ total ต้องอิง recordsFiltered ที่ root
+        // ✅ total ต้องอิง records_filtered ที่ root
         setTableParams((prev) => ({
           ...prev,
           pagination: {
             ...prev.pagination,
-            total: Number(result?.recordsFiltered ?? 0),
+            total: Number(records_filtered ?? recordsFiltered ?? 0),
           },
         }));
       }

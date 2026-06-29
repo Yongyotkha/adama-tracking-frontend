@@ -905,19 +905,30 @@ export default function CreatePointCampaign() {
   ];
 
   useEffect(() => {
-    const fetchMastersForFilter = async () => {
+    const fetchSalesForFilter = async () => {
       try {
-        const [saleRes, dealerRes] = await Promise.all([
-          useServiceAPI.get(paths.pathMasterSaleDropdown, {}),
-          useServiceAPI.get(paths.pathMasterDealerAll, {}),
-        ]);
-
+        const saleRes = await useServiceAPI.get(paths.pathMasterSaleDropdown, {});
         setSalesOptions(
           (saleRes?.data || []).map((s) => ({
             label: s.name ?? s.title ?? "-",
             value: String(s.id ?? s.value ?? s.user_id ?? ""),
           }))
         );
+      } catch (e) {
+      }
+    };
+    fetchSalesForFilter();
+  }, []);
+
+  useEffect(() => {
+    const fetchDealersForFilter = async () => {
+      try {
+        let dealerRes;
+        if (filterSale) {
+          dealerRes = await useServiceAPI.get(paths.pathMasterDealerDropdown, { user_id: filterSale });
+        } else {
+          dealerRes = await useServiceAPI.get(paths.pathMasterDealerAll, {});
+        }
 
         setDealerFilterOptions(
           (dealerRes?.data || []).map((d) => ({
@@ -926,13 +937,10 @@ export default function CreatePointCampaign() {
           }))
         );
       } catch (e) {
-        // เงียบไว้ก็ได้ หรือแจ้งเตือนตามสไตล์โปรเจกต์
-        // showNotification?.("error", "โหลด master filter ไม่สำเร็จ");
       }
     };
-
-    fetchMastersForFilter();
-  }, []);
+    fetchDealersForFilter();
+  }, [filterSale]);
 
   useEffect(() => {
     setFilterSale(undefined);
@@ -1110,7 +1118,10 @@ export default function CreatePointCampaign() {
                 placeholder="Sales"
                 style={{ width: 200 }}
                 value={filterSale}
-                onChange={setFilterSale}
+                onChange={(val) => {
+                  setFilterSale(val);
+                  setFilterDealer(undefined);
+                }}
                 options={salesOptions}
                 disabled={isView}
               />

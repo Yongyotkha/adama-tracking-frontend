@@ -162,6 +162,15 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     gap: 6,
   },
+  lowerRight: {
+    flex: 1,
+    borderRightWidth: 1,
+    borderBottomWidth: 1,
+    borderColor: "#222",
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    gap: 6,
+  },
   lowerLabel: {
     width: 86,
   },
@@ -219,6 +228,11 @@ const emptyDetail = {
   current_point: 0,
   target_point: 0,
   diff_form_target: 0,
+  current_value: 0,
+  target_value: 0,
+  diff_value_form_target: 0,
+  value_to_point: 0,
+  point_your_get: 0,
   total_point: 0,
   net_amount: 0,
   products: [],
@@ -240,10 +254,18 @@ export default function DraftCampaignPDF() {
 
         const payload = getDetailPayload(detailRes);
 
-        const pointRes = payload?.sub_dealer_id
+        const pointPayload = payload?.farmer_id
+          ? { shop_type: "farmer", id: payload.farmer_id }
+          : payload?.sub_dealer_id
+            ? { shop_type: "sub_dealer", id: payload.sub_dealer_id }
+            : payload?.dealer_id
+              ? { shop_type: "dealer", id: payload.dealer_id }
+              : null;
+
+        const pointRes = pointPayload
           ? await useServiceAPI.get(paths.pathDraftCampaignUserInfo, {
-              shop_type: "sub_dealer",
-              id: payload.sub_dealer_id,
+              ...pointPayload,
+              platform: "web",
             })
           : null;
 
@@ -267,6 +289,10 @@ export default function DraftCampaignPDF() {
 
         setData({
           ...mapped,
+          current_value:
+            pointRes?.data?.data?.value_of_year ??
+            pointRes?.data?.value_of_year ??
+            mapped.current_value,
           products,
           total_point: products.reduce(
             (sum, item) => sum + getPdfRowPoint(item),
@@ -276,6 +302,9 @@ export default function DraftCampaignPDF() {
             (sum, item) => sum + getPdfSubTotal(item),
             0
           ),
+          point_your_get:
+            toNumber(mapped.value_to_point) *
+            products.reduce((sum, item) => sum + getPdfSubTotal(item), 0),
         });
       } catch (_) {
         setData(emptyDetail);
@@ -295,6 +324,10 @@ export default function DraftCampaignPDF() {
       { qty: 0, point: 0, value: 0 }
     );
   }, [data.products]);
+
+  const hasSubDealer = data.sub_dealer_name && data.sub_dealer_name !== "-";
+  const hasFarmer = data.farmer_name && data.farmer_name !== "-";
+  const isDealerOnly = !hasSubDealer && !hasFarmer;
 
   return (
     <PDFViewer style={{ width: "100%", height: "100vh" }}>
@@ -345,6 +378,14 @@ export default function DraftCampaignPDF() {
                 <Text>{formatNumber(data.target_point)}</Text>
               </View>
               <View style={styles.labelRow}>
+                <Text style={styles.lowerLabel}>Sale Plan Point :</Text>
+                <Text>{formatNumber(data.total_point)}</Text>
+              </View>
+              <View style={styles.labelRow}>
+                <Text style={styles.lowerLabel}>Diff Form Plan :</Text>
+                <Text>{formatNumber(toNumber(data.target_point) - toNumber(data.total_point))}</Text>
+              </View>
+              <View style={styles.labelRow}>
                 <Text style={styles.lowerLabel}>Diff Form Target :</Text>
                 <Text>{formatNumber(data.diff_form_target)}</Text>
               </View>
@@ -371,17 +412,13 @@ export default function DraftCampaignPDF() {
 
           <View style={styles.table}>
             <View style={styles.tr}>
-              <Text style={[styles.th, { width: "15%" }]}>SKU</Text>
-              <Text style={[styles.th, { width: "20%" }]}>Product Name</Text>
-              <Text style={[styles.th, { width: "13%" }]}>Unit</Text>
-              <Text style={[styles.th, { width: "10%" }]}>THB / Unit</Text>
-              <Text style={[styles.th, { width: "10%" }]}>Point / Ctn</Text>
+              <Text style={[styles.th, { width: "18%" }]}>SKU</Text>
+              <Text style={[styles.th, { width: "28%" }]}>Product Name</Text>
+              <Text style={[styles.th, { width: "16%" }]}>Unit</Text>
+              <Text style={[styles.th, { width: "11%" }]}>Point / Ctn</Text>
               <Text style={[styles.th, { width: "9%" }]}>QTY (ctn)</Text>
-              <Text style={[styles.th, { width: "8%" }]}>X Point</Text>
-              <Text style={[styles.th, { width: "8%" }]}>Point</Text>
-              <Text style={[styles.th, { width: "11%" }, styles.lastCell]}>
-                Sub Total (THB)
-              </Text>
+              <Text style={[styles.th, { width: "9%" }]}>X Point</Text>
+              <Text style={[styles.th, { width: "9%" }, styles.lastCell]}>Point</Text>
             </View>
 
             {data.products.map((item, index) => (
@@ -389,62 +426,53 @@ export default function DraftCampaignPDF() {
                 key={`${item.product_id || item.product_code}-${index}`}
                 style={styles.trBorder}
               >
-                <Text style={[styles.td, { width: "15%" }]}>
+                <Text style={[styles.td, { width: "18%" }]}>
                   {item.product_code}
                 </Text>
-                <Text style={[styles.td, { width: "20%" }]}>
+                <Text style={[styles.td, { width: "28%" }]}>
                   {item.product_name}
                 </Text>
-                <Text style={[styles.td, { width: "13%" }]}>
+                <Text style={[styles.td, { width: "16%" }]}>
                   {item.packing_list}
                 </Text>
-                <Text style={[styles.td, { width: "10%" }, styles.tdRight]}>
-                  {formatNumber(getPdfUnitPrice(item), 2)}
-                </Text>
-                <Text style={[styles.td, { width: "10%" }, styles.tdRight]}>
+                <Text style={[styles.td, { width: "11%" }, styles.tdRight]}>
                   {formatNumber(getPdfMasterPoint(item))}
                 </Text>
                 <Text style={[styles.td, { width: "9%" }, styles.tdCenter]}>
                   {formatNumber(item.quantity)}
                 </Text>
-                <Text style={[styles.td, { width: "8%" }, styles.tdCenter]}>
+                <Text style={[styles.td, { width: "9%" }, styles.tdCenter]}>
                   {formatNumber(item.xpoint)}
-                </Text>
-                <Text style={[styles.td, { width: "8%" }, styles.tdRight]}>
-                  {formatNumber(getPdfRowPoint(item))}
                 </Text>
                 <Text
                   style={[
                     styles.td,
-                    { width: "11%" },
+                    { width: "9%" },
                     styles.tdRight,
                     styles.lastCell,
                   ]}
                 >
-                  {formatNumber(getPdfSubTotal(item), 2)}
+                  {formatNumber(getPdfRowPoint(item))}
                 </Text>
               </View>
             ))}
 
             <View style={styles.trBorder}>
-              <Text style={[styles.totalLabelCell, { width: "77%" }]}>
+              <Text style={[styles.totalLabelCell, { width: "91%" }]}>
                 Item : {data.products.length} | QTY (ctn):{" "}
-                {formatNumber(totals.qty)}
-              </Text>
-
-              <Text style={[styles.td, { width: "16%" }, styles.tdRight]}>
+                {formatNumber(totals.qty)} | Total Point :{" "}
                 {formatNumber(totals.point)}
               </Text>
 
               <Text
                 style={[
                   styles.td,
-                  { width: "11%" },
+                  { width: "9%" },
                   styles.tdRight,
                   styles.lastCell,
                 ]}
               >
-                {formatNumber(totals.value, 2)}
+                {formatNumber(totals.point)}
               </Text>
             </View>
           </View>
@@ -453,3 +481,8 @@ export default function DraftCampaignPDF() {
     </PDFViewer>
   );
 }
+
+
+
+
+

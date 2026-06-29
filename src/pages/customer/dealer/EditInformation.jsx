@@ -209,7 +209,8 @@ export default function EditInformation() {
 
   const header = [
     { title: "No", width: 50, dataIndex: "no", align: "center" },
-    { title: "Sub Dealer Name", width: 100, dataIndex: "name", align: "left" },
+    { title: "Sub Dealer Name", width: 160, dataIndex: "subDealerName", align: "left" },
+    { title: "Farmer Name", width: 160, dataIndex: "farmerName", align: "left" },
     {
       title: "Contact Person",
       width: 200,
@@ -222,16 +223,23 @@ export default function EditInformation() {
       dataIndex: "mobilePhone",
       align: "center",
     },
+    {
+      title: "On Shop",
+      width: 100,
+      dataIndex: "onshop",
+      align: "center",
+      render: (_, record) => (
+        <Checkbox
+          checked={record.onshop}
+          disabled={isViewMode}
+          onChange={() => handleNetworkOnShopChange(record)}
+        />
+      ),
+    },
     { title: "Status", width: 100, dataIndex: "status", align: "center" },
-    { title: "Action", width: 100, dataIndex: "action", align: "center" },
-  ];
-
-  const headerFarmer = [
-    { title: "No", dataIndex: "no", align: "center" },
-    { title: "Farmer Name", dataIndex: "name", align: "left" },
-    { title: "Phone No.", dataIndex: "mobilePhone", align: "center" },
-    { title: "Status", width: 100, dataIndex: "status", align: "center" },
-    { title: "Action", width: 100, dataIndex: "action", align: "center" },
+    ...(!isViewMode
+      ? [{ title: "Action", width: 100, dataIndex: "action", align: "center" }]
+      : []),
   ];
 
   const actionItems = [
@@ -242,69 +250,15 @@ export default function EditInformation() {
   ];
 
   const handleDeleteItem = async (record) => {
-    console.log("id", location.state.id);
-    console.log(record);
-
-    try {
-      const requestData = {
-        dealer_id: location.state.id,
-        sub_dealer_id: record,
-      };
-
-      const response = await useServiceAPI.delete(
-        paths.pathCustomerNetworkDelete,
-        requestData
-      );
-
-      if (response.status === 200) {
-        // fetchData();
-        await fetchDealerDetails(location.state.id);
-
-        showNotification(
-          "success",
-          response.data.message,
-          response.data.message_line
-        );
-      } else {
-        console.error("Failed to delete record:", response.message);
-        showNotification("error", response.message, response.message_line);
-      }
-    } catch (error) {
-      console.error("Error deleting record:", error);
-
-      showNotification("error", error.message, error.message_line);
-    }
+    setNetworkList((prevList) =>
+      (prevList || []).filter((item) => item.key !== record)
+    );
   };
 
   const handleDeleteFarmer = async (record) => {
-    try {
-      const requestData = {
-        dealer_id: location.state.id,
-        farmer_id: record,
-      };
-
-      const response = await useServiceAPI.delete(
-        paths.pathFarmerNetworkDelete,
-        requestData
-      );
-
-      if (response.status === 200) {
-        await fetchDealerDetails(location.state.id);
-
-        showNotification(
-          "success",
-          response.data.message,
-          response.data.message_line
-        );
-      } else {
-        console.error("Failed to delete record:", response.message);
-        showNotification("error", response.message, response.message_line);
-      }
-    } catch (error) {
-      console.error("Error deleting record:", error);
-
-      showNotification("error", error.message, error.message_line);
-    }
+    setFarmerListItem((prevList) =>
+      (prevList || []).filter((item) => item.key !== record)
+    );
   };
 
   const fetchDealerDetails = async (id) => {
@@ -631,8 +585,9 @@ export default function EditInformation() {
       key: row.key, // Unique identifier
       no: (farmerListItem?.length || 0) + index + 1, // Row number
       name: row.name || "-", // Farmer Name
-      territory: row.territory || "-", // Contact Number
-      position: (
+      mobilePhone: row.territory || "-", // Contact Number
+      onshop: row.onshop || false,
+      status: (
         <BadgeStatus
           text={row.farmer_channel_type_name || "-"} // Status text
           bgColor={row.farmer_channel_type_bg_color || "#E0E0E0"} // Background color
@@ -662,6 +617,31 @@ export default function EditInformation() {
         return [...(prevList || []), ...filteredNewRows];
       }
     });
+  };
+
+  const handleSubDealerOnShopChange = (key) => {
+    setNetworkList((prevList) =>
+      prevList.map((item) =>
+        item.key === key ? { ...item, onshop: !item.onshop } : item
+      )
+    );
+  };
+
+  const handleFarmerOnShopChange = (key) => {
+    setFarmerListItem((prevList) =>
+      prevList.map((item) =>
+        item.key === key ? { ...item, onshop: !item.onshop } : item
+      )
+    );
+  };
+
+  const handleNetworkOnShopChange = (record) => {
+    if (record.networkType === "farmer") {
+      handleFarmerOnShopChange(record.rawKey);
+      return;
+    }
+
+    handleSubDealerOnShopChange(record.rawKey);
   };
 
   const fetchUserList = async (page_size = 20, page_length = 1) => {
@@ -725,6 +705,9 @@ export default function EditInformation() {
           no: index + 1,
           name: item.farmer_name,
           territory: item.farmer_contact_phone_number,
+          farmer_channel_type_name: item.farmer_channel_type_name,
+          farmer_channel_type_bg_color: item.farmer_channel_type_bg_color,
+          farmer_channel_type_color: item.farmer_channel_type_color,
           position: (
             <BadgeStatus
               text={item.farmer_channel_type_name}
@@ -758,6 +741,40 @@ export default function EditInformation() {
   useEffect(() => {
     // console.log(defaultSelectedCrops)
   }, [defaultSelectedCrops]);
+
+  const combinedNetworkList = [
+    ...(networkList || []).map((item) => ({
+      ...item,
+      key: `sub-dealer-${item.key}`,
+      rawKey: item.key,
+      networkType: "sub_dealer",
+      subDealerName: item.name || "-",
+      farmerName: "-",
+      action: isViewMode ? "-" : (
+        <DynamicButton
+          iconSrc="/img/icons/delete.png"
+          onClick={() => handleDeleteItem(item.key)}
+        />
+      ),
+    })),
+    ...(farmerListItem || []).map((item) => ({
+      ...item,
+      key: `farmer-${item.key}`,
+      rawKey: item.key,
+      networkType: "farmer",
+      subDealerName: "-",
+      farmerName: item.name || "-",
+      action: isViewMode ? "-" : (
+        <DynamicButton
+          iconSrc="/img/icons/delete.png"
+          onClick={() => handleDeleteFarmer(item.key)}
+        />
+      ),
+    })),
+  ].map((item, index) => ({
+    ...item,
+    no: index + 1,
+  }));
 
   const handleSave = () => {
     form
@@ -806,6 +823,15 @@ export default function EditInformation() {
             hobby: item.hobby || null,
           })),
           crop_list: defaultSelectedCrops || [],
+          network_list_sub_dealer: networkList.map((item) => ({
+            sub_dealer_id: item.key,
+            is_on_shop: item.onshop,
+          })),
+          network_list_farmer: farmerListItem.map((item) => ({
+            farmer_id: item.key,
+            is_on_shop: item.onshop,
+          })),
+          platform: "web",
         };
         useServiceAPI
           .put(paths.pathCustomerSubDealerUpdate, formattedData)
@@ -834,17 +860,64 @@ export default function EditInformation() {
     // Validate form fields if needed
     form
       .validateFields()
-      .then(() => {
+      .then((values) => {
+        let useFlagValue;
+        if (values.use_flag === 1 || values.use_flag === 0) {
+          useFlagValue = values.use_flag;
+        } else if (values.use_flag === undefined || values.use_flag === null) {
+          useFlagValue = Number(companyinfo.use_flag || 0);
+        } else {
+          useFlagValue = values.use_flag === "Active" ? 1 : 0;
+        }
+
         const formattedData = {
           id: location.state.id,
-          network_list: networkList.map((item) => ({
+          dealer_name_en: values.dealer_name_en || companyinfo.dealer_name_en || "",
+          dealer_name_th: values.dealer_name_th || companyinfo.dealer_name_th || "",
+          dealer_code: values.dealer_code || companyinfo.dealer_code || "",
+          tax_id: values.tax_id || companyinfo.tax_id || "",
+          contact_number: values.contact_number || companyinfo.contact_number || "",
+          address: values.address || companyinfo.address || "",
+          group_code: values.group_code || companyinfo.group_code || "",
+          date_of_anniversary:
+            values.date_of_anniversary || companyinfo.date_of_anniversary || "",
+          date_of_joining: values.date_of_joining || companyinfo.date_of_joining || "",
+          photo_path: values.profile || companyinfo.photo_path || "",
+          location_address: values.outlet_location || companyinfo.location_address || "",
+          location_longitude: currentLocation.lng || "",
+          location_latitude: currentLocation.lat || "",
+          use_flag: useFlagValue,
+          bank_account_items: companyinfo.bank_account_items || [],
+          contact_items: contactItems.map((item) => ({
+            name_en: item.name_en || "",
+            contact_number: item.contact_number || "",
+            name_th: item.name_th || "",
+            nickname: item.nickname || null,
+            date_of_birth: item.date_of_birth || null,
+            t_shirt_size: item.t_shirt_size || null,
+            relationship: item.relationship || null,
+            duty: item.duty || null,
+            tel1: item.tel1 || "",
+            tel2: item.tel2 || "",
+            email: item.email || null,
+            line_id: item.line_id || null,
+            age: item.age || null,
+            hobby: item.hobby || null,
+          })),
+          crop_list: defaultSelectedCrops || [],
+          network_list_sub_dealer: networkList.map((item) => ({
             sub_dealer_id: item.key,
             is_on_shop: item.onshop,
           })),
+          network_list_farmer: farmerListItem.map((item) => ({
+            farmer_id: item.key,
+            is_on_shop: item.onshop,
+          })),
+          platform: "web",
         };
 
         useServiceAPI
-          .put(paths.pathCustomerSubDealerNetworkUpdate, formattedData) // paths.pathNetworkSave = URL API
+          .put(paths.pathCustomerSubDealerUpdate, formattedData)
           .then((response) => {
             if (response.status === 200) {
               navigate("/customer/dealer");
@@ -1185,13 +1258,18 @@ export default function EditInformation() {
                 <div className="flex space-x-2">
                   <ActionButton
                     mode="add"
-                    text="Add"
+                    text="Add Sub Dealer"
                     onClick={handleOpenTerritoryModal}
+                  />
+                  <ActionButton
+                    mode="add"
+                    text="Add Farmer"
+                    onClick={handleOpenFarmerModal}
                   />
                 </div>
               )}
             </div>
-            <TableComponent header={header} dataSource={networkList} />
+            <TableComponent header={header} dataSource={combinedNetworkList} />
           </BoxPrimary>
           <div className="flex justify-end space-x-4 mt-6 mb-6">
             <ActionButton
@@ -1204,41 +1282,6 @@ export default function EditInformation() {
                 text="Update Network"
                 mode="update"
                 onClick={networkhandleSave}
-              />
-            )}
-          </div>
-
-          {/* Farmer List */}
-
-          <BoxPrimary className="hidden">
-            <div className="flex justify-between space-x-4 mb-3">
-              <span className="text-[#00783F] text-lg font-semibold">
-                Farmer List
-              </span>
-              {!isViewMode && (
-                <div className="flex space-x-2">
-                  <ActionButton
-                    mode="add"
-                    text="Add Farmer"
-                    onClick={handleOpenFarmerModal}
-                  />
-                </div>
-              )}
-            </div>
-            <TableComponent header={headerFarmer} dataSource={farmerListItem} />
-          </BoxPrimary>
-
-          <div className="flex justify-end space-x-4 mt-6 hidden">
-            <ActionButton
-              mode="back"
-              text="Back"
-              onClick={() => navigate(-1)}
-            />
-            {!isViewMode && (
-              <ActionButton
-                text="Update Farmer"
-                mode="update"
-                onClick={FarmerhandleSave}
               />
             )}
           </div>

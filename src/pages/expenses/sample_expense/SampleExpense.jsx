@@ -26,8 +26,8 @@ export default function SampleExpense() {
       pageSize: 10,
     },
     filters: {},
-    sortOrder: null,
-    sortField: null,
+    sortOrder: "desc",
+    sortField: "document_date",
   });
   const [statusOptions, setStatusOptions] = useState([]);
   const [saleList, setSaleList] = useState([]);
@@ -36,6 +36,7 @@ export default function SampleExpense() {
   const [cropList, setCropList] = useState([]);
   const navigate = useNavigate();
   const { showMsg, showNotification, userInfo } = useContext(AuthContext);
+  const isAdmin = Number(userInfo?.role_id) === 1;
 
 
   const filters = [
@@ -141,6 +142,34 @@ export default function SampleExpense() {
       },
     });
   };
+
+  const handleApprove = (document_number) => {
+    confirm({
+      title: "Do you want to approve this sample expense?",
+      icon: <ExclamationCircleFilled />,
+      onOk: async () => {
+        try {
+          setLoading(true);
+          const payload = {
+            platform: "web",
+            document_number: document_number
+          };
+          const res = await useServiceAPI.post(paths.pathSampleStatus, payload);
+          if (res.status === 200) {
+            showNotification("success", res.data?.message || "Approve successful");
+            fetchData();
+          } else {
+            showMsg("error", res.data?.message || "ไม่สามารถทำรายการได้");
+          }
+        } catch (err) {
+          showMsg("error", err.message || "เกิดข้อผิดพลาด");
+        } finally {
+          setLoading(false);
+        }
+      },
+    });
+  };
+
   const formatNumberDisplay = (value, digits = 2) => {
     const n = Number(value);
     if (!Number.isFinite(n)) {
@@ -181,6 +210,8 @@ export default function SampleExpense() {
       crop_id: filters.crop || "",
       status_transaction_code: filters.status_transaction_code || "",
       page: "all",
+      orderby_column: "document_date",
+      orderby: "desc",
       page_length: current,
       page_size: pageSize,
     };
@@ -248,26 +279,36 @@ export default function SampleExpense() {
           action: (
             <Dropdown
               menu={{
-                items: (row.action || []).map((actionItem, actionIndex) => ({
-                  key: actionIndex,
-                  label: (
-                    <ItemDropDown
-                      mode={actionItem.action.toLowerCase()}
-                      onClick={() => {
-                        const action = actionItem.action.toLowerCase();
+                items: (row.action || [])
+                  .filter((actionItem) => {
+                    const action = String(actionItem.action || "").toLowerCase();
+                    return action !== "delete" || isAdmin;
+                  })
+                  .map((actionItem, actionIndex) => ({
+                    key: actionIndex,
+                    label: (
+                      <ItemDropDown
+                        mode={actionItem.action.toLowerCase()}
+                        onClick={() => {
+                          const action = actionItem.action.toLowerCase();
 
-                        if (action === "delete") {
-                          handleDelete(row.document_number);
-                          return;
-                        }
+                          if (action === "delete") {
+                            handleDelete(row.document_number);
+                            return;
+                          }
 
-                        navigate(`/expenses/sample/${action}`, {
-                          state: { document_number: row.document_number },
-                        });
-                      }}
-                    />
-                  ),
-                })),
+                          if (action === "approve") {
+                            handleApprove(row.document_number);
+                            return;
+                          }
+
+                          navigate(`/expenses/sample/${action}`, {
+                            state: { document_number: row.document_number },
+                          });
+                        }}
+                      />
+                    ),
+                  })),
               }}
               placement="bottom"
             >

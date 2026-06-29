@@ -1470,6 +1470,10 @@ export default function CreateActivity() {
   };
 
   const handleApproval = (action) => {
+    if ([4, 5, 6, 7].includes(Number(userInfo?.role_id))) {
+      showNotification("error", "Permission Denied", ["Sales role is not allowed to approve."]);
+      return;
+    }
     let remark = "";
     confirm({
       title: `Do you want to ${action} ?`,
@@ -1820,12 +1824,10 @@ export default function CreateActivity() {
           />
         )}
 
-        {/* {activityDetail?.permission?.btn_reject && activityDetail?.transaction_status_name !== "Convert" && mode !== "approve" && ( */}
         {activityDetail?.permission?.btn_reject && activityDetail?.transaction_status_name !== "Convert" && (
           <ActionButton mode="reject" text={btn_reject} onClick={() => handleApproval("reject")} />
         )}
 
-        {/* {activityDetail?.permission?.btn_approved && activityDetail?.transaction_status_name !== "Convert" && mode !== "approve" && ( */}
         {activityDetail?.permission?.btn_approved && activityDetail?.transaction_status_name !== "Convert" && (
           <ActionButton mode="save" text={btn_approve} onClick={() => handleApproval("approved")} />
         )}
@@ -1850,3 +1852,4 @@ export default function CreateActivity() {
     </MainLayout>
   );
 }
+

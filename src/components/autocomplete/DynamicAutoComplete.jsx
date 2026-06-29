@@ -1,7 +1,7 @@
-import React from 'react';
+/* eslint-disable react/prop-types */
 import { AutoComplete } from 'antd';
 
-const DynamicAutoComplete = ({ options, placeholder, onSearch, style ,className }) => {
+const DynamicAutoComplete = ({ options, placeholder, onSearch, onSelect, style, className }) => {
   return (
     <AutoComplete
       style={style || { width: 200 }}
@@ -11,7 +11,8 @@ const DynamicAutoComplete = ({ options, placeholder, onSearch, style ,className 
         option.value.toUpperCase().indexOf(inputValue.toUpperCase()) !== -1
       }
       onSearch={onSearch}
-      className = {className}
+      onSelect={onSelect}
+      className={className}
     />
   );
 };
