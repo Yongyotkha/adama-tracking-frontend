@@ -272,7 +272,7 @@ export default function SettingProduct() {
     {
       key: "keyword",
       type: "text",
-      label: "Product Code",
+      label: "Product Code/Name",
       placeholder: "All",
     },
     {
