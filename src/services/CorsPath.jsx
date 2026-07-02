@@ -269,6 +269,7 @@ export const paths = {
 
   pathRollingForecastDealer: "/rolling-forecast/sale/dealer/list",
   pathRollingForecastDealerMonth: "/rolling-forecast/sale/dealer/month",
+  pathTempMasterRollingUpload: "/rolling-forecast/temp-master-rolling/upload",
 
   //Activity
   pathActivityPlan: "/activity-plan/sale/list",

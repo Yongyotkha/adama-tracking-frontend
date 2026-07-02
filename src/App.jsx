@@ -75,6 +75,7 @@ import ActivityCalendar from "./pages/activity/calendar/ActivityCalendar";
 import ActivityMapping from "./pages/activity/mapping/ActivityMapping";
 import WorkPlanSaleBySubDealer from "./pages/sale_plan/workplan/WorkPlanSaleBySubDealer";
 import RollingForecastQuarter from "./pages/sale_plan/rolling_forecast/RollingForecastQuarter";
+import RollingForecastTempUpload from "./pages/sale_plan/rolling_forecast/RollingForecastTempUpload";
 import RollingForecastMonth from "./pages/sale_plan/rolling_forecast/RollingForecastMonth";
 import ActivityPlanDealer from "./pages/activity/activity_plan/ActivityPlanDealer";
 import ActivityPlanSubDealer from "./pages/activity/activity_plan/ActivityPlanSubDealer";
@@ -281,6 +282,10 @@ const App = () => {
             <Route
               path="/sale-plan/rolling-forecast/quarter"
               element={<RollingForecastQuarter />}
+            />
+            <Route
+              path="/sale-plan/rolling-forecast/upload-temp"
+              element={<RollingForecastTempUpload />}
             />
 
             {/* Activity Route */}
