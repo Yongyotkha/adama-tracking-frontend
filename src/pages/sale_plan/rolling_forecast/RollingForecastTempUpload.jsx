@@ -1,4 +1,5 @@
 import React, { useContext, useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   Upload,
   Checkbox,
@@ -13,6 +14,7 @@ import {
   InboxOutlined,
   UploadOutlined,
   ImportOutlined,
+  ArrowLeftOutlined,
 } from "@ant-design/icons";
 import MainLayout from "../../../layouts/MainLayout";
 import BoxPrimary from "../../../components/box_primary/BoxPrimary";
@@ -35,6 +37,7 @@ const formatDateTime = (value) => {
 };
 
 export default function RollingForecastTempUpload() {
+  const navigate = useNavigate();
   const { showMsg, showNotification } = useContext(AuthContext);
   const [loading, setLoading] = useState(false);
   const [importLoading, setImportLoading] = useState(false);
@@ -253,7 +256,17 @@ export default function RollingForecastTempUpload() {
 
   return (
     <MainLayout loading={loading || importLoading}>
-      <div className="title-page">Upload Rolling Forecast CSV</div>
+    
+      <div className="flex items-center justify-between gap-3">
+        <div className="title-page">Upload Temp Master Rolling CSV</div>
+        <Button
+          type="default"
+          icon={<ArrowLeftOutlined />}
+          onClick={() => navigate("/sale-plan/rolling-forecast/temp-list")}
+        >
+          กลับหน้ารายการ
+        </Button>
+      </div>
 
       <BoxPrimary>
         {renderActionButtons()}

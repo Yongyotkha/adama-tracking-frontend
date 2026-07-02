@@ -38,7 +38,7 @@ export default function RollingForecastTempList() {
   const [filterValues, setFilterValues] = useState({});
 
   const [tableParams, setTableParams] = useState({
-    pagination: { current: 1, pageSize: 10, total: 0 },
+    pagination: { current: 1, pageSize: 50, total: 0 },
     filters: {},
   });
 
