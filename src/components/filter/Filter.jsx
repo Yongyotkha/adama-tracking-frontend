@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Select, Collapse, Input, Row, Col, DatePicker } from "antd";
+import { Select, Collapse, Input, Row, Col, DatePicker, Checkbox } from "antd";
 import "./Filter.css";
 import DynamicButton from "../button/DynamicButton";
 import dayjs from "dayjs";
@@ -163,6 +163,59 @@ const Filter = ({ onSearch, onClear, onChange, filters, onValueChange, values })
                     picker="month"
                   />
                 )}
+                {filter.type === "checkbox" && (
+                  <Checkbox
+                    checked={
+                      filterValues[filter.key] === "1" ||
+                      filterValues[filter.key] === 1 ||
+                      filterValues[filter.key] === true
+                    }
+                    onChange={(e) =>
+                      handleFilterChange(filter.key, e.target.checked ? "1" : "")
+                    }
+                    className="mt-2"
+                  >
+                    {filter.checkboxLabel || "มีค่า (Not Null)"}
+                  </Checkbox>
+                )}
+
+                {filter.type === "checkboxGroup" && (
+                  <div className="mt-1 rounded border border-[#d9d9d9] bg-[#fafafa] px-3 py-3">
+                    <Checkbox.Group
+                      value={(filter.options || [])
+                        .filter(
+                          (option) =>
+                            filterValues[option.key] === "1" ||
+                            filterValues[option.key] === 1 ||
+                            filterValues[option.key] === true
+                        )
+                        .map((option) => option.key)}
+                      onChange={(checkedKeys) => {
+                        const updatedValues = { ...filterValues };
+                        (filter.options || []).forEach((option) => {
+                          updatedValues[option.key] = checkedKeys.includes(option.key)
+                            ? "1"
+                            : "";
+                        });
+                        setFilterValues(updatedValues);
+                        if (onChange) {
+                          onChange(updatedValues);
+                        }
+                        if (onValueChange) {
+                          onValueChange(updatedValues);
+                        }
+                      }}
+                      className="flex flex-wrap gap-x-5 gap-y-2"
+                    >
+                      {(filter.options || []).map((option) => (
+                        <Checkbox key={option.key} value={option.key}>
+                          {option.label}
+                        </Checkbox>
+                      ))}
+                    </Checkbox.Group>
+                  </div>
+                )}
+
                 {filter.type === "dater" && (
                   <RangePicker
                     value={

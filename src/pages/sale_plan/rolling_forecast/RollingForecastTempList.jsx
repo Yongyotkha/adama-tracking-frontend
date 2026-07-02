@@ -62,6 +62,18 @@ export default function RollingForecastTempList() {
       options: dealers,
       disabled: !filterValues.user_id,
     },
+    {
+      key: "value_not_null_group",
+      type: "checkboxGroup",
+      label: "Qty / Value (Not Null)",
+      size: 6,
+      options: [
+        { key: "has_qty", label: "Qty" },
+        { key: "has_value", label: "Value" },
+        { key: "has_qty2", label: "Qty2" },
+        { key: "has_value2", label: "Value2" },
+      ],
+    },
   ];
 
   const header = [
@@ -207,6 +219,10 @@ export default function RollingForecastTempList() {
       year_code: f.year_code ?? "",
       user_id: f.user_id ?? "",
       dealer_id: f.dealer_id ?? "",
+      has_qty: f.has_qty ?? "",
+      has_value: f.has_value ?? "",
+      has_qty2: f.has_qty2 ?? "",
+      has_value2: f.has_value2 ?? "",
     };
 
     try {
