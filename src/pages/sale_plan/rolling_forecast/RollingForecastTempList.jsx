@@ -317,7 +317,7 @@ export default function RollingForecastTempList() {
         <div className="title-page">Temp Master Rolling List</div>
         <ActionButton
           mode="create"
-          text="Upload CSV"
+          text="อัปโหลดไฟล์ CSV"
           onClick={() => navigate("/sale-plan/rolling-forecast/upload-temp")}
         />
       </div>
