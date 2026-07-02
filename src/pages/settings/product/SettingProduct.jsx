@@ -124,10 +124,10 @@ export default function SettingProduct() {
           category: item.product_category,
           product_name: item.product_name,
           baht_per_lt_kg: item.bath_ltkg,
-          baht_per_unit: item.net_price,
-          sub_dealer: item.bath_unit,
-          // farmer: formatPackingUnitSize(item.packing_list),
-          farmer: item.packing_list,
+          baht_per_unit: item.bath_unit,
+          sub_dealer: item.sub_dealer,
+          farmer: item.farmer,
+          pack_size: item.packing_list,
 
           crop: (
             <BadgeStatus
@@ -246,7 +246,13 @@ export default function SettingProduct() {
       dataIndex: "sub_dealer",
       align: "right",
     },
-    { title: "Pack Size", width: 160, dataIndex: "farmer", align: "center" },
+    {
+      title: "Farmer",
+      width: 100,
+      dataIndex: "farmer",
+      align: "right",
+    },
+    { title: "Pack Size", width: 160, dataIndex: "pack_size", align: "center" },
     { title: "Crop", width: 100, dataIndex: "crop", align: "center" },
     {
       title: "Status",
@@ -272,7 +278,7 @@ export default function SettingProduct() {
     {
       key: "keyword",
       type: "text",
-      label: "Product Code",
+      label: "Product Code/Name",
       placeholder: "All",
     },
     {

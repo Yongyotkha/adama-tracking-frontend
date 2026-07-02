@@ -201,17 +201,25 @@ export default function CustomerMapping() {
 
     const filtered = allLocations.filter((item) => {
       if (!selectedTypes.includes(item.customer_type)) return false;
-      if (!selectedSales.map(String).includes(String(item.sale_filter_id))) {
-        return false;
-      }
-      if (!selectedDealers.map(String).includes(String(item.dealer_filter_id))) {
-        return false;
-      }
-      if (!selectedSubDealers.map(String).includes(String(item.sub_dealer_filter_id))) {
+
+      const isSalesFilterActive = selectedSales.length > 0;
+      const isDealerFilterActive = selectedDealers.length > 0;
+      const isSubDealerFilterActive = selectedSubDealers.length > 0;
+
+      if (!isSalesFilterActive && !isDealerFilterActive && !isSubDealerFilterActive) {
         return false;
       }
 
-      return true;
+      const matchesSale = isSalesFilterActive && selectedSales.map(String).includes(String(item.sale_filter_id));
+      const matchesDealer = isDealerFilterActive && selectedDealers.map(String).includes(String(item.dealer_filter_id));
+      const matchesSubDealer = isSubDealerFilterActive && selectedSubDealers.map(String).includes(String(item.sub_dealer_filter_id));
+
+      const conditions = [];
+      if (isSalesFilterActive) conditions.push(matchesSale);
+      if (isDealerFilterActive) conditions.push(matchesDealer);
+      if (isSubDealerFilterActive) conditions.push(matchesSubDealer);
+
+      return conditions.some(Boolean);
     });
 
     setLocations(filtered);
