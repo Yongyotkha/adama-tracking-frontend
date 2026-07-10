@@ -704,6 +704,8 @@ export default function EditInformation() {
           key: item.farmer_id,
           no: index + 1,
           name: item.farmer_name,
+          farm_name: item.farm_name,
+          nickname: item.nickname,
           territory: item.farmer_contact_phone_number,
           farmer_channel_type_name: item.farmer_channel_type_name,
           farmer_channel_type_bg_color: item.farmer_channel_type_bg_color,
@@ -1349,6 +1351,8 @@ export default function EditInformation() {
         header={[
           { title: "No", dataIndex: "no", key: "no", width: 50 },
           { title: "Farmer Name", dataIndex: "name", key: "name", width: 150 },
+          { title: "Farm Name", dataIndex: "farm_name", key: "farm_name", width: 150 },
+          { title: "Nick Name", dataIndex: "nickname", key: "nickname", width: 150 },
           {
             title: "Phone No",
             dataIndex: "territory",
