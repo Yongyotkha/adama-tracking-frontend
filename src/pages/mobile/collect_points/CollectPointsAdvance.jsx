@@ -42,8 +42,14 @@ export default function CollectPointsAdvance() {
         const response = await useServiceAPI.get(paths.pathProfileDetail, { id: userInfo.id });
         if (response.status === 200 && response.result) {
           setUser(response.data);
-          if (response.data?.dealer?.dealer_name_th) {
-            setReceiveShop(response.data.dealer.dealer_name_th);
+          const dealerShopName =
+            response.data?.dealer_name_en ||
+            response.data?.dealer_name ||
+            response.data?.dealer?.dealer_name_th ||
+            response.data?.dealer?.dealer_name_en ||
+            "";
+          if (dealerShopName) {
+            setReceiveShop(dealerShopName);
           }
         } else {
           console.error("Failed to fetch user profile:", response);
@@ -344,6 +350,8 @@ export default function CollectPointsAdvance() {
             <Input
               value={
                 receiveShop ||
+                user?.dealer_name_en ||
+                user?.dealer_name ||
                 user?.dealer?.dealer_name_th ||
                 user?.dealer?.dealer_name_en ||
                 ""
