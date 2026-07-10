@@ -342,7 +342,12 @@ export default function CollectPointsAdvance() {
               ชื่อร้านยี่ปั๊ว<span className="text-red-500"></span>
             </label>
             <Input
-              value={user?.dealer?.dealer_name_en ?? ""}
+              value={
+                receiveShop ||
+                user?.dealer?.dealer_name_th ||
+                user?.dealer?.dealer_name_en ||
+                ""
+              }
               disabled
               className="h-10 rounded-md sarabun-font bg-gray-100"
             />
