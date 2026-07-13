@@ -77,6 +77,19 @@ export default function Dashboard() {
   // Sub Dealer by Dealer
   const [selectedSdByD, setSelectedSdByD] = useState(null);
 
+  // ---------- New states for Sub Dealer & Farmer charts at the bottom ----------
+  const [sdChartDealer, setSdChartDealer] = useState(null);
+  const [sdChartMonth, setSdChartMonth] = useState(null);
+  const [sdChartData, setSdChartData] = useState([]);
+  const [sdChartLoading, setSdChartLoading] = useState(false);
+
+  const [fmChartDealer, setFmChartDealer] = useState(null);
+  const [fmChartSubDealer, setFmChartSubDealer] = useState(null);
+  const [fmChartMonth, setFmChartMonth] = useState(null);
+  const [fmChartData, setFmChartData] = useState([]);
+  const [fmChartLoading, setFmChartLoading] = useState(false);
+  const [fmSubDealerOptions, setFmSubDealerOptions] = useState([]);
+
   // Actual Sub Dealer Points (แยก state)
   const [selectedSdByPointUser, setSelectedSdByPointUser] = useState("");
 
@@ -706,6 +719,11 @@ export default function Dashboard() {
         );
 
         if (response.status === 200 && response.data) {
+          const GREEN_SHADES = [
+            "#006633", "#007A3D", "#009845", "#00b04f", "#00c45a",
+            "#33d472", "#4ddb84", "#66e296", "#80e8a8", "#99efba",
+          ];
+
           const data = response?.data?.items
             ?.sort((a, b) => {
               const aValue =
@@ -714,14 +732,14 @@ export default function Dashboard() {
                 parseFloat(String(b.total_amount_target || "0").replace(/,/g, "")) || 0;
               return bValue - aValue;
             })
-            ?.map((item) => {
+            ?.map((item, idx) => {
               const isOther = item.sub_dealer_name === "Other";
               return {
                 value:
                   parseFloat(String(item.total_amount_target || "0").replace(/,/g, "")) || 0,
                 label: item.sub_dealer_name,
                 percentage: item.percentage,
-                color: isOther ? "#e61e1e" : "#009845",
+                color: isOther ? "#e61e1e" : GREEN_SHADES[idx % GREEN_SHADES.length],
               };
             });
 
@@ -889,6 +907,85 @@ export default function Dashboard() {
       alive = false;
     };
   }, [selectedYear, selectedSdByPointUser, selectedSale, selectedArea]);
+
+  // ---------- GREEN_SHADES Palette ----------
+  const GREEN_SHADES = [
+    "#006633", "#007A3D", "#009845", "#00b04f", "#00c45a",
+    "#33d472", "#4ddb84", "#66e296", "#80e8a8", "#99efba",
+  ];
+
+  // ---------- Sub Dealer chart fetch effect ----------
+  useEffect(() => {
+    let alive = true;
+    const fetchSdChart = async () => {
+      setSdChartLoading(true);
+      try {
+        const res = await useServiceAPI.get(paths.pathDashBoardPointUsers, {
+          dealer_id: sdChartDealer || "",
+          sub_dealer_id: "",
+          month_id: sdChartMonth || "",
+        });
+        if (!alive) return;
+        const payload = res?.data?.data ?? res?.data ?? {};
+        const items = Array.isArray(payload?.items) ? payload.items : [];
+        const mapped = items.map((it, idx) => ({
+          value: Number(it.total_point ?? 0) || 0,
+          total_value: Number(it.total_value ?? 0) || 0,
+          label: it.sub_dealer_name || "Other",
+          percentage: it.percentage,
+          color: it.sub_dealer_name === "Other" ? "#e61e1e" : GREEN_SHADES[idx % GREEN_SHADES.length],
+        }));
+        setSdChartData(mapped);
+        // Populate sub dealer options for Farmer chart filter from returned data
+        setFmSubDealerOptions(
+          items
+            .filter((it) => it.sub_dealer_name !== "Other" && it.sub_dealer_id)
+            .map((it) => ({ value: it.sub_dealer_id, label: it.sub_dealer_name }))
+        );
+      } catch (err) {
+        if (alive) setSdChartData([]);
+      } finally {
+        if (alive) setSdChartLoading(false);
+      }
+    };
+    fetchSdChart();
+    return () => { alive = false; };
+  }, [sdChartDealer, sdChartMonth]);
+
+  // ---------- Farmer chart fetch effect ----------
+  useEffect(() => {
+    let alive = true;
+    const fetchFmChart = async () => {
+      setFmChartLoading(true);
+      try {
+        const res = await useServiceAPI.get(paths.pathDashBoardPointUsers, {
+          dealer_id: fmChartDealer || "",
+          sub_dealer_id: fmChartSubDealer || "",
+          month_id: fmChartMonth || "",
+          group_by: "farmer",
+        });
+        if (!alive) return;
+        const payload = res?.data?.data ?? res?.data ?? {};
+        const items = Array.isArray(payload?.items) ? payload.items : [];
+        const mapped = items.map((it, idx) => ({
+          value: Number(it.total_point ?? 0) || 0,
+          total_value: Number(it.total_value ?? 0) || 0,
+          label: it.farmer_name || it.sub_dealer_name || "Other",
+          percentage: it.percentage,
+          color: (it.farmer_name || it.sub_dealer_name) === "Other"
+            ? "#e61e1e"
+            : GREEN_SHADES[idx % GREEN_SHADES.length],
+        }));
+        setFmChartData(mapped);
+      } catch (err) {
+        if (alive) setFmChartData([]);
+      } finally {
+        if (alive) setFmChartLoading(false);
+      }
+    };
+    fetchFmChart();
+    return () => { alive = false; };
+  }, [fmChartDealer, fmChartSubDealer, fmChartMonth]);
 
   return (
     <MainLayout loading={loading}>
@@ -1554,6 +1651,100 @@ export default function Dashboard() {
                 }}
               />
             </div>
+          </Card>
+        </Col>
+
+        {/* Sub Dealer Donut Chart */}
+        <Col xs={24} lg={24} xl={12}>
+          <Card className="shadow-md rounded-lg bg-white border-t-[10px] border-solid border-t-[#00783F] h-full">
+            <div className="flex flex-wrap items-center justify-between mb-3">
+              <h3 className="text-[#00783F] text-lg font-semibold">
+                Sub Dealer
+              </h3>
+              <div className="flex flex-wrap gap-2">
+                <Select
+                  className="w-36"
+                  placeholder={loading ? "Loading..." : "All Dealer"}
+                  allowClear
+                  showSearch
+                  optionFilterProp="label"
+                  options={dealer}
+                  value={sdChartDealer ?? undefined}
+                  onChange={(v) => setSdChartDealer(v ?? null)}
+                  size="small"
+                />
+                <Select
+                  className="w-32"
+                  placeholder={loading ? "Loading..." : "All Month"}
+                  allowClear
+                  showSearch
+                  optionFilterProp="label"
+                  options={months}
+                  value={sdChartMonth ?? undefined}
+                  onChange={(v) => setSdChartMonth(v ?? null)}
+                  size="small"
+                />
+              </div>
+            </div>
+            {sdChartLoading ? (
+              <div className="h-[300px] flex items-center justify-center text-gray-400">Loading...</div>
+            ) : (
+              <DoughnutChartComponent data={sdChartData} tooltipMode="default" />
+            )}
+          </Card>
+        </Col>
+
+        {/* Farmer Donut Chart */}
+        <Col xs={24} lg={24} xl={12}>
+          <Card className="shadow-md rounded-lg bg-white border-t-[10px] border-solid border-t-[#00783F] h-full">
+            <div className="flex flex-wrap items-center justify-between mb-3">
+              <h3 className="text-[#00783F] text-lg font-semibold">
+                Farmer
+              </h3>
+              <div className="flex flex-wrap gap-2">
+                <Select
+                  className="w-36"
+                  placeholder={loading ? "Loading..." : "All Dealer"}
+                  allowClear
+                  showSearch
+                  optionFilterProp="label"
+                  options={dealer}
+                  value={fmChartDealer ?? undefined}
+                  onChange={(v) => {
+                    setFmChartDealer(v ?? null);
+                    setFmChartSubDealer(null);
+                  }}
+                  size="small"
+                />
+                <Select
+                  className="w-36"
+                  placeholder={loading ? "Loading..." : "All Sub Dealer"}
+                  allowClear
+                  showSearch
+                  optionFilterProp="label"
+                  options={fmSubDealerOptions}
+                  value={fmChartSubDealer ?? undefined}
+                  onChange={(v) => setFmChartSubDealer(v ?? null)}
+                  size="small"
+                />
+                <Select
+                  className="w-32"
+                  placeholder={loading ? "Loading..." : "All Month"}
+                  allowClear
+                  showSearch
+                  optionFilterProp="label"
+                  options={months}
+                  value={fmChartMonth ?? undefined}
+                  onChange={(v) => setFmChartMonth(v ?? null)}
+                  size="small"
+                />
+              </div>
+            </div>
+            {fmChartLoading ? (
+              <div className="h-[300px] flex items-center justify-center text-gray-400">Loading...</div>
+            ) : (
+              <DoughnutChartComponent data={fmChartData} tooltipMode="default" />
+            )}
           </Card>
         </Col>
       </Row>
