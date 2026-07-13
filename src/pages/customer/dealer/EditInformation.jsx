@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useState } from "react";
+import React, { useContext, useEffect, useMemo, useState } from "react";
 import MainLayout from "../../../layouts/MainLayout";
 import FormUser from "../../../components/form_user/FormUser";
 import DynamicButton from "../../../components/button/DynamicButton";
@@ -62,10 +62,36 @@ export default function EditInformation() {
   const [dataMapZoom, setDataMapZoom] = useState(15);
   const [isGoogleLoaded, setIsGoogleLoaded] = useState(false);
   const [isMapEnabled, setIsMapEnabled] = useState(false);
+  const [targetGroupOptions, setTargetGroupOptions] = useState([]);
 
   // อ่านสถานะ mod จาก state
   const mode = location.state?.mod;
   const isViewMode = mode === "View";
+
+  useEffect(() => {
+    const loadTargetGroups = async () => {
+      try {
+        const res = await useServiceAPI.get(paths.pathTargetGroupList, {
+          target_name: 1,
+          type_name: "",
+          status: 1,
+          page_size: 100,
+          page_length: 1,
+        });
+        const list = res?.data?.data || [];
+        setTargetGroupOptions(
+          list.map((item) => ({
+            id: Number(item.type),
+            name: item.type_name,
+          }))
+        );
+      } catch (error) {
+        console.error("Load target group failed:", error);
+      }
+    };
+
+    loadTargetGroups();
+  }, []);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -89,7 +115,8 @@ export default function EditInformation() {
     fetchData();
   }, []);
 
-  const formFields = [
+  const formFields = useMemo(
+    () => [
     {
       label: "",
       name: "profile", // ชื่อฟิลด์ในฟอร์ม
@@ -102,7 +129,7 @@ export default function EditInformation() {
       label: "Dealer Name (EN)",
       name: "dealer_name_en",
       type: "text",
-      disabled: true,
+      disabled: isViewMode,
       required: false,
       col: 6,
       value: companyinfo.dealer_name_en,
@@ -111,7 +138,7 @@ export default function EditInformation() {
       label: "Dealer Name (TH)",
       name: "dealer_name_th",
       type: "text",
-      disabled: true,
+      disabled: isViewMode,
       required: false,
       col: 6,
       value: companyinfo.dealer_name_th,
@@ -129,7 +156,7 @@ export default function EditInformation() {
       label: "Tax ID",
       name: "tax_id",
       type: "text",
-      disabled: true,
+      disabled: isViewMode,
       required: false,
       col: 6,
       value: companyinfo.tax_id,
@@ -138,7 +165,7 @@ export default function EditInformation() {
       label: "Contact Number",
       name: "contact_number",
       type: "text",
-      disabled: true,
+      disabled: isViewMode,
       required: false,
       col: 6,
       value: companyinfo.contact_number,
@@ -147,7 +174,7 @@ export default function EditInformation() {
       label: "Address",
       name: "address",
       type: "text",
-      disabled: true,
+      disabled: isViewMode,
       required: false,
       col: 12,
       value: companyinfo.address,
@@ -166,7 +193,7 @@ export default function EditInformation() {
       label: "Date of Anniversary",
       name: "date_of_anniversary",
       type: "date",
-      disabled: true,
+      disabled: isViewMode,
       required: false,
       col: 6,
       value: companyinfo.date_of_anniversary,
@@ -175,7 +202,7 @@ export default function EditInformation() {
       label: "Date of Joining",
       name: "date_of_joining",
       type: "date",
-      disabled: true,
+      disabled: isViewMode,
       required: false,
       col: 6,
       value: companyinfo.date_of_joining,
@@ -186,12 +213,26 @@ export default function EditInformation() {
       type: "select",
       required: false,
       col: 6,
-      disabled: { isViewMode },
+      disabled: isViewMode,
       options: [
         { name: "Active", id: 1, selected: true },
         { name: "Inactive", id: 0, selected: false },
       ],
       value: parseInt(companyinfo.use_flag, 10) === 1 ? "Active" : "Inactive",
+    },
+    {
+      label: "Target Group",
+      name: "target_group",
+      type: "select",
+      options: targetGroupOptions,
+      required: true,
+      col: 6,
+      disabled: isViewMode,
+      value: companyinfo.target_group_id
+        ? Number(companyinfo.target_group_id)
+        : companyinfo.target_group
+          ? Number(companyinfo.target_group)
+          : undefined,
     },
     {
       label: "Outlet Location Please select a location on the map",
@@ -203,9 +244,11 @@ export default function EditInformation() {
       value: companyinfo.location_address,
       iconSrc: "/img/icons/location.png",
       iconPosition: "right",
-      disabled: true,
+      disabled: isViewMode,
     },
-  ];
+  ],
+    [companyinfo, isViewMode, targetGroupOptions]
+  );
 
   const header = [
     { title: "No", width: 50, dataIndex: "no", align: "center" },
@@ -270,6 +313,13 @@ export default function EditInformation() {
       if (response.status === 200) {
         const { data } = response;
         setcompanyinfo(data);
+        form.setFieldsValue({
+          target_group: data.target_group_id
+            ? Number(data.target_group_id)
+            : data.target_group
+              ? Number(data.target_group)
+              : undefined,
+        });
         setContactItems(data.contact_items);
         setProfileImage(data.photo_path);
         setCropOptions(data.crop_list || []);
@@ -806,6 +856,13 @@ export default function EditInformation() {
           location_longitude: currentLocation.lng || "",
           location_latitude: currentLocation.lat || "",
           use_flag: useFlagValue,
+          target_group:
+            values.target_group ??
+            (companyinfo.target_group_id
+              ? Number(companyinfo.target_group_id)
+              : companyinfo.target_group
+                ? Number(companyinfo.target_group)
+                : null),
           bank_account_items: companyinfo.bank_account_items || [],
 
           contact_items: contactItems.map((item) => ({
@@ -889,6 +946,13 @@ export default function EditInformation() {
           location_longitude: currentLocation.lng || "",
           location_latitude: currentLocation.lat || "",
           use_flag: useFlagValue,
+          target_group:
+            values.target_group ??
+            (companyinfo.target_group_id
+              ? Number(companyinfo.target_group_id)
+              : companyinfo.target_group
+                ? Number(companyinfo.target_group)
+                : null),
           bank_account_items: companyinfo.bank_account_items || [],
           contact_items: contactItems.map((item) => ({
             name_en: item.name_en || "",
@@ -1116,6 +1180,7 @@ export default function EditInformation() {
                   center={currentLocation}
                   zoom={dataMapZoom}
                   onClick={(e) => {
+                    if (isViewMode) return;
                     const lat = e.latLng.lat();
                     const lng = e.latLng.lng();
                     setCurrentLocation({ lat, lng });
@@ -1128,11 +1193,11 @@ export default function EditInformation() {
                         url: "https://adama-api.mtsc.co.th/images/activity-type-mark-location/DemoPlot.png",
                         scaledSize: { width: 30, height: 30 },
                       }}
-                      draggable={true}
+                      draggable={!isViewMode}
                       onDragEnd={handleMarkerDragEnd}
                       options={{
-                        disableDefaultUI: !isMapEnabled,
-                        draggable: isMapEnabled,
+                        disableDefaultUI: isViewMode || !isMapEnabled,
+                        draggable: !isViewMode && isMapEnabled,
                       }}
                     />
                   )}
@@ -1175,7 +1240,7 @@ export default function EditInformation() {
                               e.target.value
                             )
                           }
-                          disabled={true}
+                          disabled={isViewMode}
                         />
                       </Col>
                     ))}

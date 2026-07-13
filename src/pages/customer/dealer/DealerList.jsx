@@ -9,7 +9,11 @@ import { useNavigate } from "react-router-dom";
 import ItemDropDown from "../../../components/dropdown/ItemDropDown";
 import useServiceAPI from "../../../services/corsService";
 import { paths } from "../../../services/CorsPath";
-import { loadListPageState, saveListPageState } from "../../../utils/listPageState";
+import ActionButton from "../../../components/button/ActionButton";
+import {
+  loadListPageState,
+  saveListPageState,
+} from "../../../utils/listPageState";
 
 const PAGE_STATE_KEY = "customer-dealer-list";
 
@@ -24,7 +28,9 @@ export default function DealerList() {
   const [saleList, setSaleList] = useState([]);
   const [targetList, setTargetList] = useState([]); // ✅ NEW
 
-  const [filterValues, setFilterValues] = useState(persistedState.filterValues || {});
+  const [filterValues, setFilterValues] = useState(
+    persistedState.filterValues || {},
+  );
   const navigate = useNavigate();
 
   const [tableParams, setTableParams] = useState({
@@ -116,7 +122,10 @@ export default function DealerList() {
     };
 
     try {
-      const response = await useServiceAPI.get(paths.pathCustomerDealer, requestData);
+      const response = await useServiceAPI.get(
+        paths.pathCustomerDealer,
+        requestData,
+      );
 
       if (response.status === 200) {
         const { data, records_filtered } = response.data;
@@ -254,12 +263,37 @@ export default function DealerList() {
   const header = [
     { title: "No", width: 50, dataIndex: "key", align: "center" },
     { title: "Code", width: 100, dataIndex: "code", align: "left" },
-    { title: "Dealer Name", width: 200, dataIndex: "dealerName", align: "left" },
-    { title: "Contact Name", width: 200, dataIndex: "contactName", align: "left" },
-    { title: "Contact Number", width: 150, dataIndex: "mobilePhone", align: "center" },
+    {
+      title: "Dealer Name",
+      width: 200,
+      dataIndex: "dealerName",
+      align: "left",
+    },
+    {
+      title: "Contact Name",
+      width: 200,
+      dataIndex: "contactName",
+      align: "left",
+    },
+    {
+      title: "Contact Number",
+      width: 150,
+      dataIndex: "mobilePhone",
+      align: "center",
+    },
     { title: "Address", width: 300, dataIndex: "address", align: "left" },
-    { title: "Group Code", width: 150, dataIndex: "groupCode", align: "center" },
-    { title: "Target Group", width: 180, dataIndex: "targetGroupName", align: "left" }, // ✅ NEW
+    {
+      title: "Group Code",
+      width: 150,
+      dataIndex: "groupCode",
+      align: "center",
+    },
+    {
+      title: "Target Group",
+      width: 180,
+      dataIndex: "targetGroupName",
+      align: "left",
+    }, // ✅ NEW
     { title: "By Sales", width: 150, dataIndex: "sale", align: "center" },
     { title: "Status", width: 100, dataIndex: "status", align: "center" },
     { title: "Action", width: 100, dataIndex: "action", align: "center" },
@@ -281,7 +315,16 @@ export default function DealerList() {
 
   return (
     <MainLayout loading={loading}>
-      <div className="title-page">Dealer</div>
+      <div className="flex items-center justify-between">
+        <div className="title-page">Dealer</div>
+        <ActionButton
+          text="Create"
+          mode="create"
+          onClick={() =>
+            navigate("/customer/dealer/create", { state: { mod: "create" } })
+          }
+        />
+      </div>
 
       <Filter
         onSearch={handleSearch}
