@@ -489,24 +489,17 @@ export default function FarmersCreate() {
           useServiceAPI.get(paths.pathMasterPrefix, {}),
           useServiceAPI.get(paths.pathMasterEquipment, {}),
           useServiceAPI.get(paths.pathMasterCrop, {}),
-          useServiceAPI.get(paths.pathPointCampaignTarget, {}),
+          useServiceAPI.get(paths.pathMasterTarget, { user_type: 3 }),
         ]);
 
         setPrefixOptions(prefixRes.data || []);
         setEquipmentOptions(equRes.data || []);
         setCropOptions(cropRes.data || []);
 
-        const rawTargets = targetGroupRes?.data?.data || targetGroupRes?.data || [];
-        console.log("rawTargets: ", rawTargets);
-        const farmerGroups = rawTargets
-          .filter((x) => {
-            const name = String(x.target_name || x.name || "").trim().toLowerCase();
-            return name === "farmer" || name === "farmers";
-          })
-          .map((x) => ({
-            label: String(x.target || x.label || x.name || "-").trim(),
-            value: Number(x.target_id || x.id || x.value),
-          }));
+        const farmerGroups = (targetGroupRes?.data || []).map((x) => ({
+          label: String(x.name || x.target_group_name || "-").trim(),
+          value: Number(x.id ?? x.target_group_id),
+        }));
         setTargetGroupOptions(farmerGroups);
 
         if ((isEditMode || isViewMode) && farmerId) {
