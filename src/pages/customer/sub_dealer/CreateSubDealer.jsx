@@ -380,8 +380,15 @@ export default function CreateSubDealer() {
         const userListData = data.map((item, index) => ({
           key: item.farmer_id,
           no: index + 1,
-          name: item.farmer_name,
-          contactperson: item.farmer_contact_phone_number,
+          farmer_name: item.farmer_name || "-",
+          farm_name: item.farm_name || "-",
+          nickname: item.nickname || "-",
+          farmer_contact_phone_number: String(
+            item.farmer_contact_phone_number || ""
+          ),
+          farmer_channel_type_name: item.farmer_channel_type_name,
+          farmer_channel_type_bg_color: item.farmer_channel_type_bg_color,
+          farmer_channel_type_color: item.farmer_channel_type_color,
           status: (
             <BadgeStatus
               text={item.farmer_channel_type_name}
@@ -404,8 +411,8 @@ export default function CreateSubDealer() {
 
     const newRows = selectedRows.map((row) => ({
       key: row.key,
-      name: row.name || "-",
-      contactperson: row.contactperson || "-",
+      name: row.farmer_name || "-",
+      contactperson: row.farmer_contact_phone_number || "-",
       status: row.status || "-",
       action: renderNetworkAction(row.key),
     }));
@@ -1156,11 +1163,28 @@ export default function CreateSubDealer() {
         onClose={handleCloseTerritoryModal}
         header={[
           { title: "No", dataIndex: "no", key: "no", width: 50 },
-          { title: "Name", dataIndex: "name", key: "name", width: 150 },
+          {
+            title: "Farmer Name",
+            dataIndex: "farmer_name",
+            key: "farmer_name",
+            width: 150,
+          },
+          {
+            title: "Farm Name",
+            dataIndex: "farm_name",
+            key: "farm_name",
+            width: 150,
+          },
+          {
+            title: "Nick Name",
+            dataIndex: "nickname",
+            key: "nickname",
+            width: 150,
+          },
           {
             title: "Contact",
-            dataIndex: "contactperson",
-            key: "contactperson",
+            dataIndex: "farmer_contact_phone_number",
+            key: "farmer_contact_phone_number",
             width: 150,
           },
           { title: "Status", dataIndex: "status", key: "status", width: 120 },
