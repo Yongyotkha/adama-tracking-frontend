@@ -137,6 +137,8 @@ export default function PointCampaignList() {
   // ------- columns -------
   const header = [
     { title: "No", dataIndex: "key" },
+    { title: "ID", dataIndex: "id" },
+    { title: "Code", dataIndex: "document_number" },
     { title: "Campaign Name", dataIndex: "name" },
     { title: "Customer Group", dataIndex: "customer_type_name" },
     { title: "Type Name", dataIndex: "type_name" },
