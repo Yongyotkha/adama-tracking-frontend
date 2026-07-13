@@ -31,6 +31,44 @@ import { GoogleMap, LoadScript, Marker } from "@react-google-maps/api";
 
 const { Option } = Select;
 
+const DEFAULT_MAP_CENTER = {
+  lat: 13.9572612,
+  lng: 100.6222401,
+};
+
+const getSaveErrorMessage = (error) => {
+  const data = error?.response?.data;
+  if (!data) {
+    return {
+      title: "เกิดข้อผิดพลาด",
+      lines: [error?.message || "Unable to save data."],
+    };
+  }
+
+  if (data.errors && typeof data.errors === "object") {
+    const lines = Object.values(data.errors).flat().filter(Boolean);
+    return {
+      title: "เกิดข้อผิดพลาด",
+      lines: lines.length ? lines : ["Please complete all required fields."],
+    };
+  }
+
+  const messageLines = data.data?.message_line || data.message_line;
+  if (messageLines) {
+    return {
+      title: data.message || data.data?.message || "เกิดข้อผิดพลาด",
+      lines: Array.isArray(messageLines) ? messageLines : [messageLines],
+    };
+  }
+
+  const fallbackMessage =
+    data.data?.message || data.message || "Unable to save data.";
+  return {
+    title: "เกิดข้อผิดพลาด",
+    lines: [fallbackMessage],
+  };
+};
+
 export default function EditInformation() {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
@@ -58,7 +96,7 @@ export default function EditInformation() {
   const [dataApiKey, setDataApiKay] = useState(
     "AIzaSyDUeNLdnx0CqDtfCXRywGdcizCnBVCdwik"
   );
-  const [currentLocation, setCurrentLocation] = useState({});
+  const [currentLocation, setCurrentLocation] = useState(DEFAULT_MAP_CENTER);
   const [dataMapZoom, setDataMapZoom] = useState(15);
   const [isGoogleLoaded, setIsGoogleLoaded] = useState(false);
   const [isMapEnabled, setIsMapEnabled] = useState(false);
@@ -101,7 +139,7 @@ export default function EditInformation() {
         if (isCreateMode) {
           setcompanyinfo({ use_flag: 1, group_code: "FMK Customers" });
           form.setFieldsValue({
-            use_flag: "Active",
+            use_flag: 1,
             group_code: "FMK Customers",
           });
         } else if (location.state?.id) {
@@ -126,20 +164,18 @@ export default function EditInformation() {
     () => [
     {
       label: "",
-      name: "profile", // ชื่อฟิลด์ในฟอร์ม
-      type: "picture", // ประเภทฟิลด์
+      name: "profile",
+      type: "picture",
       required: false,
       col: 24,
-      value: companyinfo.photo_path,
     },
     {
       label: "Dealer Name (EN)",
       name: "dealer_name_en",
       type: "text",
       disabled: isViewMode,
-      required: false,
+      required: isCreateMode,
       col: 6,
-      value: companyinfo.dealer_name_en,
     },
     {
       label: "Dealer Name (TH)",
@@ -148,7 +184,6 @@ export default function EditInformation() {
       disabled: isViewMode,
       required: false,
       col: 6,
-      value: companyinfo.dealer_name_th,
     },
     {
       label: "Dealer Code",
@@ -157,7 +192,6 @@ export default function EditInformation() {
       disabled: isViewMode || !isCreateMode,
       required: isCreateMode,
       col: 6,
-      value: companyinfo.dealer_code,
     },
     {
       label: "Tax ID",
@@ -166,7 +200,6 @@ export default function EditInformation() {
       disabled: isViewMode,
       required: false,
       col: 6,
-      value: companyinfo.tax_id,
     },
     {
       label: "Contact Number",
@@ -175,7 +208,6 @@ export default function EditInformation() {
       disabled: isViewMode,
       required: false,
       col: 6,
-      value: companyinfo.contact_number,
     },
     {
       label: "Address",
@@ -184,7 +216,6 @@ export default function EditInformation() {
       disabled: isViewMode,
       required: false,
       col: 12,
-      value: companyinfo.address,
     },
     {
       label: "Group Code",
@@ -203,7 +234,6 @@ export default function EditInformation() {
       disabled: isViewMode,
       required: false,
       col: 6,
-      value: companyinfo.date_of_anniversary,
     },
     {
       label: "Date of Joining",
@@ -212,7 +242,6 @@ export default function EditInformation() {
       disabled: isViewMode,
       required: false,
       col: 6,
-      value: companyinfo.date_of_joining,
     },
     {
       label: "Status",
@@ -225,7 +254,7 @@ export default function EditInformation() {
         { name: "Active", id: 1, selected: true },
         { name: "Inactive", id: 0, selected: false },
       ],
-      value: parseInt(companyinfo.use_flag, 10) === 1 ? "Active" : "Inactive",
+      value: 1,
     },
     {
       label: "Target Group",
@@ -235,11 +264,6 @@ export default function EditInformation() {
       required: true,
       col: 6,
       disabled: isViewMode,
-      value: companyinfo.target_group_id
-        ? Number(companyinfo.target_group_id)
-        : companyinfo.target_group
-          ? Number(companyinfo.target_group)
-          : undefined,
     },
     {
       label: "Outlet Location Please select a location on the map",
@@ -248,13 +272,12 @@ export default function EditInformation() {
       type: "text",
       required: false,
       col: 24,
-      value: companyinfo.location_address,
       iconSrc: "/img/icons/location.png",
       iconPosition: "right",
       disabled: isViewMode,
     },
   ],
-    [companyinfo, isViewMode, isCreateMode, targetGroupOptions]
+    [isViewMode, isCreateMode, targetGroupOptions]
   );
 
   const header = [
@@ -321,11 +344,27 @@ export default function EditInformation() {
         const { data } = response;
         setcompanyinfo(data);
         form.setFieldsValue({
+          profile: data.photo_path,
+          dealer_name_en: data.dealer_name_en,
+          dealer_name_th: data.dealer_name_th,
+          dealer_code: data.dealer_code,
+          tax_id: data.tax_id,
+          contact_number: data.contact_number,
+          address: data.address,
+          group_code: data.group_code || "FMK Customers",
+          date_of_anniversary: data.date_of_anniversary
+            ? dayjs(data.date_of_anniversary)
+            : null,
+          date_of_joining: data.date_of_joining
+            ? dayjs(data.date_of_joining)
+            : null,
+          use_flag: parseInt(data.use_flag, 10) === 1 ? 1 : 0,
           target_group: data.target_group_id
             ? Number(data.target_group_id)
             : data.target_group
               ? Number(data.target_group)
               : undefined,
+          outlet_location: data.location_address,
         });
         setContactItems(data.contact_items);
         setProfileImage(data.photo_path);
@@ -920,14 +959,22 @@ export default function EditInformation() {
                 response.data.message,
                 response.data.message_line
               );
+            } else {
+              const { title, lines } = getSaveErrorMessage({
+                response: { data: response },
+              });
+              showNotification("error", title, lines);
             }
           })
           .catch((error) => {
             console.error("Save failed:", error);
+            const { title, lines } = getSaveErrorMessage(error);
+            showNotification("error", title, lines);
           });
       })
       .catch((errorInfo) => {
         console.error("Validation Failed:", errorInfo);
+        showNotification("error", "Please complete all required fields.");
       });
   };
 
@@ -1103,7 +1150,7 @@ export default function EditInformation() {
       if (response.results && response.results.length > 0) {
         const locationName = response.results[0].formatted_address;
         // อัปเดต Outlet Location
-        form.setFieldsValue({ location_address: locationName });
+        form.setFieldsValue({ outlet_location: locationName });
         setcompanyinfo((prev) => ({
           ...prev,
           location_address: locationName,
@@ -1142,9 +1189,57 @@ export default function EditInformation() {
       const googleMapsUrl = `https://www.google.com/maps/search/?api=1&query=${currentLocation.lat},${currentLocation.lng}`;
       window.open(googleMapsUrl, "_blank");
     } else {
-      console.error("No latitude and longitude data available.");
+      showNotification("error", "No latitude and longitude data available.");
     }
   };
+
+  const getUserCurrentLocation = () => {
+    if (!navigator.geolocation) {
+      showNotification("error", "Geolocation is not supported by this browser.");
+      return;
+    }
+    navigator.geolocation.getCurrentPosition(
+      async (position) => {
+        const { latitude, longitude } = position.coords;
+        setCurrentLocation({ lat: latitude, lng: longitude });
+
+        try {
+          const geocoder = new window.google.maps.Geocoder();
+          const latlng = { lat: latitude, lng: longitude };
+          const response = await geocoder.geocode({ location: latlng });
+          if (response.results && response.results.length > 0) {
+            const locationName = response.results[0].formatted_address;
+            form.setFieldsValue({ outlet_location: locationName });
+            setcompanyinfo((prev) => ({
+              ...prev,
+              location_address: locationName,
+            }));
+            showNotification("success", `Current location: ${locationName}`);
+          }
+        } catch (error) {
+          console.error(error);
+          showNotification("error", "Unable to fetch location name.");
+        }
+      },
+      (error) => {
+        console.error(error);
+        showNotification("error", "Unable to retrieve your location");
+      }
+    );
+  };
+
+  const handleToggleMap = () => {
+    setIsMapEnabled((prev) => {
+      const newState = !prev;
+      if (newState && isCreateMode) {
+        getUserCurrentLocation();
+      }
+      return newState;
+    });
+  };
+
+  const hasValidMapLocation =
+    Number.isFinite(currentLocation.lat) && Number.isFinite(currentLocation.lng);
 
 
   let items = [
@@ -1171,7 +1266,7 @@ export default function EditInformation() {
                 <ActionButton
                   text={isMapEnabled ? "Close Google" : "Open Google"}
                   mode="custom"
-                  onClick={() => setIsMapEnabled((prev) => !prev)}
+                  onClick={handleToggleMap}
                   disabled={isViewMode}
                   className={isMapEnabled ? "bg-[#f11113]" : "bg-[#00783F]"} // สีแดง/เขียว
                 />
@@ -1180,6 +1275,7 @@ export default function EditInformation() {
                   className="w-8 h-8  bg-white rounded hover:shadow"
                   onClick={handleGetLocationToGoogleMap}
                   title="Open in Google Maps"
+                  disabled={!hasValidMapLocation}
                 >
                   <img
                     src="/img/icons/google-map.png"
@@ -1193,23 +1289,23 @@ export default function EditInformation() {
               <LoadScript googleMapsApiKey={dataApiKey}>
                 <GoogleMap
                   mapContainerStyle={mapContainerStyle}
-                  center={currentLocation}
+                  center={hasValidMapLocation ? currentLocation : DEFAULT_MAP_CENTER}
                   zoom={dataMapZoom}
                   onClick={(e) => {
-                    if (isViewMode) return;
+                    if (isViewMode || !isMapEnabled || !e.latLng) return;
                     const lat = e.latLng.lat();
                     const lng = e.latLng.lng();
                     setCurrentLocation({ lat, lng });
                   }}
                 >
-                  {isGoogleLoaded && (
+                  {isGoogleLoaded && hasValidMapLocation && (
                     <Marker
                       position={currentLocation}
                       icon={{
                         url: "https://adama-api.mtsc.co.th/images/activity-type-mark-location/DemoPlot.png",
                         scaledSize: { width: 30, height: 30 },
                       }}
-                      draggable={!isViewMode}
+                      draggable={!isViewMode && isMapEnabled}
                       onDragEnd={handleMarkerDragEnd}
                       options={{
                         disableDefaultUI: isViewMode || !isMapEnabled,

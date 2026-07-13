@@ -59,6 +59,10 @@ export default function FormUser({ fields, title, profile, form, onChange, disab
 
   useEffect(() => {
     const initialValues = fields.reduce((acc, field) => {
+      if (field.value === undefined) {
+        return acc;
+      }
+
       acc[field.name] =
         field.type === "date"
           ? field.value
@@ -67,10 +71,34 @@ export default function FormUser({ fields, title, profile, form, onChange, disab
           : field.value ?? null;
       return acc;
     }, {});
-    // console.log(initialValues);
 
-    form?.setFieldsValue(initialValues);
-  }, [fields]);
+    if (Object.keys(initialValues).length === 0) {
+      return;
+    }
+
+    const currentValues = form?.getFieldsValue(true) || {};
+    const patch = {};
+
+    Object.entries(initialValues).forEach(([key, nextValue]) => {
+      const currentValue = currentValues[key];
+      const isCurrentEmpty =
+        currentValue === undefined ||
+        currentValue === null ||
+        currentValue === "";
+      const hasNextValue =
+        nextValue !== undefined && nextValue !== null && nextValue !== "";
+
+      if (hasNextValue && isCurrentEmpty) {
+        patch[key] = nextValue;
+      } else if (!hasNextValue && isCurrentEmpty) {
+        patch[key] = nextValue;
+      }
+    });
+
+    if (Object.keys(patch).length > 0) {
+      form?.setFieldsValue(patch);
+    }
+  }, [fields, form]);
 
   const handleImageChange = async (e) => {
     const file = e.target.files[0];
