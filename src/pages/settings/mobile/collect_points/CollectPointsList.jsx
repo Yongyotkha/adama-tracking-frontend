@@ -618,7 +618,7 @@ export default function CollectPointsList() {
 
     const products = Array.isArray(detailData.products) ? detailData.products : [];
     const totalPoint = products.reduce(
-      (sum, p) => sum + parseFloat((p.quantity || 0) * (p.point || 0)),
+      (sum, p) => sum + parseFloat((p.total_point || 0)),
       0
     );
 
@@ -677,7 +677,7 @@ export default function CollectPointsList() {
                       <td style={tdStyle}>{qty.toLocaleString("en-US")}</td>
                       <td style={tdStyle}>{ptPerUnit.toLocaleString("en-US")}</td>
                       <td style={{ ...tdStyle, fontWeight: 600, color: "#00783F" }}>
-                        {totalPt.toLocaleString("en-US")}
+                        {p.total_point.toLocaleString("en-US")}
                       </td>
                     </tr>
                   );
