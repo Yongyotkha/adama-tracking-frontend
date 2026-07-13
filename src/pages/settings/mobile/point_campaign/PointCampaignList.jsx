@@ -137,6 +137,8 @@ export default function PointCampaignList() {
   // ------- columns -------
   const header = [
     { title: "No", dataIndex: "key" },
+    { title: "ID", dataIndex: "id" },
+    { title: "Code", dataIndex: "document_number" },
     { title: "Campaign Name", dataIndex: "name" },
     { title: "Customer Group", dataIndex: "customer_type_name" },
     { title: "Type Name", dataIndex: "type_name" },
@@ -306,6 +308,9 @@ export default function PointCampaignList() {
         type_name: buildCustomerTypeSubName(item),
         product_name: item.product_name,
         campaign: item.type_name,
+        id: item.id,
+        document_number: item.document_number,
+        code: item.document_number,
         created_at: `${formatDate(item.created_at)}`,
         period: `${formatDate(item.date_start)} - ${formatDate(item.date_end)}`,
         status: (
