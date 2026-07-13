@@ -65,8 +65,9 @@ export default function EditInformation() {
   const [targetGroupOptions, setTargetGroupOptions] = useState([]);
 
   // อ่านสถานะ mod จาก state
-  const mode = location.state?.mod;
+  const mode = location.state?.mod || "";
   const isViewMode = mode === "View";
+  const isCreateMode = mode === "create" || mode === "Create";
 
   useEffect(() => {
     const loadTargetGroups = async () => {
@@ -97,14 +98,20 @@ export default function EditInformation() {
     const fetchData = async () => {
       setLoading(true);
       try {
-        await fetchDealerDetails(location.state.id);
+        if (isCreateMode) {
+          setcompanyinfo({ use_flag: 1, group_code: "FMK Customers" });
+          form.setFieldsValue({
+            use_flag: "Active",
+            group_code: "FMK Customers",
+          });
+        } else if (location.state?.id) {
+          await fetchDealerDetails(location.state.id);
+        }
         const [crops] = await Promise.all([
           useServiceAPI.get(paths.pathMasterCrop, {}),
         ]);
         setCropOptions(crops.data);
         setDataLoaded(true);
-
-        // setCropList(crops.data || []);
       } catch (error) {
         console.log(error.message);
         showNotification("เกิดข้อผิดพลาด");
@@ -147,8 +154,8 @@ export default function EditInformation() {
       label: "Dealer Code",
       name: "dealer_code",
       type: "text",
-      disabled: true,
-      required: false,
+      disabled: isViewMode || !isCreateMode,
+      required: isCreateMode,
       col: 6,
       value: companyinfo.dealer_code,
     },
@@ -247,7 +254,7 @@ export default function EditInformation() {
       disabled: isViewMode,
     },
   ],
-    [companyinfo, isViewMode, targetGroupOptions]
+    [companyinfo, isViewMode, isCreateMode, targetGroupOptions]
   );
 
   const header = [
@@ -828,72 +835,83 @@ export default function EditInformation() {
     no: index + 1,
   }));
 
+  const buildProfilePayload = (values) => {
+    let useFlagValue;
+    if (values.use_flag === 1 || values.use_flag === 0) {
+      useFlagValue = values.use_flag;
+    } else if (values.use_flag === undefined || values.use_flag === null) {
+      useFlagValue = Number(companyinfo.use_flag ?? 1);
+    } else {
+      useFlagValue = values.use_flag === "Active" ? 1 : 0;
+    }
+
+    return {
+      ...(isCreateMode ? {} : { id: location.state.id }),
+      dealer_name_en: values.dealer_name_en || "",
+      dealer_name_th: values.dealer_name_th || "",
+      dealer_code: values.dealer_code || "",
+      tax_id: values.tax_id || "",
+      contact_number: values.contact_number || "",
+      address: values.address || "",
+      group_code: values.group_code || "",
+      date_of_anniversary: values.date_of_anniversary || "",
+      date_of_joining: values.date_of_joining || "",
+      photo_path: values.profile || "",
+      location_address: values.outlet_location || "",
+      location_longitude: currentLocation.lng || "",
+      location_latitude: currentLocation.lat || "",
+      use_flag: useFlagValue,
+      target_group:
+        values.target_group ??
+        (companyinfo.target_group_id
+          ? Number(companyinfo.target_group_id)
+          : companyinfo.target_group
+            ? Number(companyinfo.target_group)
+            : null),
+      bank_account_items: companyinfo.bank_account_items || [],
+      contact_items: contactItems.map((item) => ({
+        name_en: item.name_en || "",
+        contact_number: item.contact_number || "",
+        name_th: item.name_th || "",
+        nickname: item.nickname || null,
+        date_of_birth: item.date_of_birth || null,
+        t_shirt_size: item.t_shirt_size || null,
+        relationship: item.relationship || null,
+        duty: item.duty || null,
+        tel1: item.tel1 || "",
+        tel2: item.tel2 || "",
+        email: item.email || null,
+        line_id: item.line_id || null,
+        age: item.age || null,
+        hobby: item.hobby || null,
+      })),
+      crop_list: defaultSelectedCrops || [],
+      ...(isCreateMode
+        ? {}
+        : {
+            network_list_sub_dealer: networkList.map((item) => ({
+              sub_dealer_id: item.key,
+              is_on_shop: item.onshop,
+            })),
+            network_list_farmer: farmerListItem.map((item) => ({
+              farmer_id: item.key,
+              is_on_shop: item.onshop,
+            })),
+          }),
+      platform: "web",
+    };
+  };
+
   const handleSave = () => {
     form
       .validateFields()
       .then((values) => {
-        console.log(values);
+        const formattedData = buildProfilePayload(values);
+        const saveRequest = isCreateMode
+          ? useServiceAPI.post(paths.pathCustomerDealerCreate, formattedData, setLoading)
+          : useServiceAPI.put(paths.pathCustomerSubDealerUpdate, formattedData);
 
-        let useFlagValue;
-        if (values.use_flag === 1 || values.use_flag === 0) {
-          useFlagValue = values.use_flag; // ถ้าค่าเป็น 1 หรือ 0 อยู่แล้ว ใช้ค่าเดิม
-        } else {
-          useFlagValue = values.use_flag === "Active" ? 1 : 0; // แปลงค่าจาก "Active" หรือ "Inactive"
-        }
-        const formattedData = {
-          id: location.state.id,
-          dealer_name_en: values.dealer_name_en || "",
-          dealer_name_th: values.dealer_name_th || "",
-          dealer_code: values.dealer_code || "",
-          tax_id: values.tax_id || "",
-          contact_number: values.contact_number || "",
-          address: values.address || "",
-          group_code: values.group_code || "",
-          date_of_anniversary: values.date_of_anniversary || "",
-          date_of_joining: values.date_of_joining || "",
-          photo_path: values.profile || "",
-          location_address: values.outlet_location || "",
-          location_longitude: currentLocation.lng || "",
-          location_latitude: currentLocation.lat || "",
-          use_flag: useFlagValue,
-          target_group:
-            values.target_group ??
-            (companyinfo.target_group_id
-              ? Number(companyinfo.target_group_id)
-              : companyinfo.target_group
-                ? Number(companyinfo.target_group)
-                : null),
-          bank_account_items: companyinfo.bank_account_items || [],
-
-          contact_items: contactItems.map((item) => ({
-            name_en: item.name_en || "",
-            contact_number: item.contact_number || "",
-            name_th: item.name_th || "",
-            nickname: item.nickname || null,
-            date_of_birth: item.date_of_birth || null,
-            t_shirt_size: item.t_shirt_size || null,
-            relationship: item.relationship || null,
-            duty: item.duty || null,
-            tel1: item.tel1 || "",
-            tel2: item.tel2 || "",
-            email: item.email || null,
-            line_id: item.line_id || null,
-            age: item.age || null,
-            hobby: item.hobby || null,
-          })),
-          crop_list: defaultSelectedCrops || [],
-          network_list_sub_dealer: networkList.map((item) => ({
-            sub_dealer_id: item.key,
-            is_on_shop: item.onshop,
-          })),
-          network_list_farmer: farmerListItem.map((item) => ({
-            farmer_id: item.key,
-            is_on_shop: item.onshop,
-          })),
-          platform: "web",
-        };
-        useServiceAPI
-          .put(paths.pathCustomerSubDealerUpdate, formattedData)
+        saveRequest
           .then((response) => {
             if (response.status === 200) {
               navigate("/customer/dealer");
@@ -902,8 +920,6 @@ export default function EditInformation() {
                 response.data.message,
                 response.data.message_line
               );
-              // console.log("Save successful:", response.data);
-              // navigate("/customer/dealer");
             }
           })
           .catch((error) => {
@@ -1305,7 +1321,11 @@ export default function EditInformation() {
             onClick={handleSave} 
           /> */}
             {!isViewMode && (
-              <ActionButton text="Update" mode="update" onClick={handleSave} />
+              <ActionButton
+                text={isCreateMode ? "Save" : "Update"}
+                mode="save"
+                onClick={handleSave}
+              />
             )}
           </div>
         </>
@@ -1314,6 +1334,7 @@ export default function EditInformation() {
     {
       key: "network",
       label: <span className="tab-title">Network</span>,
+      disabled: isCreateMode,
       children: (
         <>
           <BoxPrimary>
@@ -1374,7 +1395,11 @@ export default function EditInformation() {
   return (
     <MainLayout loading={loading}>
       <div className="title-page">
-        {isViewMode ? "View Information" : "Edit Information"}
+        {isViewMode
+          ? "View Information"
+          : isCreateMode
+            ? "Create Information"
+            : "Edit Information"}
       </div>
       <Tabs
         activeKey={activeTabKey}

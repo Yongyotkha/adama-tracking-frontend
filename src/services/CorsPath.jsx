@@ -120,6 +120,7 @@ export const paths = {
   //Dealer
   pathCustomerDealer: "sale-customer-dealer/list",
   pathCustomerDealerDetail: "sale-customer-dealer/detail",
+  pathCustomerDealerCreate: "sale-customer-dealer/create",
   pathCustomerNetworkDelete: "sale-customer-dealer/network-delete",
   pathFarmerNetworkDelete: "sale-customer-dealer/network-farmer-delete",
 

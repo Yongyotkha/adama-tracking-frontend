@@ -421,6 +421,10 @@ const App = () => {
             {/* Customer Route */}
             <Route path="/customer/dealer" element={<Dealer />} />
             <Route
+              path="/customer/dealer/create"
+              element={<EditInformation />}
+            />
+            <Route
               path="/customer/dealer/edit-info"
               element={<EditInformation />}
             />
