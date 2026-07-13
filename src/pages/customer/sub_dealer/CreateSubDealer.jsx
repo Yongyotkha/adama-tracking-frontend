@@ -297,7 +297,7 @@ export default function CreateSubDealer() {
         { name: "Pull", id: 4, selected: false },
         { name: "หน้าร้าน", id: 5, selected: false },
       ],
-      required: false,
+      required: true,
       col: 6,
       iconSrc: "/img/icons/user.png",
       iconPosition: "right",

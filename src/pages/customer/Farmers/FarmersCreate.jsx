@@ -212,6 +212,7 @@ export default function FarmersCreate() {
   const [homeLocation, setHomeLocation] = useState(DEFAULT_LOCATION);
   const [farmLocation, setFarmLocation] = useState(DEFAULT_LOCATION);
   const [profileCropIds, setProfileCropIds] = useState([]);
+  const [targetGroupOptions, setTargetGroupOptions] = useState([]);
   const [permission, setPermission] = useState(DEFAULT_PERMISSION);
 
   const mode = location.state?.mod || "create";
@@ -470,6 +471,7 @@ export default function FarmersCreate() {
       t_shirt_size: data.t_shirt_size || "",
       email: data.email || "",
       remark: data.remark || "",
+      target_group_id: data.target_group_id ? Number(data.target_group_id) : undefined,
       equ_id: (data.equ_id || []).map((item) => Number(item)),
       equ_other: data.equ_other || "",
       profile_crop_id: cropIds,
@@ -483,15 +485,29 @@ export default function FarmersCreate() {
       setLoading(true);
 
       try {
-        const [prefixRes, equRes, cropRes] = await Promise.all([
+        const [prefixRes, equRes, cropRes, targetGroupRes] = await Promise.all([
           useServiceAPI.get(paths.pathMasterPrefix, {}),
           useServiceAPI.get(paths.pathMasterEquipment, {}),
           useServiceAPI.get(paths.pathMasterCrop, {}),
+          useServiceAPI.get(paths.pathPointCampaignTarget, {}),
         ]);
 
         setPrefixOptions(prefixRes.data || []);
         setEquipmentOptions(equRes.data || []);
         setCropOptions(cropRes.data || []);
+
+        const rawTargets = targetGroupRes?.data?.data || targetGroupRes?.data || [];
+        console.log("rawTargets: ", rawTargets);
+        const farmerGroups = rawTargets
+          .filter((x) => {
+            const name = String(x.target_name || x.name || "").trim().toLowerCase();
+            return name === "farmer" || name === "farmers";
+          })
+          .map((x) => ({
+            label: String(x.target || x.label || x.name || "-").trim(),
+            value: Number(x.target_id || x.id || x.value),
+          }));
+        setTargetGroupOptions(farmerGroups);
 
         if ((isEditMode || isViewMode) && farmerId) {
           await fetchFarmerDetail(farmerId);
@@ -789,6 +805,7 @@ export default function FarmersCreate() {
         t_shirt_size: values.t_shirt_size || "",
         email: values.email || "",
         remark: values.remark || "",
+        target_group_id: values.target_group_id || null,
         equ_id: (values.equ_id || []).map(Number),
         equ_other: values.equ_other || "",
         location_latitude: homeCoordinates.latitude,
@@ -882,7 +899,7 @@ export default function FarmersCreate() {
           {/* Personal Info fields */}
           <Col xs={24} md={8}>
             <Form.Item label="Farm Name" name="farm_name">
-              <Input disabled={isViewMode} />
+              <Input disabled={isViewMode} placeholder="Enter Farm Name" />
             </Form.Item>
           </Col>
 
@@ -898,61 +915,78 @@ export default function FarmersCreate() {
 
           <Col xs={24} md={6}>
             <Form.Item label="Name - Surname (TH)" name="name">
-              <Input disabled={isViewMode} />
+              <Input disabled={isViewMode} placeholder="Enter Name - Surname (TH)" />
             </Form.Item>
           </Col>
 
           <Col xs={24} md={6}>
             <Form.Item label="Nickname" name="nickname">
-              <Input disabled={isViewMode} />
+              <Input disabled={isViewMode} placeholder="Enter Nickname" />
             </Form.Item>
           </Col>
 
           <Col xs={24} md={8}>
             <Form.Item label="Est Input (Baht / Year)" name="est">
-              <Input disabled={isViewMode} />
+              <Input disabled={isViewMode} placeholder="Enter Estimated Input (Baht / Year)" />
             </Form.Item>
           </Col>
 
           <Col xs={24} md={8}>
             <Form.Item label="Address" name="address">
-              <Input disabled={isViewMode} />
+              <Input disabled={isViewMode} placeholder="Enter Address" />
             </Form.Item>
           </Col>
 
           <Col xs={24} md={8}>
             <Form.Item label="Date of Birth" name="date_of_birth">
-              <DatePicker className="w-full" disabled={isViewMode} />
+              <DatePicker className="w-full" disabled={isViewMode} placeholder="Select Date of Birth" />
             </Form.Item>
           </Col>
 
           <Col xs={24} md={8}>
             <Form.Item label="Mobile Phone" name="mobile_phone">
-              <Input disabled={isViewMode} />
+              <Input disabled={isViewMode} placeholder="Enter Mobile Phone" />
             </Form.Item>
           </Col>
 
           <Col xs={24} md={8}>
             <Form.Item label="Line ID" name="line_id">
-              <Input disabled={isViewMode} />
+              <Input disabled={isViewMode} placeholder="Enter Line ID" />
             </Form.Item>
           </Col>
 
           <Col xs={24} md={8}>
             <Form.Item label="T-Shirt Size" name="t_shirt_size">
-              <Input disabled={isViewMode} />
+              <Input disabled={isViewMode} placeholder="Enter T-Shirt Size" />
             </Form.Item>
           </Col>
 
           <Col xs={24} md={8}>
             <Form.Item label="Email" name="email">
-              <Input disabled={isViewMode} />
+              <Input disabled={isViewMode} placeholder="Enter Email" />
             </Form.Item>
           </Col>
 
-          <Col xs={24} md={16}>
+          <Col xs={24} md={8}>
+            <Form.Item
+              label="Customer Group"
+              name="target_group_id"
+              rules={[{ required: true, message: "Please select Customer Group" }]}
+            >
+              <Select
+                disabled={isViewMode}
+                options={targetGroupOptions}
+                placeholder="Select Customer Group"
+                allowClear
+                showSearch
+                optionFilterProp="label"
+              />
+            </Form.Item>
+          </Col>
+
+          <Col xs={24} md={8}>
             <Form.Item label="Remark" name="remark">
-              <Input disabled={isViewMode} />
+              <Input disabled={isViewMode} placeholder="Enter Remark" />
             </Form.Item>
           </Col>
 
