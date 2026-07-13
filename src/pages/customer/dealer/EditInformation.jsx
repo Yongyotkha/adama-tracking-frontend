@@ -222,7 +222,7 @@ export default function EditInformation() {
       name: "group_code",
       type: "select",
       options: ["FMK Customers"],
-      disabled: true,
+      disabled: false,
       required: false,
       col: 6,
       value: "FMK Customers",

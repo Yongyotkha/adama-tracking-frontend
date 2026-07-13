@@ -1,5 +1,5 @@
 import React, { useContext, useEffect, useState } from "react";
-import { Dropdown, Modal, Select, Card, Row, Col } from "antd";
+import { Dropdown, Modal, Select, Card, Row, Col, Radio } from "antd";
 import { ExclamationCircleFilled } from "@ant-design/icons";
 import ExcelJS from "exceljs";
 import { saveAs } from "file-saver";
@@ -157,6 +157,33 @@ export default function CollectPointsList() {
     sortOrder: persistedState.tableParams?.sortOrder || "desc",
     sortField: persistedState.tableParams?.sortField || "document_number",
   });
+  const [orderByField, setOrderByField] = useState(() => {
+    const saved = persistedState.orderByField || "orderby_column";
+    if (saved === "area_id") return "area_id_1";
+    return saved;
+  });
+
+  const getOrderByPayload = () => {
+    if (orderByField === "orderby_column") {
+      return {
+        orderby_column: tableParams.sortField || "document_number",
+        area_id: "",
+      };
+    }
+
+    if (orderByField.startsWith("area_id_")) {
+      const selectedAreaId = orderByField.replace("area_id_", "");
+      return {
+        orderby_column: "area_id",
+        area_id: selectedAreaId,
+      };
+    }
+
+    return {
+      orderby_column: tableParams.sortField || "document_number",
+      area_id: "",
+    };
+  };
 
   // ---------- masters ----------
   const [saleList, setSaleList] = useState([]);
@@ -330,16 +357,18 @@ export default function CollectPointsList() {
       f.dater[0] &&
       f.dater[1];
 
+    const orderByPayload = getOrderByPayload();
+
     const payload = {
       user_id: f.sale || "",
       dealer_id: f.dealer || "",
       sub_dealer_id: f.sub_dealer || "",
-      area_id: f.area || "",
+      area_id: orderByPayload.area_id || f.area || "",
       keyword: f.order_no || "",
       status_code: "ODC",
       page: "all",
       use_flag: 1,
-      orderby_column: tableParams.sortField,
+      orderby_column: orderByPayload.orderby_column,
       orderby: tableParams.sortOrder,
       platform: "web",
       page_length: current,
@@ -608,12 +637,14 @@ export default function CollectPointsList() {
     tableParams.pagination.pageSize,
     tableParams.sortOrder,
     tableParams.sortField,
+    orderByField,
     JSON.stringify(tableParams.filters),
   ]);
 
   useEffect(() => {
     saveListPageState(PAGE_STATE_KEY, {
       filterValues,
+      orderByField,
       tableParams: {
         pagination: {
           current: tableParams.pagination.current,
@@ -624,7 +655,7 @@ export default function CollectPointsList() {
         sortField: tableParams.sortField,
       },
     });
-  }, [filterValues, tableParams]);
+  }, [filterValues, orderByField, tableParams]);
 
   useEffect(() => {
     if (!saleList.length) return;
@@ -757,8 +788,29 @@ export default function CollectPointsList() {
       />
 
       <BoxPrimary>
-        {/* Export button row */}
-        <div className="flex justify-end mb-3">
+        <div className="flex flex-wrap items-center justify-between gap-3 mb-3">
+          <div className="flex items-center gap-3">
+            <span className="text-sm font-medium text-gray-700">Order By</span>
+            <Radio.Group
+              value={orderByField}
+              onChange={(e) => {
+                setOrderByField(e.target.value);
+                setTableParams((prev) => ({
+                  ...prev,
+                  pagination: { ...prev.pagination, current: 1 },
+                }));
+              }}
+            >
+              <Radio value="orderby_column">Document No</Radio>
+              {(areaList.length ? areaList : [{ id: 1, name: "Area 1" }, { id: 2, name: "Area 2" }]).map(
+                (area) => (
+                  <Radio key={area.id} value={`area_id_${area.id}`}>
+                    {area.name || `Area ${area.id}`}
+                  </Radio>
+                )
+              )}
+            </Radio.Group>
+          </div>
           <ExportButton rows={exportRows} fileName="PointCollection" />
         </div>
 
