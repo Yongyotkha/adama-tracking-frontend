@@ -164,6 +164,19 @@ export default function CollectPointsList() {
   const [dataDealer, setDataDealer] = useState([]);
   const [subDealerOptions, setSubDealerOptions] = useState([]);
   const [filterValues, setFilterValues] = useState(persistedState.filterValues || {});
+  const [prevArea, setPrevArea] = useState(persistedState.filterValues?.area || "");
+
+  const fetchSales = async (areaId) => {
+    try {
+      const res = await useServiceAPI.get(paths.pathMasterSaleSingle, {
+        area_id: areaId || "",
+        sort: "sale",
+      });
+      setSaleList(res.data || []);
+    } catch (e) {
+      showMsg("error", e?.message || "โหลด Sales ไม่สำเร็จ");
+    }
+  };
 
   // ---------- Point Detail popup ----------
   const [detailModalVisible, setDetailModalVisible] = useState(false);
@@ -485,6 +498,7 @@ export default function CollectPointsList() {
 
   const handleClear = () => {
     setFilterValues({});
+    setPrevArea("");
     setTableParams((prev) => ({
       ...prev,
       filters: {},
@@ -492,6 +506,7 @@ export default function CollectPointsList() {
     }));
     setDataDealer([]);
     setSubDealerOptions([]);
+    fetchSales("");
   };
 
   const handleTableChange = (pagination, _filters, sorter) => {
@@ -504,10 +519,26 @@ export default function CollectPointsList() {
   };
 
   const handleChange = (filters) => {
-    setFilterValues(filters);
-
+    const areaId = filters.area || "";
     const saleId = typeof filters.sale === "object" ? filters.sale.value : filters.sale;
     const dealerId = typeof filters.dealer === "object" ? filters.dealer.value : filters.dealer;
+
+    if (areaId !== prevArea) {
+      setPrevArea(areaId);
+      const updatedFilters = {
+        ...filters,
+        sale: "",
+        dealer: "",
+        sub_dealer: "",
+      };
+      setFilterValues(updatedFilters);
+      setDataDealer([]);
+      setSubDealerOptions([]);
+      fetchSales(areaId);
+      return;
+    }
+
+    setFilterValues(filters);
 
     if (dealerId) {
       (async () => {
@@ -548,11 +579,11 @@ export default function CollectPointsList() {
     const loadMasters = async () => {
       setLoading(true);
       try {
-        const [saleRes, areaRes] = await Promise.all([
-          useServiceAPI.get(paths.pathMasterSaleSingle, {}),
+        const areaId = persistedState.filterValues?.area || "";
+        const [_, areaRes] = await Promise.all([
+          fetchSales(areaId),
           useServiceAPI.get(paths.pathMasterAreas, {}),
         ]);
-        setSaleList(saleRes.data || []);
         setAreaList(
           (Array.isArray(areaRes?.data) ? areaRes.data : []).map((item) => ({
             id: item.id,
