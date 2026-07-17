@@ -17,7 +17,7 @@ import { AuthContext } from "../../../../contexts/AuthContext";
 import { loadListPageState, saveListPageState } from "../../../../utils/listPageState";
 
 // ---------- Inline Export Button ----------
-function ExportButton({ rows = [], fileName = "PointCollection" }) {
+function ExportButton({ fetchExportRows, fileName = "PointCollection", onError }) {
   const [loading, setLoading] = useState(false);
 
   const GREEN = "#00783F";
@@ -49,6 +49,12 @@ function ExportButton({ rows = [], fileName = "PointCollection" }) {
     if (loading) return;
     setLoading(true);
     try {
+      const rows = await fetchExportRows();
+      if (!rows?.length) {
+        onError?.("warning", "No data to export");
+        return;
+      }
+
       const wb = new ExcelJS.Workbook();
       const ws = wb.addWorksheet("Point Collection");
 
@@ -93,6 +99,7 @@ function ExportButton({ rows = [], fileName = "PointCollection" }) {
       saveAs(new Blob([buffer]), `${safeName}.xlsx`);
     } catch (e) {
       console.error("Export error:", e);
+      onError?.("error", e?.message || "Export failed");
     } finally {
       setLoading(false);
     }
@@ -346,20 +353,16 @@ export default function CollectPointsList() {
   };
 
   // ---------- fetch table data ----------
-  const fetchData = async () => {
-    setTableLoading(true);
-    const { current, pageSize } = tableParams.pagination;
+  const buildListPayload = ({ pageLength, pageSize } = {}) => {
     const f = tableParams.filters || {};
-
     const hasDateRange =
       Array.isArray(f.dater) &&
       f.dater.length === 2 &&
       f.dater[0] &&
       f.dater[1];
-
     const orderByPayload = getOrderByPayload();
 
-    const payload = {
+    return {
       user_id: f.sale || "",
       dealer_id: f.dealer || "",
       sub_dealer_id: f.sub_dealer || "",
@@ -371,10 +374,42 @@ export default function CollectPointsList() {
       orderby_column: orderByPayload.orderby_column,
       orderby: tableParams.sortOrder,
       platform: "web",
-      page_length: current,
-      page_size: pageSize,
+      page_length: pageLength,
+      ...(pageSize !== undefined ? { page_size: pageSize } : {}),
       ...(hasDateRange ? { dater: f.dater } : {}),
     };
+  };
+
+  const mapOrderRows = (rows = [], startIndex = 0) =>
+    rows.map((row, idx) => ({
+      no: startIndex + idx + 1,
+      orderNo: row.document_number,
+      sale: row.sale_name,
+      dealer: row.dealer_name,
+      sub_dealer: row.sub_dealer_name,
+      value: row.net_amount_display,
+      orderDate: row.document_date,
+      pointRaw: row.point,
+      statusText: row.status_transaction_name,
+    }));
+
+  const fetchExportRows = async () => {
+    const payload = buildListPayload({ pageLength: "all" });
+    const res = await useServiceAPI.get(paths.pathSalePointOrderList, payload);
+    if (res.status !== 200) {
+      throw new Error(res?.message || "Export failed");
+    }
+    return mapOrderRows(res.data?.data || []);
+  };
+
+  const fetchData = async () => {
+    setTableLoading(true);
+    const { current, pageSize } = tableParams.pagination;
+
+    const payload = buildListPayload({
+      pageLength: current,
+      pageSize,
+    });
 
     try {
       const res = await useServiceAPI.get(paths.pathSalePointOrderList, payload);
@@ -808,19 +843,6 @@ export default function CollectPointsList() {
     );
   };
 
-  // ---------- Export rows (plain data, no JSX) ----------
-  const exportRows = dataSource.map((row) => ({
-    no: row.no ?? row.key,
-    orderNo: row.orderNo,
-    sale: row.sale,
-    dealer: row.dealer,
-    sub_dealer: row.sub_dealer,
-    value: row.value,
-    orderDate: row.orderDate,
-    pointRaw: row.pointRaw ?? row.point,
-    statusText: row.statusText,
-  }));
-
   return (
     <MainLayout loading={loading}>
       <div className="title-page">Point Collection</div>
@@ -857,7 +879,11 @@ export default function CollectPointsList() {
               )}
             </Radio.Group>
           </div>
-          <ExportButton rows={exportRows} fileName="PointCollection" />
+          <ExportButton
+            fetchExportRows={fetchExportRows}
+            fileName="PointCollection"
+            onError={(type, message) => showMsg(type, message)}
+          />
         </div>
 
         <TableComponent
