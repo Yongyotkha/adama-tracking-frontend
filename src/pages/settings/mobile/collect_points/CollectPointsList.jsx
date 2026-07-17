@@ -679,8 +679,17 @@ export default function CollectPointsList() {
     if (!detailData) return null;
 
     const products = Array.isArray(detailData.products) ? detailData.products : [];
+    const campaigns = Array.isArray(detailData.campaigns) ? detailData.campaigns : [];
+    const uniqueCampaigns = campaigns.filter(
+      (item, index, list) =>
+        list.findIndex(
+          (c) =>
+            String(c.id) === String(item.id) &&
+            String(c.document_number) === String(item.document_number)
+        ) === index
+    );
     const totalPoint = products.reduce(
-      (sum, p) => sum + parseFloat((p.total_point || 0)),
+      (sum, p) => sum + parseFloat(p.total_point || 0),
       0
     );
 
@@ -706,7 +715,44 @@ export default function CollectPointsList() {
           </div>
         </div>
 
+        {/* Campaigns table */}
+        <div className="mb-4">
+          <div className="mb-2 text-sm font-semibold text-[#00783F]">Campaigns</div>
+          <div style={{ overflowX: "auto" }}>
+            <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
+              <thead>
+                <tr style={{ background: "#00783F", color: "#fff" }}>
+                  <th style={thStyle}>No</th>
+                  <th style={thStyle}>Document No</th>
+                  <th style={{ ...thStyle, textAlign: "left" }}>Campaign Name</th>
+                </tr>
+              </thead>
+              <tbody>
+                {uniqueCampaigns.length === 0 ? (
+                  <tr>
+                    <td colSpan={3} style={{ textAlign: "center", padding: "12px", color: "#999" }}>
+                      ไม่มีข้อมูล Campaign
+                    </td>
+                  </tr>
+                ) : (
+                  uniqueCampaigns.map((campaign, idx) => (
+                    <tr
+                      key={`${campaign.id}-${campaign.document_number}-${idx}`}
+                      style={{ background: idx % 2 === 0 ? "#f9f9f9" : "#fff" }}
+                    >
+                      <td style={tdStyle}>{idx + 1}</td>
+                      <td style={tdStyle}>{campaign.document_number || "-"}</td>
+                      <td style={{ ...tdStyle, textAlign: "left" }}>{campaign.name || "-"}</td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
         {/* Products table */}
+        <div className="mb-2 text-sm font-semibold text-[#00783F]">Products</div>
         <div style={{ overflowX: "auto" }}>
           <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
             <thead>
@@ -739,7 +785,7 @@ export default function CollectPointsList() {
                       <td style={tdStyle}>{qty.toLocaleString("en-US")}</td>
                       <td style={tdStyle}>{ptPerUnit.toLocaleString("en-US")}</td>
                       <td style={{ ...tdStyle, fontWeight: 600, color: "#00783F" }}>
-                        {p.total_point.toLocaleString("en-US")}
+                        {Number(p.total_point || 0).toLocaleString("en-US")}
                       </td>
                     </tr>
                   );
