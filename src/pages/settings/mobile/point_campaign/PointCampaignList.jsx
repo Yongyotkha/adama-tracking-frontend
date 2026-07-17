@@ -88,6 +88,7 @@ export default function PointCampaignList() {
   // ------- filters config (new spec) -------
   const filters = [
     { key: "campaign_name", type: "text", label: "Campaign Name" },
+    { key: "document_number", type: "text", label: "Campaign Code" },
     {
       key: "group_id",
       type: "select",
@@ -284,6 +285,7 @@ export default function PointCampaignList() {
     const requestData = {
       status: f.status ?? "", // 1/0
       campaign_name: f.campaign_name ?? "", // text like
+      document_number: f.document_number ?? "",
       group_id: f.group_id ?? "", // id from /target-group/group
       type_id: f.type_id ?? "", // id from /target-group/type
       campaign_product: f.campaign_product ?? "", // 1,2,3
