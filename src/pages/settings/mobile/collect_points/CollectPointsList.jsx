@@ -17,7 +17,7 @@ import { AuthContext } from "../../../../contexts/AuthContext";
 import { loadListPageState, saveListPageState } from "../../../../utils/listPageState";
 
 // ---------- Inline Export Button ----------
-function ExportButton({ rows = [], fileName = "PointCollection" }) {
+function ExportButton({ fetchExportRows, fileName = "PointCollection", onError }) {
   const [loading, setLoading] = useState(false);
 
   const GREEN = "#00783F";
@@ -49,6 +49,12 @@ function ExportButton({ rows = [], fileName = "PointCollection" }) {
     if (loading) return;
     setLoading(true);
     try {
+      const rows = await fetchExportRows();
+      if (!rows?.length) {
+        onError?.("warning", "No data to export");
+        return;
+      }
+
       const wb = new ExcelJS.Workbook();
       const ws = wb.addWorksheet("Point Collection");
 
@@ -93,6 +99,7 @@ function ExportButton({ rows = [], fileName = "PointCollection" }) {
       saveAs(new Blob([buffer]), `${safeName}.xlsx`);
     } catch (e) {
       console.error("Export error:", e);
+      onError?.("error", e?.message || "Export failed");
     } finally {
       setLoading(false);
     }
@@ -346,20 +353,16 @@ export default function CollectPointsList() {
   };
 
   // ---------- fetch table data ----------
-  const fetchData = async () => {
-    setTableLoading(true);
-    const { current, pageSize } = tableParams.pagination;
+  const buildListPayload = ({ pageLength, pageSize } = {}) => {
     const f = tableParams.filters || {};
-
     const hasDateRange =
       Array.isArray(f.dater) &&
       f.dater.length === 2 &&
       f.dater[0] &&
       f.dater[1];
-
     const orderByPayload = getOrderByPayload();
 
-    const payload = {
+    return {
       user_id: f.sale || "",
       dealer_id: f.dealer || "",
       sub_dealer_id: f.sub_dealer || "",
@@ -371,10 +374,42 @@ export default function CollectPointsList() {
       orderby_column: orderByPayload.orderby_column,
       orderby: tableParams.sortOrder,
       platform: "web",
-      page_length: current,
-      page_size: pageSize,
+      page_length: pageLength,
+      ...(pageSize !== undefined ? { page_size: pageSize } : {}),
       ...(hasDateRange ? { dater: f.dater } : {}),
     };
+  };
+
+  const mapOrderRows = (rows = [], startIndex = 0) =>
+    rows.map((row, idx) => ({
+      no: startIndex + idx + 1,
+      orderNo: row.document_number,
+      sale: row.sale_name,
+      dealer: row.dealer_name,
+      sub_dealer: row.sub_dealer_name,
+      value: row.net_amount_display,
+      orderDate: row.document_date,
+      pointRaw: row.point,
+      statusText: row.status_transaction_name,
+    }));
+
+  const fetchExportRows = async () => {
+    const payload = buildListPayload({ pageLength: "all" });
+    const res = await useServiceAPI.get(paths.pathSalePointOrderList, payload);
+    if (res.status !== 200) {
+      throw new Error(res?.message || "Export failed");
+    }
+    return mapOrderRows(res.data?.data || []);
+  };
+
+  const fetchData = async () => {
+    setTableLoading(true);
+    const { current, pageSize } = tableParams.pagination;
+
+    const payload = buildListPayload({
+      pageLength: current,
+      pageSize,
+    });
 
     try {
       const res = await useServiceAPI.get(paths.pathSalePointOrderList, payload);
@@ -679,8 +714,17 @@ export default function CollectPointsList() {
     if (!detailData) return null;
 
     const products = Array.isArray(detailData.products) ? detailData.products : [];
+    const campaigns = Array.isArray(detailData.campaigns) ? detailData.campaigns : [];
+    const uniqueCampaigns = campaigns.filter(
+      (item, index, list) =>
+        list.findIndex(
+          (c) =>
+            String(c.id) === String(item.id) &&
+            String(c.document_number) === String(item.document_number)
+        ) === index
+    );
     const totalPoint = products.reduce(
-      (sum, p) => sum + parseFloat((p.total_point || 0)),
+      (sum, p) => sum + parseFloat(p.total_point || 0),
       0
     );
 
@@ -706,7 +750,44 @@ export default function CollectPointsList() {
           </div>
         </div>
 
+        {/* Campaigns table */}
+        <div className="mb-4">
+          <div className="mb-2 text-sm font-semibold text-[#00783F]">Campaigns</div>
+          <div style={{ overflowX: "auto" }}>
+            <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
+              <thead>
+                <tr style={{ background: "#00783F", color: "#fff" }}>
+                  <th style={thStyle}>No</th>
+                  <th style={thStyle}>Document No</th>
+                  <th style={{ ...thStyle, textAlign: "left" }}>Campaign Name</th>
+                </tr>
+              </thead>
+              <tbody>
+                {uniqueCampaigns.length === 0 ? (
+                  <tr>
+                    <td colSpan={3} style={{ textAlign: "center", padding: "12px", color: "#999" }}>
+                      ไม่มีข้อมูล Campaign
+                    </td>
+                  </tr>
+                ) : (
+                  uniqueCampaigns.map((campaign, idx) => (
+                    <tr
+                      key={`${campaign.id}-${campaign.document_number}-${idx}`}
+                      style={{ background: idx % 2 === 0 ? "#f9f9f9" : "#fff" }}
+                    >
+                      <td style={tdStyle}>{idx + 1}</td>
+                      <td style={tdStyle}>{campaign.document_number || "-"}</td>
+                      <td style={{ ...tdStyle, textAlign: "left" }}>{campaign.name || "-"}</td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
         {/* Products table */}
+        <div className="mb-2 text-sm font-semibold text-[#00783F]">Products</div>
         <div style={{ overflowX: "auto" }}>
           <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
             <thead>
@@ -716,13 +797,15 @@ export default function CollectPointsList() {
                 <th style={thStyle}>Unit</th>
                 <th style={thStyle}>QTY (ctn)</th>
                 <th style={thStyle}>Point/Unit</th>
+                <th style={thStyle}>Original Point</th>
+                <th style={thStyle}>xPoint</th>
                 <th style={thStyle}>Total Point</th>
               </tr>
             </thead>
             <tbody>
               {products.length === 0 ? (
                 <tr>
-                  <td colSpan={6} style={{ textAlign: "center", padding: "12px", color: "#999" }}>
+                  <td colSpan={8} style={{ textAlign: "center", padding: "12px", color: "#999" }}>
                     ไม่มีข้อมูลสินค้า
                   </td>
                 </tr>
@@ -730,7 +813,16 @@ export default function CollectPointsList() {
                 products.map((p, idx) => {
                   const qty = parseFloat(p.quantity || 0);
                   const ptPerUnit = parseFloat(p.point || 0);
-                  const totalPt = qty * ptPerUnit;
+                  const originalPoint =
+                    Number(p.original_point ?? 0) || qty * ptPerUnit;
+                  const xPointValue =
+                    p.xpoint !== null &&
+                    p.xpoint !== undefined &&
+                    p.xpoint !== "" &&
+                    Number(p.xpoint) > 0
+                      ? Number(p.xpoint)
+                      : null;
+
                   return (
                     <tr key={idx} style={{ background: idx % 2 === 0 ? "#f9f9f9" : "#fff" }}>
                       <td style={tdStyle}>{idx + 1}</td>
@@ -738,8 +830,12 @@ export default function CollectPointsList() {
                       <td style={tdStyle}>{p.product_unit || "-"}</td>
                       <td style={tdStyle}>{qty.toLocaleString("en-US")}</td>
                       <td style={tdStyle}>{ptPerUnit.toLocaleString("en-US")}</td>
+                      <td style={tdStyle}>{originalPoint.toLocaleString("en-US")}</td>
+                      <td style={tdStyle}>
+                        {xPointValue !== null ? `x${xPointValue}` : "-"}
+                      </td>
                       <td style={{ ...tdStyle, fontWeight: 600, color: "#00783F" }}>
-                        {p.total_point.toLocaleString("en-US")}
+                        {Number(p.total_point || 0).toLocaleString("en-US")}
                       </td>
                     </tr>
                   );
@@ -748,7 +844,7 @@ export default function CollectPointsList() {
             </tbody>
             <tfoot>
               <tr style={{ background: "#978B87", color: "#fff" }}>
-                <td colSpan={5} style={{ ...tdStyle, textAlign: "right", fontWeight: 700 }}>
+                <td colSpan={7} style={{ ...tdStyle, textAlign: "right", fontWeight: 700 }}>
                   Total Point
                 </td>
                 <td style={{ ...tdStyle, fontWeight: 700, fontSize: 14 }}>
@@ -761,19 +857,6 @@ export default function CollectPointsList() {
       </div>
     );
   };
-
-  // ---------- Export rows (plain data, no JSX) ----------
-  const exportRows = dataSource.map((row) => ({
-    no: row.no ?? row.key,
-    orderNo: row.orderNo,
-    sale: row.sale,
-    dealer: row.dealer,
-    sub_dealer: row.sub_dealer,
-    value: row.value,
-    orderDate: row.orderDate,
-    pointRaw: row.pointRaw ?? row.point,
-    statusText: row.statusText,
-  }));
 
   return (
     <MainLayout loading={loading}>
@@ -811,7 +894,11 @@ export default function CollectPointsList() {
               )}
             </Radio.Group>
           </div>
-          <ExportButton rows={exportRows} fileName="PointCollection" />
+          <ExportButton
+            fetchExportRows={fetchExportRows}
+            fileName="PointCollection"
+            onError={(type, message) => showMsg(type, message)}
+          />
         </div>
 
         <TableComponent
