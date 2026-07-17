@@ -1589,7 +1589,7 @@ export default function Dashboard() {
         </Col>
 
         {/* Actual Sub Dealer Points */}
-        <Col xs={24} lg={24} xl={12}>
+        <Col xs={24} lg={24} xl={24}>
           <Card className="shadow-md rounded-lg bg-white border-t-[10px] border-solid border-t-[#00783F] h-full">
             <div className="flex flex-wrap items-center justify-between">
               <h3 className="text-[#00783F] text-lg font-semibold mb-3">
