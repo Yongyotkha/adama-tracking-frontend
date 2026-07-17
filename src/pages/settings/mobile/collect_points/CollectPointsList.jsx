@@ -797,13 +797,15 @@ export default function CollectPointsList() {
                 <th style={thStyle}>Unit</th>
                 <th style={thStyle}>QTY (ctn)</th>
                 <th style={thStyle}>Point/Unit</th>
+                <th style={thStyle}>Original Point</th>
+                <th style={thStyle}>xPoint</th>
                 <th style={thStyle}>Total Point</th>
               </tr>
             </thead>
             <tbody>
               {products.length === 0 ? (
                 <tr>
-                  <td colSpan={6} style={{ textAlign: "center", padding: "12px", color: "#999" }}>
+                  <td colSpan={8} style={{ textAlign: "center", padding: "12px", color: "#999" }}>
                     ไม่มีข้อมูลสินค้า
                   </td>
                 </tr>
@@ -811,7 +813,16 @@ export default function CollectPointsList() {
                 products.map((p, idx) => {
                   const qty = parseFloat(p.quantity || 0);
                   const ptPerUnit = parseFloat(p.point || 0);
-                  const totalPt = qty * ptPerUnit;
+                  const originalPoint =
+                    Number(p.original_point ?? 0) || qty * ptPerUnit;
+                  const xPointValue =
+                    p.xpoint !== null &&
+                    p.xpoint !== undefined &&
+                    p.xpoint !== "" &&
+                    Number(p.xpoint) > 0
+                      ? Number(p.xpoint)
+                      : null;
+
                   return (
                     <tr key={idx} style={{ background: idx % 2 === 0 ? "#f9f9f9" : "#fff" }}>
                       <td style={tdStyle}>{idx + 1}</td>
@@ -819,6 +830,10 @@ export default function CollectPointsList() {
                       <td style={tdStyle}>{p.product_unit || "-"}</td>
                       <td style={tdStyle}>{qty.toLocaleString("en-US")}</td>
                       <td style={tdStyle}>{ptPerUnit.toLocaleString("en-US")}</td>
+                      <td style={tdStyle}>{originalPoint.toLocaleString("en-US")}</td>
+                      <td style={tdStyle}>
+                        {xPointValue !== null ? `x${xPointValue}` : "-"}
+                      </td>
                       <td style={{ ...tdStyle, fontWeight: 600, color: "#00783F" }}>
                         {Number(p.total_point || 0).toLocaleString("en-US")}
                       </td>
@@ -829,7 +844,7 @@ export default function CollectPointsList() {
             </tbody>
             <tfoot>
               <tr style={{ background: "#978B87", color: "#fff" }}>
-                <td colSpan={5} style={{ ...tdStyle, textAlign: "right", fontWeight: 700 }}>
+                <td colSpan={7} style={{ ...tdStyle, textAlign: "right", fontWeight: 700 }}>
                   Total Point
                 </td>
                 <td style={{ ...tdStyle, fontWeight: 700, fontSize: 14 }}>
