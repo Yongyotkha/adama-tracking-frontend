@@ -1063,6 +1063,7 @@ export default function EditInformation() {
       })
       .catch((errorInfo) => {
         console.error("Validation Failed:", errorInfo);
+        showNotification("error", "Please complete all required fields.");
       });
   };
 
@@ -1097,6 +1098,7 @@ export default function EditInformation() {
       })
       .catch((errorInfo) => {
         console.error("Validation Failed:", errorInfo);
+        showNotification("error", "Please complete all required fields.");
       });
   };
 
