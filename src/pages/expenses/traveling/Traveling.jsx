@@ -214,6 +214,7 @@ export default function Traveling() {
                       year_code: row.year,
                       month_code: row.month,
                       user_id: row.user_id,
+                      action,
                     },
                   });
                 }

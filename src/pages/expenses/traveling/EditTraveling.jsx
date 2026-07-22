@@ -79,9 +79,9 @@ export default function EditTraveling() {
   const [dataYear, setDataYear] = useState([]);
   const [dataMonth, setDataMonth] = useState([]);
 
-  const [saleId, setSaleId] = useState("");
-  const [yearCode, setYearCode] = useState("");
-  const [monthCode, setMonthCode] = useState("");
+  const [saleId, setSaleId] = useState(location.state?.user_id || "");
+  const [yearCode, setYearCode] = useState(location.state?.year_code || "");
+  const [monthCode, setMonthCode] = useState(location.state?.month_code || "");
 
   const [dataRemark, setDataRemark] = useState("");
   const [dataTotalAdvanced, setDataTotalAdvanced] = useState(0);
@@ -91,10 +91,8 @@ export default function EditTraveling() {
 
   const [formCustom] = Form.useForm();
 
-  // Set Data
-  const [getUserId, setGetUserId] = useState(location.state.user_id);
-  const [getYearCode, setGetYearCode] = useState(location.state.year_code);
-  const [getMonthCode, setGetMonthCode] = useState(location.state.month_code);
+  const actionCode = String(location.state?.action || "edit").toLowerCase();
+  const saveButtonText = actionCode === "edit" ? "Edit" : "Save";
 
   // Get Master
   useEffect(() => {
@@ -121,54 +119,6 @@ export default function EditTraveling() {
     getMaster();
   }, []);
 
-  // Get Expenses Detail
-  useEffect(() => {
-    const getExpensesDetail = async () => {
-      setLoading(true);
-      try {
-        const [expense] = await Promise.all([
-          useServiceAPI.get(paths.pathGetExpenseTravelingDetail, {
-            year_code: getYearCode,
-            month_code: getMonthCode,
-            user_id: getUserId,
-          }),
-        ]);
-
-        setDataSourceDetail(expense.data);
-        setDataSource(
-          expense.data.data_items.map((data, index) => ({
-            key: index + 1,
-            date: data.date,
-            from: data.traveling_from,
-            to: data.traveling_to,
-            mileage: data.mileage || 0,
-            petrol: data.petrol || 0,
-            cashPetrol: data.cash_petrol || 0,
-            hotel: data.hotel || 0,
-            allowance: data.allowance || 0,
-            tollFee: data.toll_fee || 0,
-            entertain: data.entertain || 0,
-            others: data.others || 0,
-            total: data.total || 0,
-            remark: data.remark || "",
-          }))
-        );
-
-        setDataRemark(expense.data.remark);
-        setDataTotalAdvanced(expense.data.total_advanced || 0);
-        setSaleId(getUserId);
-        setYearCode(getYearCode);
-        setMonthCode(getMonthCode);
-      } catch (error) {
-        showMsg("error", error.message || "เกิดข้อผิดพลาด");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    getExpensesDetail();
-  }, []);
-
   const handleMonthChange = (filter, value) => {
     if (filter == "sale") {
       setSaleId(value);
@@ -181,22 +131,23 @@ export default function EditTraveling() {
     }
   };
 
-  // Fetch API Table Add Rows
+  // Fetch detail once on load, and again only when filters change
   useEffect(() => {
     if (saleId && yearCode && monthCode) {
       const loadDataTraveling = async () => {
         setLoading(true);
         try {
-          const [traveling] = await Promise.all([
-            useServiceAPI.get(paths.pathGetExpenseTravelingDetail, {
-              year_code: yearCode,
-              month_code: monthCode,
-              user_id: saleId
-            }),
-          ]);
+          const traveling = await useServiceAPI.get(paths.pathGetExpenseTravelingDetail, {
+            year_code: yearCode,
+            month_code: monthCode,
+            user_id: saleId,
+          });
 
-          const dataItems = traveling.data.data_items;
-          console.log(traveling);
+          setDataSourceDetail(traveling.data);
+          setDataRemark(traveling.data.remark || "");
+          setDataTotalAdvanced(traveling.data.total_advanced || 0);
+
+          const dataItems = traveling.data.data_items || [];
           const transformedData = dataItems.map((item, index) => ({
             key: `${index + 1}`,
             date: item.date || "",
@@ -214,9 +165,7 @@ export default function EditTraveling() {
             remark: item.remark || "",
           }));
 
-          // ตั้งค่า state
           setDataSource(transformedData);
-
         } catch (error) {
           showMsg("error", error.message || "เกิดข้อผิดพลาด");
         } finally {
@@ -224,14 +173,11 @@ export default function EditTraveling() {
         }
       };
 
-      // Load Data
       loadDataTraveling();
-
     } else {
-      // Set State : Table data source
       setDataSource([]);
     }
-  }, [saleId, yearCode, monthCode])
+  }, [saleId, yearCode, monthCode]);
 
   // Function to add a new row
   // const addRow = () => {
@@ -577,7 +523,6 @@ export default function EditTraveling() {
         }));
 
         const body = {
-          action_code: "save",
           year_code: yearCode,
           month_code: monthCode,
           user_id: saleId,
@@ -594,7 +539,7 @@ export default function EditTraveling() {
           setLoading(true);
           try {
             const [response] = await Promise.all([
-              useServiceAPI.put(paths.pathGetExpenseTravelingUpdate, body),
+              useServiceAPI.put(paths.pathGetExpenseTravelingEdit, body),
             ]);
 
             showNotification(
@@ -710,7 +655,7 @@ export default function EditTraveling() {
           text="Back"
           onClick={() => navigate("/expenses/traveling")}
         />
-        <ActionButton mode="save" text="Save" onClick={() => handleSave()} />
+        <ActionButton mode="save" text={saveButtonText} onClick={() => handleSave()} />
       </div>
     </MainLayout>
   );
