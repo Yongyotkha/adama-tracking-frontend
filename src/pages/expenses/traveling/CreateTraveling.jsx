@@ -517,6 +517,7 @@ export default function CreateTraveling() {
         }));
 
         const body = {
+          mode: "create",
           action_code: "save",
           year_code: yearCode,
           month_code: monthCode,
@@ -545,7 +546,18 @@ export default function CreateTraveling() {
               navigate("/expenses/traveling");
             });
           } catch (error) {
-            // showMsg("error", error.message || "เกิดข้อผิดพลาด");
+            const errorData = error.response?.data?.data || error.response?.data || {};
+            const messageHeader =
+              errorData?.Message?.Message_Header ||
+              errorData?.message ||
+              error.response?.data?.message ||
+              "แจ้งเตือน";
+            const messageLine =
+              errorData?.Message?.Message_Line ||
+              errorData?.message_line ||
+              ["เคยมีการบันทึกข้อมูลนี้แล้ว"];
+
+            showNotification("error", messageHeader, messageLine);
             console.log(error);
           } finally {
             setLoading(false);
