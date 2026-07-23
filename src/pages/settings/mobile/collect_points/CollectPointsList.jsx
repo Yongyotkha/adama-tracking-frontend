@@ -577,8 +577,8 @@ export default function CollectPointsList() {
     setTableParams((prev) => ({
       ...prev,
       pagination,
-      sortOrder: sorter.order === "descend" ? "desc" : "asc",
-      sortField: sorter.field || prev.sortField,
+      sortOrder: "desc",
+      sortField: sorter?.field || prev.sortField,
     }));
   };
 
@@ -817,9 +817,9 @@ export default function CollectPointsList() {
                     Number(p.original_point ?? 0) || qty * ptPerUnit;
                   const xPointValue =
                     p.xpoint !== null &&
-                    p.xpoint !== undefined &&
-                    p.xpoint !== "" &&
-                    Number(p.xpoint) > 0
+                      p.xpoint !== undefined &&
+                      p.xpoint !== "" &&
+                      Number(p.xpoint) > 0
                       ? Number(p.xpoint)
                       : null;
 
