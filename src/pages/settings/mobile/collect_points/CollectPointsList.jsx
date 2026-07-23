@@ -372,7 +372,8 @@ export default function CollectPointsList() {
       page: "all",
       use_flag: 1,
       orderby_column: orderByPayload.orderby_column,
-      orderby: tableParams.sortOrder,
+      // orderby: tableParams.sortOrder,
+      orderby: "desc",
       platform: "web",
       page_length: pageLength,
       ...(pageSize !== undefined ? { page_size: pageSize } : {}),
@@ -577,8 +578,8 @@ export default function CollectPointsList() {
     setTableParams((prev) => ({
       ...prev,
       pagination,
-      sortOrder: "desc",
-      sortField: sorter?.field || prev.sortField,
+      sortOrder: sorter.order === "descend" ? "desc" : "desc",
+      sortField: sorter.field || prev.sortField,
     }));
   };
 
