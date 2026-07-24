@@ -92,7 +92,10 @@ export default function EditTraveling() {
   const [formCustom] = Form.useForm();
 
   const actionCode = String(location.state?.action || "edit").toLowerCase();
-  const saveButtonText = actionCode === "edit" ? "Edit" : "Save";
+  const isEditMode = actionCode === "edit";
+  const saveButtonText = isEditMode ? "Edit" : "Save";
+  const isZeroMileage = (val) => Number(String(val ?? 0).replace(/,/g, "")) === 0;
+  const isMileageLocked = (mileage) => isEditMode && isZeroMileage(mileage);
 
   // Get Master
   useEffect(() => {
@@ -326,6 +329,7 @@ export default function EditTraveling() {
           value={value}
           style={{ width: 120 }}
           onChange={(e) => updateField(record.key, "from", e.target.value)}
+          disabled={isMileageLocked(record.mileage)}
         />
       ),
     },
@@ -338,6 +342,7 @@ export default function EditTraveling() {
           value={value}
           style={{ width: 120 }}
           onChange={(e) => updateField(record.key, "to", e.target.value)}
+          disabled={isMileageLocked(record.mileage)}
         />
       ),
     },
@@ -350,6 +355,7 @@ export default function EditTraveling() {
           style={{ width: 100 }}
           value={value}
           onChange={(val) => updateField(record.key, "mileage", val)}
+          disabled={isEditMode}
         />
       ),
     },

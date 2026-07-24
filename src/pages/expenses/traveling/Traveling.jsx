@@ -257,7 +257,9 @@ export default function Traveling() {
           key: index + 1,
           year: data.year,
           month: data.month_name,
-          date: data.created_at,
+          date: data.created_at
+            ? String(data.created_at).replace(/\.\d+$/, "")
+            : "-",
           user_name: data.user_name,
           status: (
             <BadgeStatus
