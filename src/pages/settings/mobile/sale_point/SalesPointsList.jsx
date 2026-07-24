@@ -43,7 +43,7 @@ export default function SalesPointsList() {
     },
     filters: persistedState.tableParams?.filters || {},
     sortOrder: persistedState.tableParams?.sortOrder || "desc",
-    sortField: persistedState.tableParams?.sortField || "document_number",
+    sortField: persistedState.tableParams?.sortField || "document_date",
   });
   const [filterValues, setFilterValues] = useState(persistedState.filterValues || {});
 
@@ -149,7 +149,7 @@ export default function SalesPointsList() {
     const { current, pageSize } = tableParams.pagination;
     const filters = tableParams.filters || {};
     const sortOrder = tableParams.sortOrder || "desc";
-    const sortField = tableParams.sortField || "document_number";
+    const sortField = tableParams.sortField || "document_date";
 
     const requestData = {
       user_id: filters.sale || "",
@@ -160,8 +160,8 @@ export default function SalesPointsList() {
       status_code: filters.status_code || " ",
       page: "all",
       use_flag: 1,
-      orderby_column: sortField || "document_number",
-      orderby: sortOrder || "desc",
+      orderby_column: sortField || "document_date",
+      orderby: "desc",
       platform: "web",
       page_length: current,
       page_size: pageSize,
@@ -293,7 +293,7 @@ export default function SalesPointsList() {
       page: "all",
       use_flag: 1,
       orderby_column: sortField,
-      orderby: sortOrder,
+      orderby: "desc",
       platform: "web",
       page_length: current,
       page_size: pageSize,

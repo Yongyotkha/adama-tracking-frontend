@@ -162,7 +162,10 @@ export default function CollectPointsList() {
     },
     filters: persistedState.tableParams?.filters || {},
     sortOrder: persistedState.tableParams?.sortOrder || "desc",
-    sortField: persistedState.tableParams?.sortField || "document_number",
+    sortField:
+      persistedState.tableParams?.sortField === "document_number"
+        ? "document_date"
+        : persistedState.tableParams?.sortField || "document_date",
   });
   const [orderByField, setOrderByField] = useState(() => {
     const saved = persistedState.orderByField || "orderby_column";
@@ -173,7 +176,7 @@ export default function CollectPointsList() {
   const getOrderByPayload = () => {
     if (orderByField === "orderby_column") {
       return {
-        orderby_column: tableParams.sortField || "document_number",
+        orderby_column: tableParams.sortField || "document_date",
         area_id: "",
       };
     }
@@ -187,7 +190,7 @@ export default function CollectPointsList() {
     }
 
     return {
-      orderby_column: tableParams.sortField || "document_number",
+      orderby_column: tableParams.sortField || "document_date",
       area_id: "",
     };
   };
@@ -372,7 +375,8 @@ export default function CollectPointsList() {
       page: "all",
       use_flag: 1,
       orderby_column: orderByPayload.orderby_column,
-      orderby: tableParams.sortOrder,
+      // orderby: tableParams.sortOrder,
+      orderby: "desc",
       platform: "web",
       page_length: pageLength,
       ...(pageSize !== undefined ? { page_size: pageSize } : {}),
@@ -577,7 +581,7 @@ export default function CollectPointsList() {
     setTableParams((prev) => ({
       ...prev,
       pagination,
-      sortOrder: sorter.order === "descend" ? "desc" : "asc",
+      sortOrder: sorter.order === "descend" ? "desc" : "desc",
       sortField: sorter.field || prev.sortField,
     }));
   };
@@ -817,9 +821,9 @@ export default function CollectPointsList() {
                     Number(p.original_point ?? 0) || qty * ptPerUnit;
                   const xPointValue =
                     p.xpoint !== null &&
-                    p.xpoint !== undefined &&
-                    p.xpoint !== "" &&
-                    Number(p.xpoint) > 0
+                      p.xpoint !== undefined &&
+                      p.xpoint !== "" &&
+                      Number(p.xpoint) > 0
                       ? Number(p.xpoint)
                       : null;
 
@@ -884,7 +888,7 @@ export default function CollectPointsList() {
                 }));
               }}
             >
-              <Radio value="orderby_column">Document No</Radio>
+              <Radio value="orderby_column">Order Date</Radio>
               {(areaList.length ? areaList : [{ id: 1, name: "Area 1" }, { id: 2, name: "Area 2" }]).map(
                 (area) => (
                   <Radio key={area.id} value={`area_id_${area.id}`}>
