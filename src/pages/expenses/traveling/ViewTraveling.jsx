@@ -35,9 +35,9 @@ export default function ViewTraveling() {
   const [dataYear, setDataYear] = useState([]);
   const [dataMonth, setDataMonth] = useState([]);
 
-  const [saleId, setSaleId] = useState("");
-  const [yearCode, setYearCode] = useState("");
-  const [monthCode, setMonthCode] = useState("");
+  const [saleId, setSaleId] = useState(location.state?.user_id || "");
+  const [yearCode, setYearCode] = useState(location.state?.year_code || "");
+  const [monthCode, setMonthCode] = useState(location.state?.month_code || "");
 
   const [dataRemark, setDataRemark] = useState("");
   const [dataTotalAdvanced, setDataTotalAdvanced] = useState(0);
@@ -48,9 +48,9 @@ export default function ViewTraveling() {
   const [formCustom] = Form.useForm();
 
   // Set Data
-  const [getUserId, setGetUserId] = useState(location.state.user_id);
-  const [getYearCode, setGetYearCode] = useState(location.state.year_code);
-  const [getMonthCode, setGetMonthCode] = useState(location.state.month_code);
+  const [getUserId, setGetUserId] = useState(location.state?.user_id);
+  const [getYearCode, setGetYearCode] = useState(location.state?.year_code);
+  const [getMonthCode, setGetMonthCode] = useState(location.state?.month_code);
 
   // Get Master
   useEffect(() => {
@@ -277,7 +277,7 @@ export default function ViewTraveling() {
       required: false,
       disabled: true,
       col: 6,
-      value: parseInt(saleId),
+      value: saleId !== "" && saleId != null ? Number(saleId) : undefined,
     },
     {
       label: "Year",

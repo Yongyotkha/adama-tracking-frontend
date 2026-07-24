@@ -282,8 +282,9 @@ export default function EditTraveling() {
       type: "select",
       options: dataSale,
       required: false,
+      disabled: isEditMode,
       col: 6,
-      value: parseInt(saleId),
+      value: saleId !== "" && saleId != null ? Number(saleId) : undefined,
     },
     {
       label: "Year",
@@ -291,6 +292,7 @@ export default function EditTraveling() {
       type: "select",
       options: dataYear,
       required: false,
+      disabled: isEditMode,
       col: 6,
       value: yearCode,
     },
@@ -300,6 +302,7 @@ export default function EditTraveling() {
       type: "select",
       options: dataMonth,
       required: false,
+      disabled: isEditMode,
       col: 6,
       value: monthCode,
     },
@@ -329,7 +332,6 @@ export default function EditTraveling() {
           value={value}
           style={{ width: 120 }}
           onChange={(e) => updateField(record.key, "from", e.target.value)}
-          disabled={isMileageLocked(record.mileage)}
         />
       ),
     },
@@ -342,7 +344,6 @@ export default function EditTraveling() {
           value={value}
           style={{ width: 120 }}
           onChange={(e) => updateField(record.key, "to", e.target.value)}
-          disabled={isMileageLocked(record.mileage)}
         />
       ),
     },
