@@ -257,7 +257,7 @@ export default function Traveling() {
           key: index + 1,
           year: data.year,
           month: data.month_name,
-          date: data.updated_at,
+          date: data.created_at,
           user_name: data.user_name,
           status: (
             <BadgeStatus
