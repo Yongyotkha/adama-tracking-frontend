@@ -116,12 +116,6 @@ export default function CreateActivity() {
       const num = typeof v === "string" ? parseFloat(v.replace(/,/g, "")) : Number(v);
       return Number.isFinite(num) && num > 0 ? num : NaN;
     };
-    const masterNetPrice = parseVal(item?.master_price?.net_price);
-    if (!isNaN(masterNetPrice)) return masterNetPrice;
-
-    const netPrice = parseVal(item?.net_price);
-    if (!isNaN(netPrice)) return netPrice;
-
     const masterBathUnit = parseVal(item?.master_price?.bath_unit);
     if (!isNaN(masterBathUnit)) return masterBathUnit;
 
@@ -1101,19 +1095,40 @@ export default function CreateActivity() {
     if (documentNumber && firstCallData) {
       setFirstCallData(false);
     } else {
-      const productCropListNew = productCrop.data.map((el, key) => ({
-        key: key + 1,
-        product_name: el.product_name,
-        packing_list: el.packing_list,
-        estimate_sale_qty: "0",
-        acutal_sale_qty: "0",
-        net_price: el.net_price,
-        bath_unit: el.bath_unit,
-        bath_ltkg: el.bath_ltkg,
-        product_code: el.product_code,
-        product_id: el.id,
-        id: el.id,
-      }));
+      const productCropListNew = productCrop.data.map((el, key) => {
+        const parseVal = (v) => {
+          if (v === null || v === undefined || v === "") return NaN;
+          const num = typeof v === "string" ? parseFloat(v.replace(/,/g, "")) : Number(v);
+          return Number.isFinite(num) && num > 0 ? num : NaN;
+        };
+
+        let calculatedBathUnit = parseVal(el.bath_unit);
+
+        if (isNaN(calculatedBathUnit) && el.packing_list) {
+          // คำนวณปริมาตรจาก packing_list เช่น "0.5 Lt x 20", "1 Lt x 20", "0.1 Kg x 10 x 6"
+          const match = String(el.packing_list).match(/([\d.]+)\s*(?:Lt|Kg|lt|kg)/i);
+          if (match) {
+            const unitVol = parseFloat(match[1]);
+            const bathLtkg = parseVal(el.bath_ltkg);
+            if (!isNaN(unitVol) && !isNaN(bathLtkg)) {
+              calculatedBathUnit = unitVol * bathLtkg;
+            }
+          }
+        }
+
+        return {
+          key: key + 1,
+          product_name: el.product_name,
+          packing_list: el.packing_list,
+          estimate_sale_qty: "0",
+          acutal_sale_qty: "0",
+          bath_unit: !isNaN(calculatedBathUnit) ? calculatedBathUnit : el.bath_unit,
+          bath_ltkg: el.bath_ltkg,
+          product_code: el.product_code,
+          product_id: el.id,
+          id: el.id,
+        };
+      });
       setActivityDetail((prev) => ({
         ...prev,
         expense_product_data_list: productCropListNew,
