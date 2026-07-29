@@ -125,10 +125,18 @@ const AdvanceExpensePDF = () => {
       const num = typeof v === "string" ? parseFloat(v.replace(/,/g, "")) : Number(v);
       return Number.isFinite(num) && num > 0 ? num : NaN;
     };
+    const masterBathUnit = parseVal(item?.master_price?.bath_unit);
+    if (!isNaN(masterBathUnit)) return masterBathUnit;
+
     const bathUnit = parseVal(item?.bath_unit);
     if (!isNaN(bathUnit)) return bathUnit;
+
+    const masterBathLtkg = parseVal(item?.master_price?.bath_ltkg);
+    if (!isNaN(masterBathLtkg)) return masterBathLtkg;
+
     const bathLtkg = parseVal(item?.bath_ltkg);
     if (!isNaN(bathLtkg)) return bathLtkg;
+
     return 1;
   };
 
