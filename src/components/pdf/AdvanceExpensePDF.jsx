@@ -428,10 +428,10 @@ const AdvanceExpensePDF = () => {
                     {formatNumber2(getUnitPrice(item) * Number(item.estimate_sale_qty || 0))}
                   </Text>
                   <Text style={styles.tableCell}>
-                    {formatNumber(item.acutal_sale_qty)}
+                    {formatNumber2(item.acutal_sale_qty)}
                   </Text>
                   <Text style={[styles.tableCell, styles.tableCellLast]}>
-                    {formatNumber(getUnitPrice(item) * Number(item.acutal_sale_qty || 0))}
+                    {formatNumber2(getUnitPrice(item) * Number(item.acutal_sale_qty || 0))}
                   </Text>
                 </View>
               ))

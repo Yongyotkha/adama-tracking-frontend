@@ -1102,19 +1102,9 @@ export default function CreateActivity() {
           return Number.isFinite(num) && num > 0 ? num : NaN;
         };
 
-        let calculatedBathUnit = parseVal(el.bath_unit);
-
-        if (isNaN(calculatedBathUnit) && el.packing_list) {
-          // คำนวณปริมาตรจาก packing_list เช่น "0.5 Lt x 20", "1 Lt x 20", "0.1 Kg x 10 x 6"
-          const match = String(el.packing_list).match(/([\d.]+)\s*(?:Lt|Kg|lt|kg)/i);
-          if (match) {
-            const unitVol = parseFloat(match[1]);
-            const bathLtkg = parseVal(el.bath_ltkg);
-            if (!isNaN(unitVol) && !isNaN(bathLtkg)) {
-              calculatedBathUnit = unitVol * bathLtkg;
-            }
-          }
-        }
+        const bathUnit = parseVal(el.bath_unit);
+        const bathLtkg = parseVal(el.bath_ltkg);
+        const finalUnitPrice = !isNaN(bathUnit) ? bathUnit : (!isNaN(bathLtkg) ? bathLtkg : 1);
 
         return {
           key: key + 1,
@@ -1122,8 +1112,14 @@ export default function CreateActivity() {
           packing_list: el.packing_list,
           estimate_sale_qty: "0",
           acutal_sale_qty: "0",
-          bath_unit: !isNaN(calculatedBathUnit) ? calculatedBathUnit : el.bath_unit,
+          bath_unit: el.bath_unit ?? finalUnitPrice,
           bath_ltkg: el.bath_ltkg,
+          net_price: el.net_price,
+          sub_dealer: el.sub_dealer,
+          farmer: el.farmer,
+          unit_convert_value: el.unit_convert_value,
+          unit_convert_order_value: el.unit_convert_order_value,
+          unit_convert_sales_order: el.unit_convert_sales_order,
           product_code: el.product_code,
           product_id: el.id,
           id: el.id,
