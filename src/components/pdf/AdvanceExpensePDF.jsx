@@ -251,7 +251,7 @@ const AdvanceExpensePDF = () => {
               {getPageCode === "expense_clearing" && (
                 <Text style={{ fontWeight: 'bold' }}>
                   &nbsp; | Advance Reference No <Text style={{ fontWeight: 'light' }}> : {dataHeader.advance_reference_no}</Text>
-              </Text>
+                </Text>
               )}
             </Text>
 
@@ -479,7 +479,7 @@ const AdvanceExpensePDF = () => {
           {/* Description (ต่อจาก Products ก่อน Footer) */}
           <View style={styles.descriptionBox}>
             <Text style={styles.descriptionTitle}>Description :</Text>
-            <Text style={styles.descriptionText}>{descriptionText}</Text>
+            <Text style={styles.descriptionText}>{descriptionText} </Text>
           </View>
 
           {/* Footer */}
