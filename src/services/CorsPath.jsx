@@ -368,6 +368,7 @@ export const paths = {
   pathGetExpenseTravelingDetail: "expense/traveling/detail",
   pathGetExpenseTravelingCreate: "expense/traveling/detail",
   pathGetExpenseTravelingUpdate: "expense/traveling/detail",
+  pathGetExpenseTravelingEdit: "expense/traveling/edit",
   pathGetExpenseTravelingDelete: "expense/traveling/delete",
 
   // Expense Sample

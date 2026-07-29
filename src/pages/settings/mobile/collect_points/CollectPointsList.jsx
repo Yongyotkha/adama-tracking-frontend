@@ -162,7 +162,10 @@ export default function CollectPointsList() {
     },
     filters: persistedState.tableParams?.filters || {},
     sortOrder: persistedState.tableParams?.sortOrder || "desc",
-    sortField: persistedState.tableParams?.sortField || "document_number",
+    sortField:
+      persistedState.tableParams?.sortField === "document_number"
+        ? "document_date"
+        : persistedState.tableParams?.sortField || "document_date",
   });
   const [orderByField, setOrderByField] = useState(() => {
     const saved = persistedState.orderByField || "orderby_column";
@@ -173,7 +176,7 @@ export default function CollectPointsList() {
   const getOrderByPayload = () => {
     if (orderByField === "orderby_column") {
       return {
-        orderby_column: tableParams.sortField || "document_number",
+        orderby_column: tableParams.sortField || "document_date",
         area_id: "",
       };
     }
@@ -187,7 +190,7 @@ export default function CollectPointsList() {
     }
 
     return {
-      orderby_column: tableParams.sortField || "document_number",
+      orderby_column: tableParams.sortField || "document_date",
       area_id: "",
     };
   };
@@ -885,7 +888,7 @@ export default function CollectPointsList() {
                 }));
               }}
             >
-              <Radio value="orderby_column">Document No</Radio>
+              <Radio value="orderby_column">Order Date</Radio>
               {(areaList.length ? areaList : [{ id: 1, name: "Area 1" }, { id: 2, name: "Area 2" }]).map(
                 (area) => (
                   <Radio key={area.id} value={`area_id_${area.id}`}>

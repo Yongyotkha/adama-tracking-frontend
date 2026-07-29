@@ -214,6 +214,7 @@ export default function Traveling() {
                       year_code: row.year,
                       month_code: row.month,
                       user_id: row.user_id,
+                      action,
                     },
                   });
                 }
@@ -256,7 +257,9 @@ export default function Traveling() {
           key: index + 1,
           year: data.year,
           month: data.month_name,
-          date: data.updated_at,
+          date: data.created_at
+            ? String(data.created_at).replace(/\.\d+$/, "")
+            : "-",
           user_name: data.user_name,
           status: (
             <BadgeStatus
