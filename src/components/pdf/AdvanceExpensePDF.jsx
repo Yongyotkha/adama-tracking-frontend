@@ -199,6 +199,16 @@ const AdvanceExpensePDF = () => {
       Number(item.acutal_sale_qty || 0) !== 0
   );
 
+  const totalEstimateValue = visibleItems.reduce(
+    (sum, item) => sum + getUnitPrice(item) * Number(item.estimate_sale_qty || 0),
+    0
+  );
+
+  const totalActualValue = visibleItems.reduce(
+    (sum, item) => sum + getUnitPrice(item) * Number(item.acutal_sale_qty || 0),
+    0
+  );
+
   const stripHtml = (html) => {
     if (!html) return "-";
     return String(html)
@@ -277,7 +287,7 @@ const AdvanceExpensePDF = () => {
               <View style={{ flexDirection: "row", justifyContent: "space-between", width: "100%", margin: 'auto' }}>
                 <Text style={{ textAlign: "center" }}>Exp :</Text>
                 <Text style={{ flex: 7, textAlign: "start", paddingLeft: 7 }}>
-                  {calculatePercentage(Number(dataHeader.expense_advance), Number(dataHeader.product_total_estimate_sale))}
+                  {calculatePercentage(Number(dataHeader.expense_advance), totalEstimateValue > 0 ? totalEstimateValue : Number(dataHeader.product_total_estimate_sale))}
                 </Text>
               </View>
             </View>
@@ -288,7 +298,7 @@ const AdvanceExpensePDF = () => {
               <View style={{ flexDirection: "row", justifyContent: "space-between", width: "100%", margin: 'auto' }}>
                 <Text style={{ textAlign: "center" }}>Exp :</Text>
                 <Text style={{ flex: 7, textAlign: "start", paddingLeft: 7 }}>
-                  {calculateActualPercentage(Number(dataHeader.expense_actual), Number(dataHeader.product_total_acutal_sale))}
+                  {calculateActualPercentage(Number(dataHeader.expense_actual), totalActualValue > 0 ? totalActualValue : Number(dataHeader.product_total_acutal_sale))}
                 </Text>
               </View>
             </View>
@@ -441,9 +451,9 @@ const AdvanceExpensePDF = () => {
             <View style={[styles.tableRow, { borderTopWidth: 1 }]}>
               <Text style={[styles.tableCell, { flex: 4, minWidth: 42, borderRightWidth: 1, textAlign: 'start', fontWeight: 'bold' }]}>Total (THB) </Text>
               <Text style={[styles.tableCell]}>-</Text>
-              <Text style={[styles.tableCell]}> {formatNumber2(dataHeader.expense_expense_actual_exp || 0)}</Text>
+              <Text style={[styles.tableCell]}> {formatNumber2(totalEstimateValue > 0 ? totalEstimateValue : (dataHeader.expense_expense_actual_exp || 0))}</Text>
               <Text style={[styles.tableCell]}>-</Text>
-              <Text style={[styles.tableCell, styles.tableCellLast]}> {formatNumber2(dataHeader.expense_actual_sale || 0)} </Text>
+              <Text style={[styles.tableCell, styles.tableCellLast]}> {formatNumber2(totalActualValue > 0 ? totalActualValue : (dataHeader.expense_actual_sale || 0))}</Text>
             </View>
           </View>
 
