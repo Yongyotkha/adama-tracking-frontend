@@ -1,19 +1,7 @@
-import React, { useContext, useEffect, useRef, useState } from "react";
+import React, { useContext, useEffect, useRef, useState, useMemo } from "react";
 import MainLayout from "../../layouts/MainLayout";
-import axios from "axios";
-import { useNavigate, useParams } from "react-router-dom";
-import {
-  Form,
-  Input,
-  Col,
-  Row,
-  Select,
-  InputNumber,
-  Modal,
-  DatePicker,
-  TimePicker,
-  Upload,
-} from "antd";
+import { useNavigate, useParams, useLocation } from "react-router-dom";
+import { Form, Input, Col, Row, Select, InputNumber, Modal } from "antd";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import timezone from "dayjs/plugin/timezone";
@@ -27,10 +15,8 @@ import DynamicButton from "../../components/button/DynamicButton";
 import DynamicModal from "../../components/modal/DynamicModal";
 import useServiceAPI from "../../services/CorsService";
 import { paths } from "../../services/CorsPath";
-import { useLocation } from "react-router-dom";
 import { ExclamationCircleFilled, ReloadOutlined } from "@ant-design/icons";
 import { AuthContext } from "../../contexts/AuthContext";
-import ReactQuill from "react-quill-new";
 
 dayjs.extend(customParseFormat);
 dayjs.extend(utc);
@@ -38,29 +24,57 @@ dayjs.extend(timezone);
 
 const { Option } = Select;
 
-export default function CreateActivityManyShop() {
+export default function CreateActivity() {
   const { confirm } = Modal;
   const { TextArea } = Input;
 
+  const navigate = useNavigate();
   const locationParam = useLocation();
-  useEffect(() => {
-    console.log(locationParam);
-  }, [locationParam]);
+  const { mode } = useParams();
 
-  const mode = "create";
-  const [documentNumber, setDocumentNumber] = useState(
-    locationParam?.state?.documentNumber
-  );
-  const [pageMode, setPageMode] = useState(locationParam?.state?.page_mode);
-  const pageCode = locationParam?.state?.pageCode;
+  // =========================================================
+  // ✅ NEW: รองรับทั้ง state และ query string
+  // =========================================================
+  const qs = useMemo(() => new URLSearchParams(locationParam.search), [locationParam.search]);
 
-  const isViewMode = mode === "View";
+  const documentNumberFromUrl = qs.get("documentNumber") || undefined;
+  const pageCodeFromUrl = qs.get("pageCode") || undefined;
+  const fromFromUrl = qs.get("from") || undefined;
+  const pageModeFromUrl = qs.get("page_mode") || undefined;
+
+  const documentNumberState = locationParam?.state?.documentNumber;
+  const pageCodeState = locationParam?.state?.pageCode;
+  const pageModeState = locationParam?.state?.page_mode;
+
+  const [documentNumber, setDocumentNumber] = useState(documentNumberState || documentNumberFromUrl);
+  const [pageMode, setPageMode] = useState(pageModeState || pageModeFromUrl);
+
+  const pageCode = pageCodeState || pageCodeFromUrl;
+
+  // ✅ flag: เปิดมาจาก mapping?
+  const fromMapping = locationParam?.state?.from === "mapping" || fromFromUrl === "mapping";
+  const fromCalendar = locationParam?.state?.from === "calendar" || fromFromUrl === "calendar";
+
+  // เปิดจาก mapping หรือ calendar => readonly
+  const forceReadOnly = fromMapping || fromCalendar;
+
+  const pageModeLower = String(pageMode || "").toLowerCase();
+  const isPageView = pageModeLower === "view";
+  const isPageEdit = pageModeLower === "edit";
+  const isPageCreate = pageModeLower === "create" || !pageModeLower;
+
+  const canEdit = (isPageEdit || isPageCreate) && !forceReadOnly;
+  // =========================================================
+
   const viewSegment = mode === "view";
+  const isViewMode = mode === "view";
   const isCreate = mode === "create";
+  const isApproveMode = mode === "approve";
 
   const [loading, setLoading] = useState(false);
   const [firstCallData, setFirstCallData] = useState(true);
   const [isTeamModalVisible, setIsTeamModalVisible] = useState(false);
+  const [isRefLocked, setIsRefLocked] = useState(false);
   const [activityList, setActivityList] = useState([]);
   const [saleList, setSaleList] = useState([]);
   const [saleAllList, setSaleAllList] = useState([]);
@@ -69,88 +83,199 @@ export default function CreateActivityManyShop() {
   const [productCropList, setProductCropList] = useState([]);
   const [productList, setProductList] = useState([]);
   const [participantList, setParticipantList] = useState([]);
-  const navigate = useNavigate();
 
   const [formCustom] = Form.useForm();
   const [customerForm] = Form.useForm();
   const [expenseForm] = Form.useForm();
   const [participantForm] = Form.useForm();
-  const fileUploadRef = useRef(null); // Reference for FileUploadComponent
+
+  const fileUploadRef = useRef(null);
   const [locationCustomer, setLocationCustomer] = useState([]);
   const [dealerCustomer, setDealerCustomer] = useState([]);
   const [perceptionList, setPerceptionList] = useState([]);
   const [fileList, setFileList] = useState([]);
-  const { MonthPicker } = DatePicker;
+
   const [isBtnExpenseActive, setIsBtnExpenseActive] = useState(false);
-  const [formMulti] = Form.useForm();
 
   const [activityDetail, setActivityDetail] = useState({
+    document_number_referrent: "",
     product_list: [],
     crop_id_list: [],
     expense_product_data_list: [],
     assing_user_list: [],
+    freekey: [],
   });
 
   const { showNotification, userInfo } = useContext(AuthContext);
+
+  const isAutoSelectMySale = [5, 6].includes(Number(userInfo?.role_id));
+
   const [actualParticipantCount, setActualParticipantCount] = useState("0");
   const [participants, setParticipants] = useState([]);
   const [participantUsers, setParticipantUsers] = useState([]);
+  const defaultFreeKeyRowCount = 6;
 
-  const defaultActivityDate =
-    locationParam?.state?.dateCalendar || dayjs().format("YYYY-MM-DD");
+  const toNumber = (v, fallback = 0) => {
+    if (v === null || v === undefined || v === "") return fallback;
+    if (typeof v === "number") return Number.isFinite(v) ? v : fallback;
 
-  // console.log(defaultActivityDate);
+    // รองรับ ".00" -> "0.00"
+    const s = String(v).trim();
+    const normalized = s.startsWith(".") ? `0${s}` : s;
 
-  const [multiShop, setMultiShop] = useState([
-    {
-      document_number: "",
-      document_date: defaultActivityDate,
-      dealer_id: "",
-      crop_id_list: "",
-      product_list: "",
-      location_address: "",
-      description: "",
-      assing_user_list: "",
-    },
-  ]);
+    const n = parseFloat(normalized);
+    return Number.isFinite(n) ? n : fallback;
+  };
+
+  const moneyFormatter = (value) => {
+    const num = Number(value ?? 0);
+    return num.toLocaleString("en-US", {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    });
+  };
+
+  const moneyParser = (value) => value?.replace(/,/g, "") || "0";
+
+  const createFreeKeyRow = (line = 1) => ({
+    line,
+    list: "",
+    value: null,
+  });
+
+  const ensureFreeKeyRows = (rows = [], minRows = defaultFreeKeyRowCount) => {
+    const normalizedRows = normalizeFreeKeyRows(rows);
+    const nextRows = [...normalizedRows];
+
+    while (nextRows.length < minRows) {
+      nextRows.push(createFreeKeyRow(nextRows.length + 1));
+    }
+
+    return nextRows.map((row, index) => ({
+      ...row,
+      line: index + 1,
+    }));
+  };
+
+  const normalizeFreeKeyRows = (rows = []) =>
+    (Array.isArray(rows) ? rows : []).map((row, index) => ({
+      line: Number(row?.line) || index + 1,
+      list: row?.list ?? "",
+      value:
+        row?.value === null || row?.value === undefined || row?.value === ""
+          ? null
+          : toNumber(row.value, 0),
+    }));
+
+  const buildFreeKeyPayload = (rows = []) =>
+    ensureFreeKeyRows(rows)
+      .slice(0, defaultFreeKeyRowCount)
+      .map((row, index) => ({
+        line: index + 1,
+        list: String(row.list ?? "").trim(),
+        value: toNumber(row.value, 0),
+      }));
+
+  const freeKeyTotal = normalizeFreeKeyRows(activityDetail.freekey).reduce(
+    (sum, row) => sum + toNumber(row.value, 0),
+    0
+  );
+
+  const handleFreeKeyChange = (index, field, value) => {
+    setActivityDetail((prev) => {
+      const rows = normalizeFreeKeyRows(prev.freekey);
+      const nextRows = rows.map((row, rowIndex) =>
+        rowIndex === index
+          ? {
+            ...row,
+            [field]: field === "value" ? (value === null || value === undefined ? null : toNumber(value, 0)) : value,
+          }
+          : row
+      );
+
+      return {
+        ...prev,
+        freekey: ensureFreeKeyRows(
+          nextRows.map((row, rowIndex) => ({
+            ...row,
+            line: rowIndex + 1,
+          }))
+        ),
+      };
+    });
+  };
+
+  useEffect(() => {
+    if (!pageMode && pageModeFromUrl) {
+      setPageMode(pageModeFromUrl);
+    }
+  }, [pageMode, pageModeFromUrl]);
+
+  // ✅ หากเปิดด้วย URL แล้ว state ไม่มา
+  useEffect(() => {
+    if (!documentNumber && documentNumberFromUrl) {
+      setDocumentNumber(documentNumberFromUrl);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [documentNumberFromUrl]);
 
   const handleUploadClick = async () => {
-    if (fileUploadRef.current) {
-      fileUploadRef.current.triggerUpload();
-    }
+    if (fileUploadRef.current) fileUploadRef.current.triggerUpload();
   };
 
   const handleUploadSuccess = (response) => {
     const data = response.data;
-    const fileUpload = {
-      uid: data.file_key,
-      name: data.file_name,
-      status: "done",
-      url: data.file_url,
-    };
-
-    setFileList((prevFileList) => [...prevFileList, fileUpload]);
+    const fileUpload = { uid: data.file_key, name: data.file_name, status: "done", url: data.file_url };
+    setFileList((prev) => [...prev, fileUpload]);
   };
 
+  let btn_approve = "Approve";
+  let btn_reject = "Reject";
+  if (userInfo.role_id == 8) {
+    btn_approve = "Confirm";
+    btn_reject = "Cancel";
+  }
+
+  // useEffect(() => {
+  //   if (!documentNumber) {
+  //     const exists = saleList.some((item) => item.id === userInfo.id);
+  //     if (exists) {
+  //       handleChange("user_id", userInfo.user_data_id);
+  //       handleChange("assing_user_list", [userInfo.user_data_id]);
+  //     }
+  //   }
+  //   // eslint-disable-next-line react-hooks/exhaustive-deps
+  // }, [saleList]);
   useEffect(() => {
-    if (!documentNumber) {
-      const exists = saleList.some((item) => item.id === userInfo.id);
-      if (exists) {
-        handleChange("user_id", parseInt(userInfo.user_data_id));
-        handleChange("assing_user_list", [userInfo.user_data_id]);
-      }
-    }
-  }, [saleList]);
+    if (!isAutoSelectMySale || documentNumber || saleList.length === 0) return;
+
+    const mySaleId = Number(userInfo?.user_data_id ?? userInfo?.id);
+    const mySale = saleList.find((item) => Number(item.id) === mySaleId);
+
+    if (!mySale) return;
+
+    setActivityDetail((prev) => ({
+      ...prev,
+      user_id: mySaleId,
+      assing_user_list: [mySaleId],
+    }));
+
+    formCustom.setFieldsValue({
+      user_id: mySaleId,
+      assing_user_list: [mySaleId],
+    });
+
+    setupDealer(mySaleId);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [saleList, documentNumber, isAutoSelectMySale]);
 
   useEffect(() => {
-    if (
-      documentNumber &&
-      isBtnExpenseActive &&
-      pageCode == "activity_transaction"
-    ) {
+    if (documentNumber && isBtnExpenseActive && pageCode == "activity_transaction") {
       setupCrop();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isBtnExpenseActive]);
+  console.log(pageCode);
 
   const menuTitle =
     pageCode == "expense_advance"
@@ -158,6 +283,7 @@ export default function CreateActivityManyShop() {
       : pageCode == "expense_clearing"
         ? "Clearing Expense"
         : "Activity";
+
   const menuURL =
     pageCode == "expense_advance"
       ? "/expenses/advance"
@@ -165,366 +291,187 @@ export default function CreateActivityManyShop() {
         ? "/expenses/clearing"
         : "/activity/list";
 
-  //console.log("multishop : ", multiShop);
+  const SaleOptions = saleList.map((sale) => ({ id: sale.id, name: sale.name, selected: false }));
 
-  const toolbarOptions = [
-    [{ font: [] }, { size: [] }],
-    [{ header: [1, 2, 3, false] }],
-    [
-      "bold",
-      "italic",
-      "underline",
-      "strike",
-      { color: [] },
-      { background: [] },
-    ],
-    [{ script: "sub" }, { script: "super" }],
-    [{ list: "ordered" }, { list: "bullet" }],
-    [{ indent: "-1" }, { indent: "+1" }],
-    [{ align: [] }],
-    ["link", "image"],
-    ["clean"],
+  // const baseFieldDisabled = isViewMode || isApproveMode || (!isCreate && !canEdit);
+  const baseFieldDisabled = isViewMode || isApproveMode || (!isCreate && !canEdit) || isRefLocked;
+  const selectedDealerId =
+    pageCode === "activity_transaction"
+      ? activityDetail.dealer_id
+      : activityDetail.sub_dealer_id;
+  const salesFieldDisabled = baseFieldDisabled || (isCreate && !activityDetail.activity_type_id);
+  const shopFieldDisabled = baseFieldDisabled || (isCreate && !activityDetail.user_id);
+  const cropFieldDisabled = baseFieldDisabled || (isCreate && !selectedDealerId);
+  const productFieldDisabled =
+    baseFieldDisabled ||
+    (isCreate && (!selectedDealerId || !(activityDetail.crop_id_list || []).length));
+  // =========================================================
+  // ✅ IMPORTANT: disabled ใน field เดิม (เพิ่ม forceReadOnly ได้ถ้าต้อง lock ทั้งหน้า)
+  // =========================================================
+  const formFields = [
+    {
+      label: menuTitle + " No",
+      name: "document_number",
+      type: "text",
+      disabled: true,
+      required: false,
+      col: 24,
+      value: activityDetail.document_number ?? "",
+      placeholder: "Generate",
+    },
+    {
+      label: "Activity Reference",
+      name: "document_number_referrent",
+      type: pageCode !== "activity_transaction" ? (viewSegment ? "hidden" : "search") : "hidden",
+      disabled: baseFieldDisabled,
+      required: false,
+      col: 24,
+      value: activityDetail.document_number_referrent ?? "",
+    },
+    {
+      label: "Activity Type",
+      name: "activity_type_id",
+      type: "select",
+      typeMode: "string",
+      options: activityList,
+      disabled: baseFieldDisabled,
+      required: true,
+      col: pageCode != "activity_transaction" ? 8 : 6,
+      value: activityDetail.activity_type_id ?? undefined,
+    },
+    {
+      label: "Sales",
+      name: "user_id",
+      type: "select",
+      typeMode: "number",
+      options: SaleOptions,
+      disabled: salesFieldDisabled,
+      required: true,
+      col: pageCode != "activity_transaction" ? 8 : 6,
+      value: activityDetail.user_id != null ? Number(activityDetail.user_id) : undefined,
+      moderef: true,
+    },
+    {
+      label: "Shop",
+      name: "dealer_id",
+      type: "select",
+      typeMode: "number",
+      options: (() => {
+        const currentId = pageCode === "activity_transaction" ? Number(activityDetail.dealer_id) : Number(activityDetail.sub_dealer_id);
+        const currentName = pageCode === "activity_transaction" ? activityDetail.dealer_name : activityDetail.sub_dealer_name;
+        if (!currentId) return dealerList;
+        const exists = dealerList.some((d) => Number(d.id) === currentId);
+        return exists ? dealerList : [...dealerList, { id: currentId, name: currentName }];
+      })(),
+      disabled: shopFieldDisabled,
+      required: true,
+      col: pageCode !== "activity_transaction" ? 8 : 6,
+      value:
+        pageCode === "activity_transaction"
+          ? activityDetail.dealer_id != null
+            ? Number(activityDetail.dealer_id)
+            : undefined
+          : activityDetail.sub_dealer_id != null
+            ? Number(activityDetail.sub_dealer_id)
+            : undefined,
+      moderef: true,
+    },
+    {
+      label: "Crop",
+      name: "crop_id_list",
+      type: "select",
+      typeMode: "string",
+      mode: "multiple",
+      options: cropList,
+      disabled: cropFieldDisabled,
+      required: true,
+      col: 6,
+      value: activityDetail.crop_id_list,
+      moderef: true,
+    },
+    {
+      label: "Product",
+      name: "product_list",
+      type: "select",
+      typeMode: "string",
+      mode: "multiple",
+      options: productList,
+      disabled: productFieldDisabled,
+      required: true,
+      col: pageCode != "activity_transaction" ? 18 : 24,
+      value: activityDetail.product_list,
+    },
+    {
+      label: "Date",
+      name: "document_date",
+      type: "date",
+      disabled: baseFieldDisabled,
+      required: true,
+      col: pageCode != "activity_transaction" ? 6 : 8,
+      value: activityDetail.document_date,
+    },
+    {
+      label: "Location",
+      name: "location_address",
+      type: "text",
+      disabled: baseFieldDisabled,
+      required: false,
+      col: 24,
+      value: activityDetail.location_address ?? "",
+      iconSrc: "/img/icons/location.png",
+      iconPosition: "left",
+    },
+    {
+      label: "Description",
+      name: "description",
+      type: "text-editor",
+      disabled: baseFieldDisabled,
+      required: false,
+      col: 24,
+      placeholder: "Add description",
+      value: activityDetail.description ?? "",
+    },
+    {
+      label: "Assign",
+      name: "assing_user_list",
+      type: "select",
+      typeMode: "string",
+      mode: "multiple",
+      options: saleAllList,
+      disabled: baseFieldDisabled,
+      required: false,
+      col: 24,
+      value: activityDetail.assing_user_list,
+    },
   ];
 
-  const optionsShop = dealerList.map((item) => ({
-    value: item.id,
-    label: item.name.trim(), // ใช้ trim() เพื่อลบช่องว่างที่ไม่จำเป็น
-  }));
-
-  const optionsCropList = cropList.map((item) => ({
-    value: item.id,
-    label: item.name.trim(), // ใช้ trim() เพื่อลบช่องว่างที่ไม่จำเป็น
-  }));
-
-  const optionsSaleAllList = saleAllList.map((item) => ({
-    value: item.id,
-    label: item.name.trim(), // ใช้ trim() เพื่อลบช่องว่างที่ไม่จำเป็น
-  }));
-
-  const optionsProductList = productList.map((item) => ({
-    value: item.id,
-    label: item.name.trim(), // ใช้ trim() เพื่อลบช่องว่างที่ไม่จำเป็น
-  }));
-
-  const optionsActivityType = activityList.map((item) => ({
-    value: item.id,
-    label: item.name.trim(), // ใช้ trim() เพื่อลบช่องว่างที่ไม่จำเป็น
-  }));
-
-  const optionsSale = saleList.map((item) => ({
-    value: item.id,
-    label: item.name.trim(), // ใช้ trim() เพื่อลบช่องว่างที่ไม่จำเป็น
-    selected: false, // default value is false
-  }));
-
-  const resetCropAndProductForShop = (shop) => ({
-    ...shop,
-    crop_id_list: [],
-    product_list: [],
-  });
-
-  const resetProductForShop = (shop) => ({
-    ...shop,
-    product_list: [],
-  });
-
-  const normalizeShopsForForm = (shops = []) =>
-    shops.map((shop) => ({
-      ...shop,
-      document_date: shop?.document_date ? dayjs(shop.document_date) : dayjs(),
-      crop_id_list: Array.isArray(shop?.crop_id_list) ? shop.crop_id_list : [],
-      product_list: Array.isArray(shop?.product_list) ? shop.product_list : [],
-    }));
-
-  const handleContactChange = (index, field, value) => {
-    // console.log("index : ", index);
-    // console.log("field : ", field);
-    // console.log("value : ", value);
-    // console.log("------------------");
-    const updateShop = [...multiShop];
-
-    if (field === "date_of_birth") {
-      const birthDate = dayjs(value);
-      const currentYear = dayjs().year();
-      const age = currentYear - birthDate.year(); // คำนวณอายุ
-      updateShop[index][field] = value; // อัปเดตวันเกิด
-      updateShop[index]["age"] = age; // อัปเดตอายุ
-    } else {
-      updateShop[index][field] = value; // อัปเดตฟิลด์อื่นๆ
-    }
-
-    setMultiShop(updateShop); // อัปเดต state
-  };
-
-  const handleChangeDate = (index, field, value) => {
-    const update = [...multiShop];
-    update[index][field] = value; // อัปเดตฟิลด์อื่นๆ
-    setMultiShop(update); // อัปเดต state
-  };
-
-  const handleChangeSelect = (index, field, value) => {
-    if (field == "dealer_id") {
-      setActivityDetail((prevState) => ({
-        ...prevState,
-        dealer_id: value,
-      }));
-    } else if (field == "crop_id_list") {
-      setActivityDetail((prevState) => ({
-        ...prevState,
-        crop_id_list: value,
-      }));
-    } else if (field == "product_list") {
-      setActivityDetail((prevState) => ({
-        ...prevState,
-        product_list: value,
-      }));
-    }
-
-    const update = [...multiShop];
-    if (field === "dealer_id") {
-      update[index] = {
-        ...resetCropAndProductForShop(update[index]),
-        dealer_id: value || "",
-      };
-    } else if (field === "crop_id_list") {
-      update[index] = {
-        ...resetProductForShop(update[index]),
-        crop_id_list: value || [],
-      };
-    } else {
-      update[index][field] = value;
-    }
-    setMultiShop(update);
-    formMulti.setFieldsValue({ shops: normalizeShopsForForm(update) });
-  };
-
-  const handleRemoveContact = (index) => {
-    setMultiShop((prev) => {
-      const updated = prev.filter((_, i) => i !== index);
-
-      // แปลง document_date เป็น dayjs object
-      formMulti.setFieldsValue({ shops: normalizeShopsForForm(updated) });
-
-      return updated;
-    });
-  };
-
-  const renderMultiShop = () =>
-    multiShop.map((item, index) => (
-      //console.log('item : '+index+' > ',item.document_number)
-      <div key={index} className="mb-6">
-        <div className="flex justify-between mb-4">
-          <span className="text-[#00783F] text-md">
-            <b>{`Shop ${index + 1}`}</b>
-          </span>
-          {index > 0 && !isViewMode && (
-            <ActionButton
-              mode="delete"
-              text="Delete"
-              onClick={() => handleRemoveContact(index)}
-              disabled={isViewMode}
-            />
-          )}
-        </div>
-        <Row gutter={16} align="middle">
-          <Col xs={24} sm={24} md={24} lg={24}>
-            <Form.Item
-              className="mb-3"
-              label={menuTitle + " No"}
-              name={["shops", index, "document_number"]}
-            >
-              <Input
-                disabled={true}
-                placeholder="Generate"
-                value={item.document_number || ""}
-                onChange={(e) =>
-                  handleContactChange(index, "document_number", e.target.value)
-                }
-              />
-            </Form.Item>
-          </Col>
-          <Col xs={24} sm={24} md={6} lg={6}>
-            <Form.Item
-              key={index}
-              label="Date"
-              style={{ marginBottom: 12 }}
-              name={["shops", index, "document_date"]}
-              rules={[{ required: true, message: "กรุณาเลือก Date" }]}
-              initialValue={
-                item.document_date
-                  ? dayjs(item.document_date)
-                  : isCreate
-                    ? dayjs() // 👉 วันที่ปัจจุบัน
-                    : null
-              }
-            >
-              <DatePicker
-                disabled={
-                  isViewMode ||
-                  (isCreate ? false : !activityDetail?.permission?.edit)
-                }
-                style={{ width: "100%" }}
-                format="YYYY-MM-DD"
-                onChange={(date) => {
-                  const d = dayjs(date).format("YYYY-MM-DD");
-                  handleChangeDate(index, "document_date", d);
-                }}
-              />
-            </Form.Item>
-          </Col>
-          <Col xs={24} sm={24} md={6} lg={6}>
-            <Form.Item
-              label="Shop"
-              rules={[{ required: true, message: "กรุณาเลือก Shop" }]}
-              style={{ marginBottom: 12 }}
-              name={["shops", index, "dealer_id"]}
-            >
-              <Select
-                showSearch
-                filterOption={(input, option) =>
-                  option.label.toLowerCase().includes(input.toLowerCase())
-                }
-                disabled={
-                  isViewMode ||
-                  (isCreate ? !activityDetail.user_id : !activityDetail?.permission?.edit)
-                }
-                placeholder="Select shop"
-                value={multiShop[index]?.dealer_id || null}
-                onChange={handleChangeSelect.bind(null, index, "dealer_id")}
-                options={optionsShop}
-              />
-            </Form.Item>
-
-          </Col>
-          <Col xs={24} sm={24} md={6} lg={6}>
-            <Form.Item
-              label="Crop"
-              rules={[{ required: true, message: "กรุณาเลือก Crop" }]}
-              style={{ marginBottom: 12 }}
-              name={["shops", index, "crop_id_list"]}
-            >
-              <Select
-                disabled={
-                  isViewMode ||
-                  (isCreate ? !multiShop[index]?.dealer_id : !activityDetail?.permission?.edit)
-                }
-                placeholder="Select shop"
-                options={optionsCropList}
-                mode="multiple"
-                onChange={handleChangeSelect.bind(null, index, "crop_id_list")}
-              />
-            </Form.Item>
-          </Col>
-          <Col xs={24} sm={24} md={24} lg={24}>
-            <Form.Item
-              label="Product"
-              rules={[{ required: true, message: "กรุณาเลือก Product" }]}
-              style={{ marginBottom: 12 }}
-              name={["shops", index, "product_list"]}
-            >
-              <Select
-                disabled={
-                  isViewMode ||
-                  (isCreate
-                    ? !multiShop[index]?.dealer_id || !(multiShop[index]?.crop_id_list?.length)
-                    : !activityDetail?.permission?.edit)
-                }
-                placeholder="Select shop"
-                options={optionsProductList}
-                mode="multiple"
-                onChange={handleChangeSelect.bind(null, index, "product_list")}
-              />
-            </Form.Item>
-          </Col>
-          <Col xs={24} sm={24} md={24} lg={24}>
-            <Form.Item
-              className="mb-3"
-              label="Location"
-              name={["shops", index, "location_address"]}
-            >
-              <Input
-                disabled={
-                  isViewMode ||
-                  (isCreate ? false : !activityDetail?.permission?.edit)
-                }
-                placeholder="Enter location"
-                value={item.location_address || ""}
-                onChange={(e) =>
-                  handleContactChange(index, "location_address", e.target.value)
-                }
-              />
-            </Form.Item>
-          </Col>
-          <Col xs={24} sm={24} md={24} lg={24}>
-            <Form.Item
-              className="mb-3"
-              label="Description"
-              name={["shops", index, "description"]}
-            >
-              <ReactQuill
-                disabled={
-                  isViewMode ||
-                  (isCreate ? false : !activityDetail?.permission?.edit)
-                }
-                theme="snow"
-                placeholder="Enter Description"
-                modules={{ toolbar: toolbarOptions }}
-                onChange={handleChangeSelect.bind(null, index, "description")}
-              />
-            </Form.Item>
-          </Col>
-          <Col xs={24} sm={24} md={24} lg={24}>
-            <Form.Item
-              className="mb-3"
-              label="Assign"
-              name={["shops", index, "assing_user_list"]}
-            >
-              <Select
-                disabled={
-                  isViewMode ||
-                  (isCreate ? false : !activityDetail?.permission?.edit)
-                }
-                placeholder="Select Assign"
-                options={optionsSaleAllList}
-                mode="multiple"
-                onChange={handleChangeSelect.bind(
-                  null,
-                  index,
-                  "assing_user_list"
-                )}
-              />
-            </Form.Item>
-          </Col>
-          <Col xs={24} sm={24} md={24} lg={24}>
-            <hr
-              style={{
-                border: "1px solid gray",
-              }}
-            ></hr>
-          </Col>
-        </Row>
-      </div>
-    ));
-
+  // =======================
   // Master
+  // =======================
   useEffect(() => {
     const getMaster = async () => {
       setLoading(true);
       try {
-        const [activityType, sale, saleAll, perception] = await Promise.all([
+        const isExpensePage =
+          pageCode === "expense_advance" || pageCode === "expense_clearing";
+
+        const saleMasterRequest = isExpensePage
+          ? useServiceAPI.get(paths.pathMasterSaleExpense, {})
+          : isViewMode
+            ? useServiceAPI.get(paths.pathMasterSaleTeam, {})
+            : useServiceAPI.get(paths.pathMasterSaleDropdown, { mode: "all" });
+
+        const [activityTypeRes, saleRes, saleAllRes, perceptionRes] = await Promise.all([
           useServiceAPI.get(paths.pathMasterActivityType, {}),
-          useServiceAPI.get(paths.pathMasterSaleDropdown, { mode: "all" }),
-          useServiceAPI.get(paths.pathMasterSaleDropdown, {
-            status: "all",
-            mode: "all",
-          }),
+          saleMasterRequest,
+          useServiceAPI.get(paths.pathMasterSaleDropdown, { status: "all", mode: "all" }),
           useServiceAPI.get(paths.pathMasterPerception, {}),
         ]);
-        setActivityList(activityType.data);
-        setSaleList(sale.data);
 
-        setSaleAllList(saleAll.data);
-        setPerceptionList(perception.data);
+        setActivityList(activityTypeRes.data);
+        setSaleList(saleRes.data);
+        setSaleAllList(saleAllRes.data);
+        setPerceptionList(perceptionRes.data);
       } finally {
         setLoading(false);
       }
@@ -533,11 +480,14 @@ export default function CreateActivityManyShop() {
     getMaster();
   }, []);
 
+  // =======================
+  // Detail
+  // =======================
   useEffect(() => {
     const getDetail = async () => {
       setLoading(true);
       try {
-        const [activityDetail] = await Promise.all([
+        const [activityDetailRes] = await Promise.all([
           useServiceAPI.get(paths.pathActivityExpenseDetail, {
             document_number: documentNumber,
             page_code: pageCode,
@@ -545,368 +495,586 @@ export default function CreateActivityManyShop() {
           }),
         ]);
 
-        const activityDetailData = activityDetail.data;
+        const d = activityDetailRes.data;
 
-        const productListIds = activityDetailData.product_list.map(
-          (product) => product.id
-        );
-        const userListIds = activityDetailData.assing_user_list.map(
-          (product) => product.id
-        );
-        const cropListIds = activityDetailData.crop_id_list.map(
-          (product) => product.id
-        );
 
-        const expense_product_data_list =
-          activityDetailData.expense_product_data_list.map((element, key) => ({
-            key: key + 1,
-            product_name: element.product_name,
-            packing_list: element.packing_list,
-            estimate_sale_qty: element.estimate_sale_qty,
-            acutal_sale_qty: element.acutal_sale_qty,
-            bath_ltkg: element.bath_ltkg,
-            bath_unit: element.bath_unit,
-            product_code: element.product_code,
-            product_id: element.product_id,
-            id: element.id,
-          }));
+        // ✅ normalize numeric fields
+        const clearingFreeKeyRows =
+          d?.expense_clearing_freekey ?? d?.freekey ?? [];
 
+        const normalized = {
+          ...d,
+          expense_advance: toNumber(d.expense_advance, 0),
+          expense_actual: toNumber(d.expense_actual, 0),
+          expense_participant_estimate: toNumber(d.expense_participant_estimate, 0),
+          expense_particapant_actual: toNumber(d.expense_particapant_actual, 0),
+
+          expense_product_total_estimate_sale: toNumber(d.expense_product_total_estimate_sale, 0),
+          expense_product_total_acutal_sale: toNumber(d.expense_product_total_acutal_sale, 0),
+
+          // ที่คุณเอามา map ใส่ expense_actual_exp/expense_actual_sale
+          expense_expense_actual_exp: toNumber(d.expense_expense_actual_exp, 0),
+          expense_expense_actual_sale: toNumber(d.expense_expense_actual_sale, 0),
+          expense_actual_exp: toNumber(d.expense_actual_exp ?? d.expense_expense_actual_exp, 0),
+          expense_actual_sale: toNumber(d.expense_actual_sale ?? d.expense_expense_actual_sale, 0),
+
+          // ✅ normalize list rows (สำคัญมากสำหรับ InputNumber ใน table)
+          expense_product_data_list: (d.expense_product_data_list || []).map((el, idx) => ({
+            key: idx + 1,
+            product_name: el.product_name,
+            packing_list: el.packing_list,
+            estimate_sale_qty: toNumber(el.estimate_sale_qty, 0),
+            acutal_sale_qty: toNumber(el.acutal_sale_qty, 0),
+            bath_ltkg: toNumber(el.bath_ltkg, 0),
+            bath_unit: toNumber(el.bath_unit, 0),
+            product_code: el.product_code,
+            product_id: el.product_id,
+            id: el.id ?? el.product_id,
+          })),
+          freekey: ensureFreeKeyRows(clearingFreeKeyRows),
+        };
+
+        const productListIds = d.product_list.map((p) => p.id);
+        const userListIds = d.assing_user_list.map((p) => p.id);
+        const cropListIds = d.crop_id_list.map((p) => p.id);
+
+        const expense_product_data_list = d.expense_product_data_list.map((el, key) => ({
+          key: key + 1,
+          product_name: el.product_name,
+          packing_list: el.packing_list,
+          estimate_sale_qty: el.estimate_sale_qty,
+          acutal_sale_qty: el.acutal_sale_qty,
+          bath_ltkg: el.bath_ltkg,
+          product_code: el.product_code,
+          product_id: el.product_id,
+          id: el.id,
+        }));
+
+        // participant list
         let participantData = [];
         let count = 0;
-        activityDetailData?.particapant_list?.forEach((element, key) => {
+        d?.particapant_list?.forEach((el, key) => {
           count++;
-          const newKey = `sales-${key + 1}`;
           participantData.push({
             no: key + 1,
             id: key + 1,
-            key: newKey,
-            name: element.name,
-            address: element.address,
-            phone: element.phone,
+            key: `sales-${key + 1}`,
+            name: el.name,
+            address: el.address,
+            phone: el.phone,
           });
         });
 
+        // images
         let imageList = [];
-        activityDetailData?.image_list?.forEach((element, key) => {
-          imageList.push({
-            uid: key,
-            name: getFileNameWithExtension(element),
-            status: "done",
-            url: element,
-          });
+        d?.image_list?.forEach((url, key) => {
+          const parts = url.split("/");
+          imageList.push({ uid: key, name: parts.pop(), status: "done", url });
         });
+
         setFileList(imageList);
         setParticipants(participantData);
-        setIsBtnExpenseActive(activityDetailData.is_expense);
-        setActivityDetail((prevState) => ({
-          ...activityDetailData,
+        setIsBtnExpenseActive(normalized.is_expense);
+
+        setActivityDetail((prev) => ({
+          ...prev,
+          ...normalized,
+          document_number_referrent: normalized.document_number_referrent || "",
           crop_id_list: cropListIds,
           product_list: productListIds,
           assing_user_list: userListIds,
-          expense_actual_exp: activityDetailData.expense_expense_actual_exp,
-          expense_product_data_list: expense_product_data_list,
         }));
+
+        expenseForm.setFieldsValue({
+          advance_expense: normalized.expense_advance,
+          actual_expense: normalized.expense_actual,
+        });
+
+        participantForm.setFieldsValue({
+          estimate_participant: normalized.expense_participant_estimate,
+          actual_participant: normalized.expense_particapant_actual,
+        });
+
       } finally {
         setLoading(false);
       }
     };
+
     if (documentNumber) {
       getDetail();
     } else {
-      // if (locationParam?.state?.dateCalendar) {
-      handleChange(
-        "document_date",
-        locationParam?.state?.dateCalendar || dayjs()
-      );
-      formCustom.setFieldsValue({
-        document_date: locationParam?.state?.dateCalendar || dayjs(),
-      });
-      // }
+      handleChange("document_date", locationParam?.state?.dateCalendar || dayjs());
+      formCustom.setFieldsValue({ document_date: locationParam?.state?.dateCalendar || dayjs() });
+      if (pageCode === "expense_clearing") {
+        setActivityDetail((prev) => ({
+          ...prev,
+          freekey: ensureFreeKeyRows([]),
+        }));
+      }
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Function to extract the full filename
-  const getFileNameWithExtension = (url) => {
-    const parts = url.split("/");
-    return parts.pop(); // Get the last part of the URL
-  };
+  // const resetActivityRefDetail = () => {
+  //   setCropList([]);
+  //   setProductList([]);
+  //   setDealerList([]);
+  //   setDealerCustomer([]);
+  //   setParticipants([]);
+  //   setFileList([]);
 
-  const handleChange = (attribue, value) => {
-    const getMasterSelect = async () => {
-      try {
-        if (attribue === "user_id") {
-          if (!value) {
-            setDealerList([]);
-            setCropList([]);
-            setProductList([]);
-            setDealerCustomer([]);
-            setActivityDetail((prevState) => ({
-              ...prevState,
-              user_id: undefined,
-              dealer_id: undefined,
-              crop_id_list: [],
-              product_list: [],
-              expense_product_data_list: [],
-              expense_product_total_acutal_sale: 0,
-              expense_product_total_estimate_sale: 0,
-              expense_expense_actual_exp: 0,
-              expense_expense_actual_sale: 0,
-              expense_actual_sale: 0,
-              expense_actual_exp: 0,
-            }));
-            const resetMultiShop = multiShop.map((shop) => ({
-              ...shop,
-              dealer_id: "",
-              crop_id_list: [],
-              product_list: [],
-            }));
-            setMultiShop(resetMultiShop);
-            formMulti.setFieldsValue({
-              user_id: undefined,
-              shops: normalizeShopsForForm(resetMultiShop),
-            });
-            return;
-          }
+  //   setActivityDetail((prev) => ({
+  //     ...prev,
+  //     document_number: "",
+  //     activity_type_id: undefined,
+  //     user_id: undefined,
+  //     dealer_id: undefined,
+  //     sub_dealer_id: undefined,
+  //     dealer_name: "",
+  //     sub_dealer_name: "",
+  //     crop_id_list: [],
+  //     product_list: [],
+  //     assing_user_list: [],
+  //     location_address: "",
+  //     description: "",
+  //     expense_product_data_list: [],
+  //     expense_product_total_estimate_sale: 0,
+  //     expense_product_total_acutal_sale: 0,
+  //     expense_actual_exp: 0,
+  //     expense_actual_sale: 0,
+  //     expense_expense_actual_exp: 0,
+  //     expense_expense_actual_sale: 0,
+  //     expense_participant_estimate: 0,
+  //     expense_particapant_actual: 0,
+  //     expense_advance: 0,
+  //     expense_actual: 0,
+  //   }));
 
-          setActivityDetail((prevState) => ({ ...prevState, user_id: value }));
-          const resetMultiShop = multiShop.map((shop) => ({
-            ...shop,
-            dealer_id: "",
-            crop_id_list: [],
-            product_list: [],
-          }));
-          setMultiShop(resetMultiShop);
-          formMulti.setFieldsValue({ shops: normalizeShopsForForm(resetMultiShop) });
-          setCropList([]);
-          setProductList([]);
-          setDealerCustomer([]);
-          await setupDealer(value);
-        } else if (attribue === "dealer_id") {
-          setActivityDetail((prevState) => ({
-            ...prevState,
-            dealer_id: value,
-          }));
-        } else if (attribue === "crop_id_list") {
-          setActivityDetail((prevState) => ({
-            ...prevState,
-            crop_id_list: value,
-          }));
-        } else if (attribue === "activity_type_id") {
-          if (!value) {
-            setDealerList([]);
-            setCropList([]);
-            setProductList([]);
-            setDealerCustomer([]);
-            setActivityDetail((prevState) => ({
-              ...prevState,
-              activity_type_id: undefined,
-              user_id: undefined,
-              dealer_id: undefined,
-              crop_id_list: [],
-              product_list: [],
-              expense_product_data_list: [],
-              expense_product_total_acutal_sale: 0,
-              expense_product_total_estimate_sale: 0,
-              expense_expense_actual_exp: 0,
-              expense_expense_actual_sale: 0,
-              expense_actual_sale: 0,
-              expense_actual_exp: 0,
-            }));
-            const resetMultiShop = multiShop.map((shop) => ({
-              ...shop,
-              dealer_id: "",
-              crop_id_list: [],
-              product_list: [],
-            }));
-            setMultiShop(resetMultiShop);
-            formMulti.setFieldsValue({
-              activity_type_id: undefined,
-              user_id: undefined,
-              shops: normalizeShopsForForm(resetMultiShop),
-            });
-            return;
-          }
-          setActivityDetail((prevState) => ({
-            ...prevState,
-            activity_type_id: value,
-          }));
-        } else if (attribue === "product_list") {
-          setActivityDetail((prevState) => ({
-            ...prevState,
-            product_list: value,
-          }));
-        } else if (attribue === "assing_user_list") {
-          setActivityDetail((prevState) => ({
-            ...prevState,
-            assing_user_list: value,
-          }));
-        } else if (attribue === "location_address") {
-          setActivityDetail((prevState) => ({
-            ...prevState,
-            location_address: value,
-          }));
-        } else if (attribue === "description") {
-          setActivityDetail((prevState) => ({
-            ...prevState,
-            description: value,
-          }));
-        } else if (attribue === "document_date") {
-          setActivityDetail((prevState) => ({
-            ...prevState,
-            document_date: value,
-          }));
-        } else if (attribue === "activity_reference") {
-          setLoading(true);
+  //   expenseForm.resetFields();
+  //   participantForm.resetFields();
+  // };
 
-          try {
-            const [response] = await Promise.all([
-              useServiceAPI.get(paths.pathActivityDetail, {
-                document_number: value,
-              }),
-            ]);
-            const activityDetailData = response.data;
+  const mergeOptionsById = (oldOptions = [], newOptions = []) => {
+    const map = new Map();
 
-            // let productListIds = [];
-            const productListIds = activityDetailData?.product_list?.map(
-              (product) => product.id
-            );
-            const userListIds = activityDetailData.assing_user_list.map(
-              (product) => product.id
-            );
-            const cropListIds = activityDetailData.crop_id_list.map(
-              (product) => product.id
-            );
-
-            setIsBtnExpenseActive(activityDetailData.is_expense);
-            console.log("setActivityDetail");
-            setActivityDetail((prevState) => ({
-              ...prevState,
-              ...activityDetailData,
-              crop_id_list: cropListIds,
-              product_list: productListIds,
-              assing_user_list: userListIds,
-              document_number: "",
-            }));
-          } catch (error) {
-            console.log(error);
-          } finally {
-            setLoading(false);
-          }
-        }
-      } catch (error) {
-        console.log(error);
+    [...oldOptions, ...newOptions].forEach((item) => {
+      if (!item) return;
+      const key = String(item.id);
+      if (!map.has(key)) {
+        map.set(key, item);
       }
-    };
+    });
 
-    getMasterSelect();
+    return Array.from(map.values());
   };
 
-  useEffect(() => {
-    if (activityDetail.crop_id_list.length > 0) {
-      setupCrop();
-    } else {
-      console.log("setActivityDetail");
-      setActivityDetail((prevState) => ({
-        ...prevState,
-        expense_product_data_list: [],
-        product_list: [],
-      }));
-      setProductList([]);
-    }
-  }, [activityDetail.crop_id_list]);
+  const loadActivityReferenceDetail = async (refNo) => {
+    if (!refNo) return;
 
-  useEffect(() => {
-    console.log("setupCropAndDealerCustomer");
-    const setupCropAndDealerCustomer = async () => {
-      const [crop, dealerCustomerData] = await Promise.all([
-        useServiceAPI.get(paths.pathMasterSubDealerCrop, {
-          sub_dealer_id: activityDetail.dealer_id,
-        }),
-        useServiceAPI.get(paths.pathMasterSubDealerCustomer, {
-          sub_delaer_id: activityDetail.dealer_id,
-        }),
-      ]);
-      setCropList(crop.data);
-      setDealerCustomer(dealerCustomerData.data);
-    };
-
-    if (activityDetail.dealer_id) {
-      setupCropAndDealerCustomer();
-    }
-  }, [activityDetail.dealer_id]);
-
-  //handleChangeFunction
-  const setupDealer = async (value) => {
-    console.log("load dealer");
+    setLoading(true);
     try {
-      const response = await useServiceAPI.get(paths.pathMasterUserGetSubDealer, {
-        user_id: value,
+      const response = await useServiceAPI.get(paths.pathActivityDetail, {
+        document_number: refNo,
       });
 
-      const subDealerAll = response.data?.map((element) => ({
-        id: element.id,
-        name: element.name,
-      })) ?? [];
+      const d = response.data || {};
 
-      // เคลียร์และตั้งค่า Dealer List เสมอ
-      setDealerList(subDealerAll);
+      const productListIds = (d?.product_list || []).map((p) => p.id);
+      const userListIds = (d?.assing_user_list || []).map((p) => p.id);
+      const cropListIds = (d?.crop_id_list || []).map((p) => p.id);
 
-      // OPTIONAL: ถ้าไม่มี dealer เลย ให้ reset ค่า dealer_id ใน multiShop
-      if (subDealerAll.length === 0) {
-        setMultiShop((prev) =>
-          prev.map((shop) => ({
-            ...shop,
-            dealer_id: "", // รีเซ็ต
-          }))
-        );
+      const cropOptions = (d?.crop_id_list || []).map((item) => ({
+        id: item.id,
+        name: item.name,
+      }));
+
+      const productOptions = (d?.product_list || []).map((item) => ({
+        id: item.id,
+        name: item.name ?? item.product_name ?? `${item.product_name || ""} ${item.packing_list ? `(${item.packing_list})` : ""}`.trim(),
+      }));
+
+      // โหลด dealer ตาม user เพื่อให้ dropdown ยังแก้ได้ตามปกติ
+      if (d?.user_id) {
+        await setupDealer(d.user_id);
       }
-    } catch (error) {
-      console.error("setupDealer error:", error);
 
-      // เคลียร์ทั้ง dealer list และค่าใน multiShop กรณี error
-      setDealerList([]);
-      setMultiShop((prev) =>
-        prev.map((shop) => ({
-          ...shop,
-          dealer_id: "",
-        }))
-      );
+      // merge options เพื่อไม่ให้ dropdown ถูกจำกัดอยู่แค่ค่าจาก ref
+      setCropList((prev) => mergeOptionsById(prev, cropOptions));
+      setProductList((prev) => mergeOptionsById(prev, productOptions));
+
+      setIsBtnExpenseActive(!!d.is_expense);
+
+      setActivityDetail((prev) => ({
+        ...prev,
+        ...d,
+        document_number: "",
+        document_number_referrent: refNo,
+        crop_id_list: cropListIds,
+        product_list: productListIds,
+        assing_user_list: userListIds,
+        expense_product_data_list: d?.expense_product_data_list || [],
+        freekey: ensureFreeKeyRows([]),
+      }));
+
+      formCustom.setFieldsValue({
+        document_number_referrent: refNo,
+        activity_type_id: d?.activity_type_id,
+        user_id: d?.user_id != null ? Number(d.user_id) : undefined,
+        dealer_id: d?.dealer_id != null ? Number(d.dealer_id) : undefined,
+        sub_dealer_id: d?.sub_dealer_id != null ? Number(d.sub_dealer_id) : undefined,
+        crop_id_list: cropListIds,
+        product_list: productListIds,
+        assing_user_list: userListIds,
+        location_address: d?.location_address || "",
+        description: d?.description || "",
+        document_date: d?.document_date ? dayjs(d.document_date) : undefined,
+      });
+
+      expenseForm.setFieldsValue({
+        advance_expense: toNumber(d?.expense_advance, 0),
+        actual_expense: toNumber(d?.expense_actual, 0),
+      });
+
+      participantForm.setFieldsValue({
+        estimate_participant: toNumber(d?.expense_participant_estimate, 0),
+        actual_participant: toNumber(d?.expense_particapant_actual, 0),
+      });
+
+      setIsRefLocked(true);
+    } catch (e) {
+      console.log(e);
+    } finally {
+      setLoading(false);
     }
+  };
+
+  const handleClearReference = () => {
+    setIsRefLocked(false);
+    setIsBtnExpenseActive(false);
+    setCropList([]);
+    setProductList([]);
+    setDealerList([]);
+    setDealerCustomer([]);
+    setParticipants([]);
+    setFileList([]);
+
+    const defaultDate = locationParam?.state?.dateCalendar || dayjs();
+
+    const resetState = {
+      document_number: "",
+      document_number_referrent: "",
+      activity_type_id: undefined,
+      user_id: undefined,
+      dealer_id: undefined,
+      sub_dealer_id: undefined,
+      dealer_name: "",
+      sub_dealer_name: "",
+      crop_id_list: [],
+      product_list: [],
+      assing_user_list: [],
+      location_address: "",
+      description: "",
+      expense_product_data_list: [],
+      expense_product_total_estimate_sale: 0,
+      expense_product_total_acutal_sale: 0,
+      expense_actual_exp: 0,
+      expense_actual_sale: 0,
+      expense_expense_actual_exp: 0,
+      expense_expense_actual_sale: 0,
+      expense_participant_estimate: 0,
+      expense_particapant_actual: 0,
+      expense_advance: 0,
+      expense_actual: 0,
+      document_date: defaultDate,
+      freekey: pageCode === "expense_clearing" ? ensureFreeKeyRows([]) : [],
+    };
+
+    setActivityDetail((prev) => ({
+      ...prev,
+      ...resetState,
+    }));
+
+    formCustom.setFieldsValue({
+      document_number: "",
+      document_number_referrent: "",
+      activity_type_id: undefined,
+      user_id: undefined,
+      dealer_id: undefined,
+      sub_dealer_id: undefined,
+      crop_id_list: [],
+      product_list: [],
+      assing_user_list: [],
+      location_address: "",
+      description: "",
+      document_date: defaultDate,
+    });
+
+    expenseForm.setFieldsValue({
+      advance_expense: 0,
+      actual_expense: 0,
+    });
+
+    participantForm.setFieldsValue({
+      estimate_participant: 0,
+      actual_participant: 0,
+    });
+
+    if (isAutoSelectMySale) {
+      const mySaleId = Number(userInfo?.user_data_id ?? userInfo?.id);
+      const mySale = saleList.find((item) => Number(item.id) === mySaleId);
+
+      if (mySale) {
+        setActivityDetail((prev) => ({
+          ...prev,
+          user_id: mySaleId,
+          assing_user_list: [mySaleId],
+        }));
+
+        formCustom.setFieldsValue({
+          user_id: mySaleId,
+          assing_user_list: [mySaleId],
+        });
+
+        setupDealer(mySaleId);
+      }
+    }
+  };
+
+  // =======================
+  // handleChange
+  // =======================
+  const handleChange = (attribue, value) => {
+    const run = async () => {
+      try {
+        const resetCropAndProductState = () => {
+          setCropList([]);
+          setProductList([]);
+
+          setActivityDetail((prev) => ({
+            ...prev,
+            crop_id_list: [],
+            product_list: [],
+            expense_product_data_list: [],
+            expense_product_total_estimate_sale: 0,
+            expense_product_total_acutal_sale: 0,
+            expense_actual_exp: 0,
+            expense_actual_sale: 0,
+            expense_expense_actual_exp: 0,
+            expense_expense_actual_sale: 0,
+          }));
+
+          formCustom.setFieldsValue({
+            crop_id_list: [],
+            product_list: [],
+          });
+        };
+
+        const resetSalesChainState = () => {
+          setDealerList([]);
+          setDealerCustomer([]);
+          resetCropAndProductState();
+
+          setActivityDetail((prev) => ({
+            ...prev,
+            dealer_id: undefined,
+            sub_dealer_id: undefined,
+            dealer_name: "",
+            sub_dealer_name: "",
+          }));
+
+          formCustom.setFieldsValue({
+            dealer_id: undefined,
+            crop_id_list: [],
+            product_list: [],
+          });
+        };
+
+        if (attribue === "user_id") {
+          if (!value) {
+            resetSalesChainState();
+            setActivityDetail((prev) => ({
+              ...prev,
+              user_id: undefined,
+              assing_user_list: [],
+            }));
+
+            formCustom.setFieldsValue({
+              user_id: undefined,
+              assing_user_list: [],
+              dealer_id: undefined,
+              crop_id_list: [],
+              product_list: [],
+            });
+            return;
+          }
+
+          resetSalesChainState();
+          setActivityDetail((prev) => ({
+            ...prev,
+            user_id: value,
+            dealer_id: undefined,
+            sub_dealer_id: undefined,
+          }));
+          await setupDealer(value);
+        } else if (attribue === "dealer_id") {
+          resetCropAndProductState();
+
+          if (pageCode === "activity_transaction") {
+            setActivityDetail((prev) => ({ ...prev, dealer_id: value }));
+          } else {
+            setActivityDetail((prev) => ({ ...prev, sub_dealer_id: value }));
+          }
+
+          if (!value) {
+            setDealerCustomer([]);
+
+            const saleId = activityDetail.user_id || formCustom.getFieldValue("user_id");
+            if (saleId) {
+              await setupDealer(saleId); // ✅ โหลด shop option ตาม sale เดิมกลับมา
+            }
+          }
+        } else if (attribue === "crop_id_list") {
+          if (!value || value.length === 0) {
+            setProductList([]);
+
+            setActivityDetail((prev) => ({
+              ...prev,
+              crop_id_list: [],
+              product_list: [],
+              expense_product_data_list: [],
+              expense_product_total_estimate_sale: 0,
+              expense_product_total_acutal_sale: 0,
+              expense_actual_exp: 0,
+              expense_actual_sale: 0,
+              expense_expense_actual_exp: 0,
+              expense_expense_actual_sale: 0,
+            }));
+
+            formCustom.setFieldsValue({
+              crop_id_list: [],
+              product_list: [],
+            });
+          } else {
+            setActivityDetail((prev) => ({ ...prev, crop_id_list: value }));
+          }
+        } else if (attribue === "activity_type_id") {
+          if (!value && isCreate) {
+            resetSalesChainState();
+            setActivityDetail((prev) => ({
+              ...prev,
+              activity_type_id: value,
+              user_id: undefined,
+              assing_user_list: [],
+              dealer_id: undefined,
+              sub_dealer_id: undefined,
+            }));
+
+            formCustom.setFieldsValue({
+              activity_type_id: value,
+              user_id: undefined,
+              assing_user_list: [],
+              dealer_id: undefined,
+              crop_id_list: [],
+              product_list: [],
+            });
+            return;
+          }
+
+          setActivityDetail((prev) => ({ ...prev, activity_type_id: value }));
+        } else if (attribue === "product_list") {
+          setActivityDetail((prev) => ({ ...prev, product_list: value }));
+        } else if (attribue === "assing_user_list") {
+          setActivityDetail((prev) => ({ ...prev, assing_user_list: value }));
+        } else if (attribue === "location_address") {
+          setActivityDetail((prev) => ({ ...prev, location_address: value }));
+        } else if (attribue === "description") {
+          setActivityDetail((prev) => ({ ...prev, description: value }));
+        } else if (attribue === "document_date") {
+          setActivityDetail((prev) => ({ ...prev, document_date: value }));
+        } else if (attribue === "document_number_referrent") {
+          setActivityDetail((prev) => ({
+            ...prev,
+            document_number_referrent: value,
+          }));
+
+          formCustom.setFieldsValue({
+            document_number_referrent: value,
+          });
+
+          await loadActivityReferenceDetail(value);
+        }
+      } catch (e) {
+        console.log(e);
+      }
+    };
+    run();
+  };
+
+  // =======================
+  // Crop -> Product
+  // =======================
+  useEffect(() => {
+    if (activityDetail.crop_id_list.length > 0) setupCrop();
+    else {
+      setActivityDetail((prev) => ({ ...prev, expense_product_data_list: [], product_list: [] }));
+      setProductList([]);
+      formCustom.setFieldsValue({ product_list: [] });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activityDetail.crop_id_list]);
+
+  const effectiveDealerId = Number(pageCode === "activity_transaction" ? activityDetail?.dealer_id : activityDetail?.sub_dealer_id);
+
+  useEffect(() => {
+    const setupCropAndDealerCustomer = async (subDealerId) => {
+      const [cropRes, dealerCustomerRes] = await Promise.all([
+        useServiceAPI.get(paths.pathMasterSubDealerCrop, { sub_dealer_id: subDealerId }),
+        useServiceAPI.get(paths.pathMasterSubDealerCustomer, { sub_delaer_id: subDealerId }),
+      ]);
+      setCropList(cropRes.data);
+      setDealerCustomer(dealerCustomerRes.data);
+    };
+
+    if (effectiveDealerId) setupCropAndDealerCustomer(effectiveDealerId);
+    else {
+      setCropList([]);
+      setProductList([]);
+      setDealerCustomer([]);
+    }
+  }, [effectiveDealerId]);
+
+  const setupDealer = async (value) => {
+    const dealer = await useServiceAPI.get(paths.pathMasterUserGetSubDealer, { user_id: value });
+    setDealerList(dealer.data ? dealer.data : []);
   };
 
   const setupCrop = async () => {
-    const [productCrop] = await Promise.all([
-      useServiceAPI.get(paths.pathMasterProductByCrop, {
-        crop_list: activityDetail.crop_id_list,
-      }),
-    ]);
-
-    let productList = productCrop.data.map((element, key) => ({
+    const productCrop = await useServiceAPI.get(paths.pathMasterProductByCrop, { crop_list: activityDetail.crop_id_list });
+    const productListNew = productCrop.data.map((el, key) => ({
       key: key + 1,
-      name: `${element.product_name} (${element.packing_list})`,
-      id: element.id,
+      name: `${el.product_name} (${el.packing_list})`,
+      id: el.id,
     }));
-
-    setProductList(productList);
+    setProductList(productListNew);
 
     if (documentNumber && firstCallData) {
-      setFirstCallData(!firstCallData);
+      setFirstCallData(false);
     } else {
-      let productCropList = productCrop.data.map((element, key) => ({
+      const productCropListNew = productCrop.data.map((el, key) => ({
         key: key + 1,
-        product_name: element.product_name,
-        packing_list: element.packing_list,
+        product_name: el.product_name,
+        packing_list: el.packing_list,
         estimate_sale_qty: "0",
         acutal_sale_qty: "0",
-        bath_ltkg: element.bath_ltkg,
-        bath_unit: element.bath_unit,
-        product_code: element.product_code,
-        product_id: element.id,
-        id: element.id,
+        bath_ltkg: el.bath_ltkg,
+        bath_unit: el.bath_unit,
+        product_code: el.product_code,
+        product_id: el.id,
+        id: el.id,
       }));
-      setActivityDetail((prevState) => ({
-        ...prevState,
-        expense_product_data_list: productCropList,
+      setActivityDetail((prev) => ({
+        ...prev,
+        expense_product_data_list: productCropListNew,
         expense_product_total_acutal_sale: 0,
         expense_product_total_estimate_sale: 0,
         expense_expense_actual_exp: 0,
@@ -921,49 +1089,33 @@ export default function CreateActivityManyShop() {
     return number.toLocaleString(undefined, { maximumFractionDigits: 2 });
   }
 
+  // ✅ เดิมคำนวณ isDisabled สำหรับ clearing
+  let isDisabled = false;
+  if (pageCode !== "expense_clearing") isDisabled = true;
+  else {
+    if (mode === "create") isDisabled = false;
+    // else isDisabled = !canEdit;
+  }
+
+  // =========================================================
+  // ✅ Table columns (เพิ่ม forceReadOnly ใน disabled)
+  // =========================================================
   const header = [
-    {
-      title: "Product Name",
-      dataIndex: "product_name",
-      key: "product_name",
-      align: "left",
-    },
-    {
-      title: "Pack Size",
-      dataIndex: "packing_list",
-      key: "packing_list",
-      align: "center",
-    },
+    { title: "Product Name", dataIndex: "product_name", key: "product_name", align: "left" },
+    { title: "Pack Size", dataIndex: "packing_list", key: "packing_list", align: "center" },
     {
       title: "Estimate Sale (Kg/Lt)",
       dataIndex: "estimate_sale_qty",
       key: "estimate_sale_qty",
       align: "center",
-
       render: (_, record) => (
         <InputNumber
           className="w-full"
           min={0}
           value={record.estimate_sale_qty}
-          disabled={
-            pageCode == "expense_clearing"
-              ? true
-              : mode === "create"
-                ? false
-                : !activityDetail?.permission?.edit
-          }
-          onChange={(value) =>
-            handleInputChange(
-              value,
-              record.key,
-              "estimate_sale_qty",
-              record.bath_ltkg,
-              record
-            )
-          }
-          formatter={(value) =>
-            `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
-          }
+          disabled={!canEdit || pageCode === "expense_clearing"}
+          onChange={(value) => handleInputChange(value, record.key, "estimate_sale_qty", record.bath_ltkg, record)}
+          formatter={(value) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
         />
       ),
     },
@@ -977,57 +1129,29 @@ export default function CreateActivityManyShop() {
           className="w-full"
           min={0}
           value={record.acutal_sale_qty}
-          disabled={
-            pageCode != "expense_clearing"
-              ? true
-              : mode === "create"
-                ? false
-                : !activityDetail?.permission?.edit
-          }
-          onChange={(value) =>
-            handleInputChange(
-              value,
-              record.key,
-              "acutal_sale_qty",
-              record.bath_ltkg,
-              record
-            )
-          }
-          formatter={(value) =>
-            `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
-          }
+          disabled={!canEdit || pageCode === "expense_advance"}
+          onChange={(value) => handleInputChange(value, record.key, "acutal_sale_qty", record.bath_ltkg, record)}
+          formatter={(value) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
         />
       ),
     },
   ];
 
-  const handleInputChange = (value, key, field, bath_ltkg, record) => {
-    setActivityDetail((prevState) => {
-      const updatedData = prevState.expense_product_data_list.map((item) => {
+  const handleInputChange = (value, key, field, bath_ltkg) => {
+    setActivityDetail((prev) => {
+      const updatedData = prev.expense_product_data_list.map((item) => {
         if (item.key === key) {
           const numericValue = parseFloat(value) || 0;
-          const newTotal = numericValue * bath_ltkg;
-          return {
-            ...item,
-            [field]: numericValue,
-            total: newTotal,
-          };
+          return { ...item, [field]: numericValue, total: numericValue * bath_ltkg };
         }
         return item;
       });
 
-      // Calculate new totals
-      const sumEstimateTotal = updatedData.reduce(
-        (acc, item) => acc + (item.estimate_sale_qty || 0) * item.bath_ltkg,
-        0
-      );
-      const sumActualTotal = updatedData.reduce(
-        (acc, item) => acc + (item.acutal_sale_qty || 0) * item.bath_ltkg,
-        0
-      );
+      const sumEstimateTotal = updatedData.reduce((acc, item) => acc + (item.estimate_sale_qty || 0) * item.bath_ltkg, 0);
+      const sumActualTotal = updatedData.reduce((acc, item) => acc + (item.acutal_sale_qty || 0) * item.bath_ltkg, 0);
 
       return {
-        ...prevState,
+        ...prev,
         expense_product_data_list: updatedData,
         expense_product_total_estimate_sale: sumEstimateTotal,
         expense_product_total_acutal_sale: sumActualTotal,
@@ -1039,13 +1163,12 @@ export default function CreateActivityManyShop() {
     });
   };
 
-  const calculateGrandTotal = (field) => {
-    const number = productCropList
-      .reduce((sum, item) => sum + (item[field] || 0) * item.bath_ltkg, 0)
-      .toFixed(2);
-
-    return NumberFormatter(number);
-  };
+  // const calculateGrandTotal = (field) => {
+  //   const number = productCropList
+  //     .reduce((sum, item) => sum + (item[field] || 0) * item.bath_ltkg, 0)
+  //     .toFixed(2);
+  //   return NumberFormatter(number);
+  // };
 
   const footerOrderList = () => (
     <tr className="bg-[#978B87]">
@@ -1058,11 +1181,8 @@ export default function CreateActivityManyShop() {
           min={0}
           value={activityDetail?.expense_product_total_estimate_sale || 0}
           readOnly
-          formatter={
-            (value) =>
-              Number(value)
-                .toFixed(2) // Round to 2 decimal places
-                .replace(/\B(?=(\d{3})+(?!\d))/g, ",") // Add thousand separator
+          formatter={(value) =>
+            Number(value).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",")
           }
         />
       </td>
@@ -1072,21 +1192,75 @@ export default function CreateActivityManyShop() {
           min={0}
           value={activityDetail?.expense_product_total_acutal_sale || 0}
           readOnly
-          formatter={
-            (value) =>
-              Number(value)
-                .toFixed(2) // Round to 2 decimal places
-                .replace(/\B(?=(\d{3})+(?!\d))/g, ",") // Add thousand separator
+          formatter={(value) =>
+            Number(value).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",")
           }
         />
       </td>
     </tr>
   );
 
+  const freeKeyHeader = [
+    {
+      title: "No",
+      dataIndex: "line",
+      key: "line",
+      width: 80,
+      render: (value) => <span className="text-[#4B5563]">{value}</span>,
+    },
+    {
+      title: "List",
+      dataIndex: "list",
+      key: "list",
+      render: (_, record, index) => (
+        <Input
+          placeholder=""
+          value={record.list}
+          disabled={!canEdit || isViewMode || isApproveMode}
+          onChange={(e) => handleFreeKeyChange(index, "list", e.target.value)}
+          className="h-[42px] rounded-xl"
+        />
+      ),
+    },
+    {
+      title: "Value (THB)",
+      dataIndex: "value",
+      key: "value",
+      width: 320,
+      render: (_, record, index) => (
+        <InputNumber
+          className="w-full h-[42px]"
+          min={0}
+          placeholder=""
+          value={record.value}
+          disabled={!canEdit || isViewMode || isApproveMode}
+          formatter={moneyFormatter}
+          parser={moneyParser}
+          onChange={(value) => handleFreeKeyChange(index, "value", value)}
+        />
+      ),
+    },
+  ];
+
+  const freeKeySummary = () => (
+    <tr className="bg-white">
+      <td colSpan={2} className="text-right pr-4 font-semibold text-[#4B5563]">
+        Total
+      </td>
+      <td className="px-4 py-2">
+        <InputNumber
+          className="w-full h-[42px]"
+          min={0}
+          value={freeKeyTotal}
+          readOnly
+          formatter={moneyFormatter}
+        />
+      </td>
+    </tr>
+  );
+
   const handleInputParticipantChange = (key, field, value) => {
-    const updatedParticipants = participants.map((participant) =>
-      participant.key === key ? { ...participant, [field]: value } : participant
-    );
+    const updatedParticipants = participants.map((p) => (p.key === key ? { ...p, [field]: value } : p));
     setParticipants(updatedParticipants);
   };
 
@@ -1100,9 +1274,8 @@ export default function CreateActivityManyShop() {
       render: (_, record) => (
         <Input
           value={record.name}
-          onChange={(e) =>
-            handleInputParticipantChange(record.key, "name", e.target.value)
-          }
+          disabled={!canEdit}
+          onChange={(e) => handleInputParticipantChange(record.key, "name", e.target.value)}
         />
       ),
     },
@@ -1114,9 +1287,8 @@ export default function CreateActivityManyShop() {
       render: (_, record) => (
         <Input
           value={record.address}
-          onChange={(e) =>
-            handleInputParticipantChange(record.key, "address", e.target.value)
-          }
+          disabled={!canEdit}
+          onChange={(e) => handleInputParticipantChange(record.key, "address", e.target.value)}
         />
       ),
     },
@@ -1128,9 +1300,8 @@ export default function CreateActivityManyShop() {
       render: (_, record) => (
         <Input
           value={record.phone}
-          onChange={(e) =>
-            handleInputParticipantChange(record.key, "phone", e.target.value)
-          }
+          disabled={!canEdit}
+          onChange={(e) => handleInputParticipantChange(record.key, "phone", e.target.value)}
         />
       ),
     },
@@ -1142,199 +1313,174 @@ export default function CreateActivityManyShop() {
         <DynamicButton
           iconSrc="/img/icons/delete.png"
           onClick={() => removeParticipant(record.key)}
+          disabled={!canEdit}
         />
       ),
     },
   ];
 
   const getParticipant = async () => {
-    const [participant] = await Promise.all([
-      useServiceAPI.get(paths.pathMasterSaleAll, {
-        page_size: 1,
-        page_length: 1000,
-      }),
-    ]);
-
+    const participant = await useServiceAPI.get(paths.pathMasterSaleAll, { page_size: 1, page_length: 1000 });
     let participantData = [];
     setParticipantList([]);
     let count = 0;
-    participant.data.data.forEach((element, key) => {
-      const id = element.id;
-      // ตรวจสอบว่ามี key อยู่ใน participantList แล้วหรือยัง
+
+    participant.data.data.forEach((el) => {
+      const id = el.id;
       const isExisting = participants.some((item) => item.id === id);
       if (!isExisting) {
         count++;
-        const newKey = `sales-${element.id}`;
         participantData.push({
-          id: element.id,
-          key: newKey,
+          id,
+          key: `sales-${el.id}`,
           no: count,
-          name: element.name,
-          position: element.position_name,
-          department: element.department_name,
-          territory: element.territory_name,
-          permission: element.permission_name,
+          name: el.name,
+          position: el.position_name,
+          department: el.department_name,
+          territory: el.territory_name,
+          permission: el.permission_name,
         });
       }
     });
 
-    // เพิ่มเฉพาะข้อมูลใหม่เข้าไปใน participantList
-    setParticipantList((prevList) => [...prevList, ...participantData]);
+    setParticipantList((prev) => [...prev, ...participantData]);
   };
 
-  const handleCloseTeamModal = () => {
-    setIsTeamModalVisible(false);
-  };
+  const handleCloseTeamModal = () => setIsTeamModalVisible(false);
 
   const handleAddSelectedRows = () => {
     const lengthRows = parseInt(actualParticipantCount) + 1;
     setActualParticipantCount(lengthRows);
 
-    let dataParticipant = [
-      {
-        address: "",
-        phone: "",
-        no: lengthRows,
-        key: lengthRows,
-      },
-    ];
-    setParticipants((prevList) => [...prevList, ...dataParticipant]);
+    setParticipants((prev) => [
+      ...prev,
+      { address: "", phone: "", no: lengthRows, key: lengthRows },
+    ]);
   };
 
   const removeParticipant = (key) => {
-    setParticipants((prevList) => {
-      const updatedList = prevList.filter((item) => item.key !== key);
+    if (forceReadOnly) return;
 
+    setParticipants((prev) => {
+      const updatedList = prev.filter((item) => item.key !== key);
       return updatedList.map((item, index) => ({
         ...item,
-        no: parseInt(index) + 1, // Reset the 'no' based on the new order
-        key: parseInt(index) + 1, // Update key to maintain consistency
+        no: index + 1,
+        key: index + 1,
       }));
     });
     setActualParticipantCount(participants.length - 1);
   };
 
-  //บันทึกข้อมูล
+  // =======================
+  // Save / Approval (เดิม)
+  // =======================
   const handleSave = async (modeSave) => {
     try {
-      // await formCustom.validateFields();
+      await formCustom.validateFields();
 
-      // let allValuesBasic = formCustom.getFieldsValue();
+      let allValuesBasic = formCustom.getFieldsValue();
+      allValuesBasic.document_date = dayjs(allValuesBasic.document_date)
+        .tz("Asia/Bangkok", true)
+        .format("YYYY-MM-DD HH:mm:ss.SSS");
 
-      await formMulti.validateFields();
+      const imageLists = fileList.map((f) => f.url);
 
-      let allValuesBasic = formMulti.getFieldsValue();
+      const isExpense = isBtnExpenseActive || pageCode == "expense_advance" || pageCode == "expense_clearing";
 
-      //File Upload
-      const imageLists = [];
-      fileList.forEach((element) => {
-        imageLists.push(element.url);
-      });
-      //เปิด Expense หรือไม่?
-      const isExpense =
-        isBtnExpenseActive ||
-        pageCode == "expense_advance" ||
-        pageCode == "expense_clearing";
+      let expenseParticapantUserList = participantUsers.map((x) => x.id);
+      let particapantList = participants.map((x) => ({ name: x.name, address: x.address, phone: x.phone }));
+      const hasActivityRef =
+        !!(
+          activityDetail.document_number_referrent ||
+          formCustom.getFieldValue("document_number_referrent")
+        );
 
-      let expenseParticapantUserList = [];
-      let particapantList = [];
-      participantUsers.forEach((element) => {
-        expenseParticapantUserList.push(element.id);
-      });
-      participants.forEach((element) => {
-        particapantList.push({
-          name: element.name,
-          address: element.address,
-          phone: element.phone,
-        });
-      });
+      let userID = "";
 
-      const newSave = multiShop.map((item) => ({
+      if (pageCode === "activity_transaction") {
+        userID = activityDetail.dealer_id;
+      } else if (hasActivityRef) {
+        userID = activityDetail.dealer_id;
+        if (modeSave === "convert_clearing") {
+          userID = activityDetail.sub_dealer_id;
+        }
+      } else {
+        userID = activityDetail.sub_dealer_id;
+      }
+
+      // console.log(userID);
+
+      const body = {
+        ...activityDetail,
+        document_number_referrent:
+          activityDetail.document_number_referrent ||
+          formCustom.getFieldValue("document_number_referrent") ||
+          "",
         page_code: pageCode,
+        dealer_id: userID,
         action_code: modeSave,
         image_list: imageLists,
         is_expense: isExpense,
         expense_file_list: [],
         expense_particapant_user_list: expenseParticapantUserList,
         particapant_list: particapantList,
-        ...activityDetail,
-        document_date: item.document_date,
-        dealer_id: item.dealer_id,
-        crop_id_list: item.crop_id_list,
-        product_list: item.product_list,
-        location_address: item.location_address,
-        description: item.description,
-        assing_user_list: item.assing_user_list,
-      }));
+        document_date: allValuesBasic.document_date,
+        freekey: buildFreeKeyPayload(activityDetail.freekey),
+      };
 
       if (documentNumber) {
+        useServiceAPI
+          .put(paths.pathActivityExpenseDetail, body, setLoading)
+          .then((response) => {
+            const successCallback = () => {
+              if (response.result) {
+                if (pageCode == "expense_clearing") navigate("/expenses/clearing");
+                else if (pageCode == "expense_advance") {
+                  if (modeSave == "convert_clearing") navigate("/expenses/clearing");
+                  else navigate("/expenses/advance");
+                } else {
+                  navigate("/activity/list");
+                }
+              }
+            };
+            showNotification("success", response.data.message, response.data.message_line, 2).then(successCallback);
+          })
+          .catch(() => { });
       } else {
-        const resultStatus = []; // เก็บสถานะแต่ละรอบ
-        const allDocNumbers = []; // เก็บเลขเอกสารถ้ามี
-        for (const save of newSave) {
-          try {
-            const response = await useServiceAPI.post(
-              paths.pathActivityExpenseCreate,
-              save,
-              setLoading
-            );
-
-            // เช็คว่าตอบกลับ success ตามเงื่อนไขที่ต้องการ
-            const isSuccess = response.message === "Save successfully";
-
-            resultStatus.push(isSuccess);
-
-            const docNumberLine = response.data.message_line?.find((line) =>
-              line.includes("Document Number")
-            );
-            if (docNumberLine) {
-              allDocNumbers.push(docNumberLine);
-            }
-          } catch (error) {
-            console.error("เกิดข้อผิดพลาดในการส่ง:", error);
-            resultStatus.push(false); // ล้มเหลว
-          }
-        }
-
-        const allSuccess = resultStatus.every((s) => s === true);
-
-        if (allSuccess) {
-          showNotification(
-            "success",
-            "บันทึกข้อมูลสำเร็จทั้งหมด",
-            allDocNumbers.join("\n"),
-            1
-          ).then(() => {
-            if (pageCode === "expense_clearing") {
-              navigate("/expenses/clearing");
-            } else if (pageCode === "expense_advance") {
-              navigate("/expenses/advance");
-            } else {
-              navigate("/activity/list");
-            }
-          });
-        } else {
-          showNotification(
-            "error",
-            "บางรายการบันทึกไม่สำเร็จ",
-            "กรุณาตรวจสอบรายการที่ส่งไม่ผ่าน"
-          );
-        }
+        useServiceAPI
+          .post(paths.pathActivityExpenseCreate, body, setLoading)
+          .then((response) => {
+            const successCallback = () => {
+              if (response.result) {
+                if (pageCode == "expense_clearing") navigate("/expenses/clearing");
+                else if (pageCode == "expense_advance") {
+                  if (modeSave == "convert_clearing") navigate("/expenses/clearing");
+                  else navigate("/expenses/advance");
+                } else {
+                  navigate("/activity/list");
+                }
+              }
+            };
+            showNotification("success", response.data.message, response.data.message_line, 2).then(successCallback);
+          })
+          .catch(() => { });
       }
     } catch (err) {
-      console.error("Error fetching address:", err);
-      // console.log(activityDetail);
+      console.error("Error:", err);
     }
   };
 
   const handleApproval = (action) => {
+    if ([4, 5, 6, 7].includes(Number(userInfo?.role_id))) {
+      showNotification("error", "Permission Denied", ["Sales role is not allowed to approve."]);
+      return;
+    }
     let remark = "";
     confirm({
       title: `Do you want to ${action} ?`,
       icon: <ExclamationCircleFilled />,
-      content: action === "reject" && (
-        <TextArea onChange={(e) => (remark = e.target.value)} />
-      ),
+      content: action === "reject" && <TextArea onChange={(e) => (remark = e.target.value)} />,
       centered: true,
       onOk() {
         handleCallApprove(remark, action);
@@ -1343,23 +1489,15 @@ export default function CreateActivityManyShop() {
   };
 
   const handleCallApprove = async (remark, action) => {
-    let path =
-      pageCode === "expense_advance"
-        ? paths.pathAdvanceApproval
-        : paths.pathClearingApproval;
+    let path = pageCode === "expense_advance" ? paths.pathAdvanceApproval : paths.pathClearingApproval;
     try {
       const result = await useServiceAPI.put(path, {
         document_number: documentNumber,
         page_mode: pageMode,
-        remark: remark,
+        remark,
         action_code: action,
       });
-      showNotification(
-        "success",
-        result.data.Message.Message_Header,
-        result.data.Message.Message_Line,
-        2
-      ).then(() => {
+      showNotification("success", result.data.Message.Message_Header, result.data.Message.Message_Line, 2).then(() => {
         navigate(-1);
       });
     } catch (error) {
@@ -1369,640 +1507,335 @@ export default function CreateActivityManyShop() {
     }
   };
 
-  // console.log("activityDATE : ", activityDetail.document_date);
-  console.log("userInfo : ", userInfo);
+  const adv = toNumber(activityDetail.expense_advance, 0);
+  const act = toNumber(activityDetail.expense_actual, 0);
 
+  let return_to_company = 0;
+  let return_to_staff = 0;
+  if (adv > act) return_to_company = adv - act;
+  else return_to_staff = act - adv;
+
+  console.log(activityDetail.expense_advance);
+
+  // =========================================================
+  // ✅ Render
+  // =========================================================
   return (
     <MainLayout loading={loading}>
       <div className="flex items-center justify-between">
         <div className="title-page capitalize">
           {mode} {menuTitle}
         </div>
-      </div>
 
-      <Form layout="vertical" form={formMulti}
-        initialValues={{
-          user_id:
-            parseInt(userInfo.role_id) !== 1 && parseInt(userInfo.role_id) !== 3
-              ? parseInt(userInfo.user_data_id)
-              : undefined,
-        }}
-      >
-        <BoxPrimary>
-          <Row gutter={16} align="middle">
-            <Col xs={24} sm={24} md={6} lg={6}>
-              <Form.Item
-                label="Activity Type"
-                name="activity_type_id"
-                rules={[
-                  { required: true, message: "กรุณาเลือก Activity Type" },
-                ]}
-                style={{ marginBottom: 12 }}
-              >
-                <Select
-                  disabled={
-                    isViewMode ||
-                    (isCreate ? false : !activityDetail?.permission?.edit)
-                  }
-                  placeholder="Select activity type"
-                  options={optionsActivityType}
-                  onChange={(value) => handleChange("activity_type_id", value)}
-                />
-              </Form.Item>
-            </Col>
-            <Col xs={24} sm={24} md={6} lg={6}>
-              <Form.Item
-                label="Sales"
-                name="user_id"
-                rules={[{ required: true, message: "กรุณาเลือก Sales" }]}
-                style={{ marginBottom: 12 }}
-              >
-                <Select
-                  disabled={
-                    isViewMode ||
-                    (isCreate ? !activityDetail.activity_type_id : !activityDetail?.permission?.edit)
-                  }
-                  placeholder="Select Sales"
-                  options={optionsSale}
-                  onChange={(value) => handleChange("user_id", parseInt(value))}
-                />
-              </Form.Item>
-            </Col>
-          </Row>
-        </BoxPrimary>
-        <BoxPrimary className="mt-2">
-          {multiShop.length > 0 ? (
-            renderMultiShop()
-          ) : (
-            <div className="text-gray-500">
-              No contact person information available
-            </div>
+        <div className="flex items-center gap-2">
+          {isRefLocked && (
+            <ActionButton
+              mode="reject"
+              text="Clear Ref"
+              onClick={handleClearReference}
+              disabled={isViewMode || isApproveMode}
+            />
           )}
 
-          <div className="flex justify-center">
-            <div style={{ width: "200px" }}>
-              <button
-                type="button"
-                style={{
-                  padding: "8px 16px",
-                  backgroundColor: "#00783F",
-                  color: "#fff",
-                  borderRadius: "4px",
-                  border: "none",
-                  cursor: "pointer",
-                }}
-                onClick={() => {
-                  // const fallbackDate = activityDetail?.document_date || dayjs().format("YYYY-MM-DD");
-                  setMultiShop([
-                    ...multiShop,
-                    {
-                      document_number: "",
-                      document_date: defaultActivityDate,
-                      dealer_id: "",
-                      crop_id_list: "",
-                      product_list: "",
-                      location_address: "",
-                      description: "",
-                      assing_user_list: "",
-                    },
-                  ]);
-                }}
-              >
-                Add Shop
-              </button>
-            </div>
-          </div>
-        </BoxPrimary>
-      </Form>
+          {mode !== "view" && pageCode !== "expense_advance" && pageCode !== "expense_clearing" ? (
+            !isBtnExpenseActive ? (
+              <ActionButton
+                mode="create"
+                text="Add Advance Expense"
+                onClick={() => setIsBtnExpenseActive(!isBtnExpenseActive)}
+                disabled={!canEdit}
+              />
+            ) : (
+              <ActionButton
+                mode="hide"
+                text="Hide Advance Expense"
+                onClick={() => setIsBtnExpenseActive(!isBtnExpenseActive)}
+                disabled={!canEdit}
+              />
+            )
+          ) : null}
+        </div>
+      </div>
 
-      {isBtnExpenseActive ||
-        pageCode == "expense_advance" ||
-        pageCode == "expense_clearing" ? (
+      <FormCustom fields={formFields} form={formCustom} onChange={handleChange} mode={documentNumber ? "edit" : "create"} />
+
+      {isBtnExpenseActive || pageCode == "expense_advance" || pageCode == "expense_clearing" ? (
         <>
           <div className="flex items-center justify-between">
             <div className="title-page">Advance Expense</div>
           </div>
+
           <BoxPrimary title="Sale Plan">
             <TableComponent
               header={header}
               dataSource={activityDetail?.expense_product_data_list}
               pageSize={10}
-              footer={
-                activityDetail?.expense_product_data_list?.length > 0
-                  ? footerOrderList
-                  : null
-              }
-              pagination={false}
+              footer={activityDetail?.expense_product_data_list?.length > 0 ? footerOrderList : null}
+              pagination={10}
             />
           </BoxPrimary>
 
           <BoxPrimary className="hidden">
-            <span className="text-[#00783F] text-lg font-semibold mb-3">
-              Customer
-            </span>
-            <Form
-              layout="vertical"
-              form={customerForm}
-              initialValues={{
-                supportCustomerName:
-                  activityDetail?.expense_customer_name ??
-                  dealerCustomer.customer_name,
-                address:
-                  activityDetail?.expense_customer_address ??
-                  dealerCustomer.customer_address,
-                placeOfOwner:
-                  activityDetail?.expense_customer_place_of_owner ??
-                  dealerCustomer.customer_place_of_owner,
-                phoneNumber:
-                  activityDetail?.expense_customer_phone_number ??
-                  dealerCustomer.customer_phone_number,
-                perception:
-                  activityDetail?.expense_customer_perception_name ?? "",
-                location_customer_address:
-                  activityDetail?.expense_customer_location_address ??
-                  locationCustomer.address,
-                location_customer_latitude:
-                  activityDetail?.expense_customer_location_latitude ??
-                  locationCustomer.lat,
-                location_customer_longitude:
-                  activityDetail?.expense_customer_location_longitude ??
-                  locationCustomer.long,
-              }}
-            >
+            <span className="text-[#00783F] text-lg font-semibold mb-3">Customer</span>
+            <Form layout="vertical" form={customerForm} initialValues={{}}>
               <Row gutter={[16, 16]} className="mt-3">
-                <Col xs={24} sm={12} md={12} lg={6}>
-                  <Form.Item
-                    className="mb-3"
-                    label="Support Customer Name"
-                    name="supportCustomerName"
-                  >
-                    <Input
-                      disabled={true}
-                      placeholder={dealerCustomer.customer_name}
-                      value={dealerCustomer.customer_name}
-                    />{" "}
-                  </Form.Item>
-                </Col>
-                <Col xs={24} sm={12} md={12} lg={6}>
-                  <Form.Item
-                    className="mb-3"
-                    label="Place of Owner"
-                    name="placeOfOwner"
-                  >
-                    <Input
-                      disabled={true}
-                      value={dealerCustomer.customer_place_of_owner}
-                    />{" "}
-                  </Form.Item>
-                </Col>
-                <Col xs={24} sm={12} md={12} lg={6}>
-                  <Form.Item
-                    className="mb-3"
-                    label="Phone Number"
-                    name="phoneNumber"
-                  >
-                    <Input
-                      disabled={true}
-                      value={dealerCustomer.customer_phone_number}
-                    />{" "}
-                  </Form.Item>
-                </Col>
-                <Col xs={24} sm={12} md={12} lg={6}>
-                  <Form.Item
-                    className="mb-3"
-                    label="Perception"
-                    name="perception"
-                  >
-                    <Select
-                      placeholder="Select Perception"
-                      disabled={false}
-                      allowClear
-                      options={perceptionList.map((option) => ({
-                        label: option.name,
-                        value: String(option.id),
-                      }))}
-                    />{" "}
-                  </Form.Item>
-                </Col>
-                <Col xs={24} sm={24} md={24} lg={24}>
-                  <Form.Item className="mb-3" label="Address" name="address">
-                    <Input
-                      disabled={true}
-                      value={dealerCustomer.customer_address}
-                    />{" "}
-                  </Form.Item>
-                </Col>
-                <Col xs={24} sm={24} md={24} lg={24}>
-                  <div>
-                    <div style={{ position: "relative" }}>
-                      <Form.Item
-                        name="location_customer_address"
-                        label="Place of GPS"
-                      >
-                        <Input
-                          placeholder="Address"
-                          value={locationCustomer.address || ""}
-                          key={locationCustomer.address} // เพิ่ม key เพื่อบังคับให้รีเฟรช
-                          disabled={true}
-                          style={{
-                            width: "100%",
-                            paddingRight: "50px",
-                            paddingLeft: "12px",
-                            border: "1px solid #d9d9d9",
-                            borderRadius: "4px",
-                            padding: "8px 12px",
-                            boxSizing: "border-box",
-                          }}
-                        />{" "}
-                      </Form.Item>
-
-                      <div
-                        // onClick={handleReload}
-                        style={{
-                          position: "absolute",
-                          top: "76%",
-                          right: "10px",
-                          transform: "translateY(-50%)",
-                          cursor: "pointer",
-                          fontSize: "16px",
-                          color: "#d9d9d9",
-                        }}
-                      >
-                        <ReloadOutlined
-                          style={{
-                            fontSize: "18px",
-                            animation: loading
-                              ? "spin 1s linear infinite"
-                              : "none", // เปิด/ปิดการหมุน
-                          }}
-                        />
-                      </div>
-
-                      <style>{`
-                          @keyframes spin {
-                            0% {
-                              transform: rotate(0deg);
-                            }
-                            100% {
-                              transform: rotate(360deg);
-                            }
-                          }
-                        `}</style>
-                    </div>
-
-                    <Form.Item name="location_customer_latitude" hidden>
-                      <Input
-                        type="hidden"
-                        placeholder="Latitude"
-                        value={locationCustomer.lat || ""}
-                        disabled={true}
-                      />{" "}
-                    </Form.Item>
-
-                    <Form.Item name="location_customer_longitude" hidden>
-                      <Input
-                        type="hidden"
-                        placeholder="Longitude"
-                        value={locationCustomer.long || ""}
-                        disabled={true}
-                      />{" "}
-                    </Form.Item>
-                  </div>
-                </Col>
+                {/* (คงเดิม) */}
               </Row>
             </Form>
           </BoxPrimary>
 
           <BoxPrimary title="Expense">
-            <Form
-              layout="vertical"
-              form={expenseForm} // Use the new expenseForm instance here
-              initialValues={{
-                actual_exp:
-                  (calculateGrandTotal("estimateSale") > 0
-                    ? calculateGrandTotal("estimateSale")
-                    : activityDetail?.expense_expense_actual_exp) ?? "0",
-                actual_sale:
-                  (calculateGrandTotal("actualSale") > 0
-                    ? calculateGrandTotal("actualSale")
-                    : activityDetail?.expense_expense_actual_sale) ?? "0",
-                advance_expense: activityDetail?.advance_expense ?? "",
-              }}
-            >
+            <Form layout="vertical" form={expenseForm} initialValues={{}}>
               <Row gutter={[16, 16]} className="mt-3">
                 <Col xs={24} sm={12} md={12} lg={6}>
-                  <Form.Item
-                    className="mb-3"
-                    label="Advance expense"
-                    name="advance_expense"
-                  >
+                  <Form.Item className="mb-3" label="Advance expense" name="advance_expense">
                     <InputNumber
                       placeholder="Advance expense"
                       className="w-full"
                       min={0}
-                      formatter={(value) =>
-                        `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
-                      }
-                      value={activityDetail.expense_advance}
-                      onChange={(value) => {
-                        setActivityDetail({
-                          ...activityDetail,
-                          expense_advance: value,
-                        });
-                      }}
+                      // formatter={(value) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
+                      formatter={moneyFormatter}
+                      value={toNumber(activityDetail.expense_advance, 0)}
+                      onChange={(value) => setActivityDetail({ ...activityDetail, expense_advance: toNumber(value, 0) })}
                       disabled={
-                        mode === "create" && pageCode === "expense_clearing"
-                          ? true
-                          : pageCode !== "expense_clearing"
-                            ? false
-                            : pageCode === "expense_clearing"
-                              ? true
-                              : !activityDetail?.permission?.edit
+                        !canEdit ||
+                        mode === "view" ||
+                        mode === "approve" ||
+                        (mode === "create" && pageCode === "expense_clearing") ||
+                        (pageCode === "expense_clearing" && pageCode !== "expense_advance")
                       }
-                    />{" "}
+                    />
                   </Form.Item>
                 </Col>
+
                 <Col xs={24} sm={12} md={12} lg={6}>
-                  <Form.Item
-                    className="mb-3"
-                    label="Actual Expense"
-                    name="actual_expense"
-                  >
+                  <Form.Item className="mb-3" label="Actual Expense" name="actual_expense">
                     <InputNumber
                       placeholder="Actual Expense"
                       className="w-full"
                       min={0}
-                      formatter={(value) =>
-                        `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
-                      }
-                      value={activityDetail.expense_actual}
-                      onChange={(value) => {
-                        setActivityDetail({
-                          ...activityDetail,
-                          expense_actual: value,
-                        });
-                      }}
+                      // formatter={(value) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
+                      formatter={moneyFormatter}
+                      value={toNumber(activityDetail.expense_actual, 0)}
+                      onChange={(value) => setActivityDetail({ ...activityDetail, expense_actual: toNumber(value, 0) })}
+
                       disabled={
-                        pageCode != "expense_clearing" || mode === "create"
+                        !canEdit ||
+                        (pageCode != "expense_clearing" || mode === "create"
                           ? pageCode !== "expense_clearing"
-                          : !activityDetail?.permission?.edit
+                          : !canEdit)
                       }
-                    />{" "}
+                    />
                   </Form.Item>
                 </Col>
+
                 <Col xs={24} sm={12} md={12} lg={6}>
-                  <Form.Item
-                    className="mb-3"
-                    label="Estimate Sale"
-                    name="actual_exp"
-                  >
+                  <Form.Item className="mb-3" label="Estimate Sale">
                     <InputNumber
                       className="w-full"
                       min={0}
                       placeholder="0"
-                      value={
-                        activityDetail?.expense_actual_exp ||
-                        activityDetail?.expense_expense_actual_exp ||
-                        0
-                      }
-                      disabled={true}
-                      formatter={
-                        (value) =>
-                          Number(value)
-                            .toFixed(2) // Round to 2 decimal places
-                            .replace(/\B(?=(\d{3})+(?!\d))/g, ",") // Add thousand separator
-                      }
-                    />{" "}
+                      value={toNumber(activityDetail?.expense_actual_exp ?? activityDetail?.expense_product_total_estimate_sale, 0)}
+                      disabled
+                      formatter={(value) => Number(value || 0).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
+                    />
                   </Form.Item>
                 </Col>
+
                 <Col xs={24} sm={12} md={12} lg={6}>
-                  <Form.Item
-                    className="mb-3"
-                    label="Actual sale"
-                    name="actual_sale"
-                  >
+                  <Form.Item className="mb-3" label="Actual sale">
                     <InputNumber
                       className="w-full"
                       min={0}
                       placeholder="0"
-                      value={
-                        activityDetail?.expense_actual_sale ||
-                        activityDetail?.expense_expense_actual_sale ||
-                        0
-                      }
-                      disabled={true}
-                      formatter={
-                        (value) =>
-                          Number(value)
-                            .toFixed(2) // Round to 2 decimal places
-                            .replace(/\B(?=(\d{3})+(?!\d))/g, ",") // Add thousand separator
-                      }
-                    />{" "}
+                      value={toNumber(activityDetail?.expense_actual_sale ?? activityDetail?.expense_product_total_acutal_sale, 0)}
+                      disabled
+                      formatter={(value) => Number(value || 0).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
+                    />
                   </Form.Item>
                 </Col>
+
+
+                {pageCode === "expense_clearing" && (
+                  <>
+                    <Col xs={24} sm={12} md={12} lg={6}>
+                      <Form.Item className="mb-3" label="Return to Company">
+                        <InputNumber
+                          className="w-full"
+                          min={0}
+                          placeholder="0"
+                          value={return_to_company}
+                          disabled={true}
+                          formatter={(value) =>
+                            Number(value).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+                          }
+                        />
+                      </Form.Item>
+                    </Col>
+
+                    <Col xs={24} sm={12} md={12} lg={6}>
+                      <Form.Item className="mb-3" label="Return to Staff">
+                        <InputNumber
+                          className="w-full"
+                          min={0}
+                          placeholder="0"
+                          value={return_to_staff}
+                          disabled={true}
+                          formatter={(value) =>
+                            Number(value).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+                          }
+                        />
+                      </Form.Item>
+                    </Col>
+                  </>
+                )}
               </Row>
             </Form>
           </BoxPrimary>
 
-          {pageCode == "expense_clearing" ? (
-            <>
-              <BoxPrimary>
-                <div className="flex items-center justify-between">
-                  <div className="text-[#00783F] text-lg font-semibold mb-3">
-                    File
-                  </div>
-                  <ActionButton
-                    mode="add"
-                    text="Upload File"
-                    onClick={handleUploadClick}
-                    disabled={
-                      mode === "create"
-                        ? false
-                        : !activityDetail?.permission?.edit
-                    }
-                  />
-                </div>
-                <FileUploadComponent
-                  ref={fileUploadRef}
-                  mode={
-                    mode === "create"
-                      ? false
-                      : !activityDetail?.permission?.edit
-                        ? "view"
-                        : "edit"
-                  }
-                  dataFile={fileList}
-                  modeUpload={pageCode}
-                  onUploadSuccess={handleUploadSuccess}
-                />
-              </BoxPrimary>
-            </>
-          ) : undefined}
+          {pageCode === "expense_clearing" && (
+            <BoxPrimary>
+              <div className="text-[#00783F] text-lg font-semibold mb-3">Other Clearing</div>
+              <TableComponent
+                header={freeKeyHeader}
+                dataSource={ensureFreeKeyRows(activityDetail.freekey).map((row, index) => ({
+                  ...row,
+                  key: `freekey-${index}`,
+                }))}
+                pagination={false}
+                pageSize={10}
+                footer={freeKeySummary}
+                scroll={false}
+              />
+            </BoxPrimary>
+          )}
 
-          {/* Participant Section */}
+          {pageCode == "expense_clearing" ? (
+            <BoxPrimary>
+              <div className="flex items-center justify-between">
+                <div className="text-[#00783F] text-lg font-semibold mb-3">File</div>
+                <ActionButton
+                  mode="add"
+                  text="Upload File"
+                  onClick={handleUploadClick}
+                  disabled={!canEdit || (mode === "create" ? false : !canEdit)}
+                />
+              </div>
+
+              <FileUploadComponent
+                ref={fileUploadRef}
+                mode={mode === "create" ? false : (canEdit ? "edit" : "view")}
+                dataFile={fileList}
+                modeUpload={pageCode}
+                onUploadSuccess={handleUploadSuccess}
+              />
+            </BoxPrimary>
+          ) : null}
+
+          {/* Participant */}
           <BoxPrimary>
             <div className="flex items-center justify-between">
-              <div className="text-[#00783F] text-lg font-semibold mb-3">
-                Participant
-              </div>
-              {pageCode == "expense_clearing" ? (
-                viewSegment ? null : (
-                  <ActionButton
-                    mode="add"
-                    text="Add"
-                    onClick={handleAddSelectedRows}
-                  />
-                )
-              ) : undefined}
+              <div className="text-[#00783F] text-lg font-semibold mb-3">Participant</div>
+
+              {pageCode === "expense_clearing" && !viewSegment && userInfo.role_id != 2 ? (
+                <ActionButton mode="add" text="Add" onClick={handleAddSelectedRows} disabled={isApproveMode || isViewMode} />
+              ) : null}
             </div>
 
-            <Form
-              layout="vertical"
-              form={participantForm}
-              initialValues={{
-                estimate_participant:
-                  activityDetail?.expense_participant_estimate ?? "0",
-                actual_participant:
-                  activityDetail?.expense_particapant_actual ??
-                  actualParticipantCount ??
-                  "0",
-              }}
-            >
+            <Form layout="vertical" form={participantForm} initialValues={{}}>
               <Row gutter={[16, 16]} className="mt-3">
                 <Col xs={24} sm={12} md={12} lg={6}>
-                  <Form.Item
-                    className="mb-3"
-                    label="Estimate Participant "
-                    name="estimate_participant"
-                  >
+                  <Form.Item className="mb-3" label="Estimate Participant " name="estimate_participant">
                     <InputNumber
                       className="w-full"
                       min={0}
                       placeholder="0"
                       disabled={
-                        pageCode == "expense_clearing"
+                        !canEdit || mode === "view" ||
+                        (pageCode == "expense_clearing"
                           ? true
                           : mode === "create"
                             ? false
-                            : !activityDetail?.permission?.edit
+                            : !canEdit)
                       }
-                      formatter={(value) =>
-                        `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
-                      }
-                      value={activityDetail?.expense_participant_estimate}
-                      onChange={(value) => {
-                        setActivityDetail({
-                          ...activityDetail,
-                          expense_participant_estimate: value,
-                        });
-                      }}
-                    />{" "}
+                      formatter={(value) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
+                      value={toNumber(activityDetail?.expense_participant_estimate, 0)}
+                      onChange={(value) => setActivityDetail({ ...activityDetail, expense_participant_estimate: toNumber(value, 0) })}
+                    />
                   </Form.Item>
                 </Col>
+
                 <Col xs={24} sm={12} md={12} lg={6}>
-                  <Form.Item
-                    className="mb-3"
-                    label="Actual Participant"
-                    name="actual_participant"
-                  >
+                  <Form.Item className="mb-3" label="Actual Participant" name="actual_participant">
                     <InputNumber
                       className="w-full"
                       min={0}
                       placeholder="0"
-                      disabled={pageCode != "expense_clearing"}
-                      formatter={(value) =>
-                        `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
-                      }
+                      disabled={!canEdit || mode === "approve" || mode === "view" || pageCode !== "expense_clearing"}
+                      formatter={(value) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
                       value={activityDetail?.expense_particapant_actual}
-                      onChange={(value) => {
-                        setActivityDetail({
-                          ...activityDetail,
-                          expense_particapant_actual: value,
-                        });
-                      }}
-                    />{" "}
+                      onChange={(value) => setActivityDetail({ ...activityDetail, expense_particapant_actual: value })}
+                    />
                   </Form.Item>
                 </Col>
               </Row>
 
               {pageCode == "expense_clearing" ? (
-                <>
-                  <TableComponent
-                    header={participantColumns}
-                    dataSource={participants}
-                    pagination={false}
-                  />
-                </>
-              ) : (
-                <></>
-              )}
+                <TableComponent header={participantColumns} dataSource={participants} pagination={false} />
+              ) : null}
             </Form>
           </BoxPrimary>
         </>
       ) : null}
 
+      {/* Buttons */}
       <div className="flex justify-end space-x-4 mt-6">
+        {/* ✅ NEW: ถ้ามาจาก mapping -> Close + ปิดแท็บ */}
         <ActionButton
           mode="back"
-          text="Back"
-          // onClick={() => navigate(menuURL)}
-          onClick={() => navigate(-1)}
+          text={fromMapping || fromCalendar ? "Close" : "Back"}
+          onClick={() => {
+            if (fromMapping || fromCalendar) {
+              window.close();
+              return;
+            }
+            navigate(-1);
+          }}
         />
 
         {activityDetail?.permission?.btn_convert && (
-          <ActionButton
-            mode="saveDraft"
-            text="Convert to Clearing"
-            onClick={() => handleSave("convert_clearing")}
-          />
+          <ActionButton mode="saveDraft" text="Convert to Clearing" onClick={() => handleSave("convert_clearing")} />
         )}
-        {/* {(activityDetail?.permission?.btn_draft || mode === "create") && (
-          <ActionButton
-            mode="saveDraft"
-            text="Draft"
-            onClick={() => handleSave("draft")}
-          />
-        )} */}
-        {(activityDetail?.permission?.btn_save || mode === "create") && (
-          <ActionButton
-            mode="save"
-            text="Save"
-            onClick={() => handleSave("save")}
-          />
+
+        {(activityDetail?.permission?.btn_draft || mode === "create") && (
+          <ActionButton mode="saveDraft" text="Draft" onClick={() => handleSave("draft")} />
         )}
-        {activityDetail?.permission?.btn_pdf && (
+
+        {(activityDetail?.permission?.btn_save || mode === "create") && mode !== "view" && (
+          <ActionButton mode="save" text="Save" onClick={() => handleSave("save")} />
+        )}
+
+        {(activityDetail?.permission?.btn_export || activityDetail?.permission?.btn_pdf) && (
           <ActionButton
             mode="saveDraft"
             text="Export PDF"
             onClick={() => {
               const targetUrl = `/expenses/advance/pdf?document_number=${activityDetail.document_number}&page_code=${pageCode}`;
-              window.open(targetUrl, "_blank"); // เปิดในแท็บใหม่
+              window.open(targetUrl, "_blank");
             }}
           />
         )}
 
-        {activityDetail?.permission?.btn_reject && (
-          <ActionButton
-            mode="reject"
-            text="Reject"
-            onClick={() => {
-              handleApproval("reject");
-            }}
-          />
+        {activityDetail?.permission?.btn_reject && activityDetail?.transaction_status_name !== "Convert" && (
+          <ActionButton mode="reject" text={btn_reject} onClick={() => handleApproval("reject")} />
         )}
 
-        {activityDetail?.permission?.btn_approved && (
-          <ActionButton
-            mode="save"
-            text="Approve"
-            onClick={() => {
-              handleApproval("approved");
-            }}
-          />
+        {activityDetail?.permission?.btn_approved && activityDetail?.transaction_status_name !== "Convert" && (
+          <ActionButton mode="save" text={btn_approve} onClick={() => handleApproval("approved")} />
         )}
       </div>
 
-      {/* Modal for Add Participant */}
+      {/* Modal */}
       <DynamicModal
         title="Add Participant"
         isVisible={isTeamModalVisible}
@@ -2010,18 +1843,8 @@ export default function CreateActivityManyShop() {
         header={[
           { title: "No", dataIndex: "no", key: "no", width: 50 },
           { title: "Name", dataIndex: "name", key: "name", width: 150 },
-          {
-            title: "Territory",
-            dataIndex: "territory",
-            key: "territory",
-            width: 150,
-          },
-          {
-            title: "Position",
-            dataIndex: "position",
-            key: "position",
-            width: 150,
-          },
+          { title: "Territory", dataIndex: "territory", key: "territory", width: 150 },
+          { title: "Position", dataIndex: "position", key: "position", width: 150 },
         ]}
         dataSource={participantList}
         width="1200px"
@@ -2031,3 +1854,4 @@ export default function CreateActivityManyShop() {
     </MainLayout>
   );
 }
+
