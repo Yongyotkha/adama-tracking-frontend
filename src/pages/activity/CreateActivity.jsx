@@ -116,6 +116,12 @@ export default function CreateActivity() {
       const num = typeof v === "string" ? parseFloat(v.replace(/,/g, "")) : Number(v);
       return Number.isFinite(num) && num > 0 ? num : NaN;
     };
+    const masterNetPrice = parseVal(item?.master_price?.net_price);
+    if (!isNaN(masterNetPrice)) return masterNetPrice;
+
+    const netPrice = parseVal(item?.net_price);
+    if (!isNaN(netPrice)) return netPrice;
+
     const masterBathUnit = parseVal(item?.master_price?.bath_unit);
     if (!isNaN(masterBathUnit)) return masterBathUnit;
 
@@ -530,6 +536,7 @@ export default function CreateActivity() {
           estimate_sale_qty: toNumber(el.estimate_sale_qty, 0),
           acutal_sale_qty: toNumber(el.acutal_sale_qty, 0),
           bath_ltkg: toNumber(el.bath_ltkg, 0),
+          net_price: el.net_price,
           bath_unit: el.bath_unit,
           master_price: el.master_price,
           product_code: el.product_code,
@@ -1100,6 +1107,8 @@ export default function CreateActivity() {
         packing_list: el.packing_list,
         estimate_sale_qty: "0",
         acutal_sale_qty: "0",
+        net_price: el.net_price,
+        bath_unit: el.bath_unit,
         bath_ltkg: el.bath_ltkg,
         product_code: el.product_code,
         product_id: el.id,
