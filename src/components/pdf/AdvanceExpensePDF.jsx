@@ -119,6 +119,19 @@ const AdvanceExpensePDF = () => {
     loadDataAdvance();
   }, [getDocumentNumber, getPageCode]);
 
+  const getUnitPrice = (item) => {
+    const parseVal = (v) => {
+      if (v === null || v === undefined || v === "") return NaN;
+      const num = typeof v === "string" ? parseFloat(v.replace(/,/g, "")) : Number(v);
+      return Number.isFinite(num) && num > 0 ? num : NaN;
+    };
+    const bathUnit = parseVal(item?.bath_unit);
+    if (!isNaN(bathUnit)) return bathUnit;
+    const bathLtkg = parseVal(item?.bath_ltkg);
+    if (!isNaN(bathLtkg)) return bathLtkg;
+    return 1;
+  };
+
   const formatNumber2 = (val) => {
     const n = Number(val);
     if (!Number.isFinite(n)) return "0.00";
@@ -394,13 +407,13 @@ const AdvanceExpensePDF = () => {
                     {formatNumber2(item.estimate_sale_qty)}
                   </Text>
                   <Text style={styles.tableCell}>
-                    {formatNumber2(Number(item.bath_ltkg || 1) * Number(item.estimate_sale_qty || 0))}
+                    {formatNumber2(getUnitPrice(item) * Number(item.estimate_sale_qty || 0))}
                   </Text>
                   <Text style={styles.tableCell}>
                     {formatNumber(item.acutal_sale_qty)}
                   </Text>
                   <Text style={[styles.tableCell, styles.tableCellLast]}>
-                    {formatNumber(Number(item.bath_ltkg || 1) * Number(item.acutal_sale_qty || 0))}
+                    {formatNumber(getUnitPrice(item) * Number(item.acutal_sale_qty || 0))}
                   </Text>
                 </View>
               ))
