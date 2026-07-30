@@ -254,9 +254,9 @@ export default function RedeemDetail() {
             showNotification("success", "Transaction completed", ["ส่งไป Purchase เรียบร้อย"]);
 
             console.log('res : ', res)
-            navigate("/setting/line/request-purchase/update-stock", {
-              state: { id: res.data.promotion_purchase },
-            })
+            // navigate("/setting/line/request-purchase/update-stock", {
+            //   state: { id: res.data.promotion_purchase },
+            // })
           } else {
             showNotification("error", "Send failed", [res?.data?.message || "ไม่สามารถส่งไป Purchase ได้"]);
           }
@@ -276,10 +276,14 @@ export default function RedeemDetail() {
 
   // โหมดจาก list (RFA/RFR/RFW) เพื่อคุมปุ่ม
   const currentMode = (location?.state?.mode || detail?.status_code || "").toUpperCase();
+
+  console.log('currentMode : ', currentMode)
   const isRFA = currentMode === "RFA";
   const isRFR = currentMode === "RFR";
   const isRFW = currentMode === "RFW";
-
+  console.log('isRFA : ', isRFA)
+  console.log('isRFR : ', isRFR)
+  console.log('isRFW : ', isRFW)
   return (
     <MainLayout loading={loading}>
       <div className="title-page">Points Redeem Detail</div>
