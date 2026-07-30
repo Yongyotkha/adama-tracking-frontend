@@ -253,10 +253,22 @@ export default function RedeemDetail() {
           if (res?.status === 200) {
             showNotification("success", "Transaction completed", ["ส่งไป Purchase เรียบร้อย"]);
 
-            console.log('res : ', res)
-            // navigate("/setting/line/request-purchase/update-stock", {
-            //   state: { id: res.data.promotion_purchase },
-            // })
+            // อัปเดตสถานะท้องถิ่นเป็น RFP เพื่อซ่อนปุ่มทันที (ตาม API purchase)
+            setDetail((prev) =>
+              prev
+                ? {
+                    ...prev,
+                    status_code: "RFP",
+                    status_name: "Waiting for Purchase",
+                    permission: {
+                      ...prev.permission,
+                      can_approve: false,
+                      can_send_purchase: false,
+                    },
+                  }
+                : prev
+            );
+            form.setFieldsValue({ status: "Waiting for Purchase" });
           } else {
             showNotification("error", "Send failed", [res?.data?.message || "ไม่สามารถส่งไป Purchase ได้"]);
           }
@@ -274,16 +286,10 @@ export default function RedeemDetail() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // โหมดจาก list (RFA/RFR/RFW) เพื่อคุมปุ่ม
-  const currentMode = (location?.state?.mode || detail?.status_code || "").toUpperCase();
-
-  console.log('currentMode : ', currentMode)
-  const isRFA = currentMode === "RFA";
-  const isRFR = currentMode === "RFR";
+  // โหมดจาก API / list (RFA/RFR/RFW) เพื่อคุมปุ่ม
+  const currentMode = (detail?.status_code || location?.state?.mode || "").toUpperCase();
   const isRFW = currentMode === "RFW";
-  console.log('isRFA : ', isRFA)
-  console.log('isRFR : ', isRFR)
-  console.log('isRFW : ', isRFW)
+
   return (
     <MainLayout loading={loading}>
       <div className="title-page">Points Redeem Detail</div>
@@ -313,25 +319,11 @@ export default function RedeemDetail() {
         <ActionButton mode="back" text="Back" onClick={() => navigate(-1)} />
 
         {isRFW && (
-          <>
-            {/* <ActionButton
-              mode="reject"
-              text="Reject"
-              className="bg-[#752157]"
-              onClick={handleReject} // ⬅️ Modal + post RFR
-            /> */}
-            <ActionButton
-              mode="reject"
-              text="Send to Purchase"
-              onClick={handleSendToPurchase} // ⬅️ มี remark ผ่าน Modal แต่ยังไม่ยิง API
-            />
-            {/* <ActionButton
-              mode="custom"
-              text="Approve"
-              className="bg-[#00783F]"
-              onClick={handleApprove} // ⬅️ Modal + post RFA
-            /> */}
-          </>
+          <ActionButton
+            mode="reject"
+            text="Send to Purchase"
+            onClick={handleSendToPurchase}
+          />
         )}
       </div>
     </MainLayout>
