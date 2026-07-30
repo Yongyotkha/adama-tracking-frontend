@@ -44,9 +44,11 @@ export default function Traveling() {
     const getMaster = async () => {
       setLoading(true);
       try {
-        const [sale, year, month, status] = await Promise.all([
-          // useServiceAPI.get(paths.pathMasterSaleDropdown, { mode: "all" }),
-          useServiceAPI.get(paths.pathMasterSaleExpense, { mode: "all" }),
+        const saleRes = await useServiceAPI.get(
+          isAdmin ? paths.pathMasterUserAll : paths.pathMasterSaleExpense,
+          isAdmin ? {} : { mode: "all" }
+        );
+        const [year, month, status] = await Promise.all([
           useServiceAPI.get(paths.pathMasterYear, {}),
           useServiceAPI.get(paths.pathMasterMonths, {}),
           useServiceAPI.get(paths.pathMasterStatus, {
@@ -54,7 +56,7 @@ export default function Traveling() {
           }),
         ]);
 
-        setDataSale(sale.data);
+        setDataSale(saleRes.data);
         setDataYear(year.data);
         setDataMonth(month.data);
 
@@ -75,7 +77,7 @@ export default function Traveling() {
     };
 
     getMaster();
-  }, []);
+  }, [isAdmin]);
 
   // Filter configuration
   const filters = [
