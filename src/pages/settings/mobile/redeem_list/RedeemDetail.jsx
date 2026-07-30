@@ -195,8 +195,10 @@ export default function RedeemDetail() {
         showNotification("success", "Success", [`อัปเดตสถานะเป็น ${status} เรียบร้อย`]);
         // โหลดใหม่เพื่อให้ข้อมูลล่าสุด (หรือจะย้อนกลับ list ก็ได้)
         // await loadDetail();
-        // ✅ อัปเดตเสร็จแล้ว redirect กลับหน้า List
-        navigate("/points/line/redeem-reward-list");
+        // ✅ อัปเดตเสร็จแล้ว redirect กลับหน้า List (คง tab เดิม)
+        navigate("/points/line/redeem-reward-list", {
+          state: { tab: location?.state?.fromTab || "list" },
+        });
 
       } else {
         showNotification("error", "Update failed", [res?.data?.message || "ไม่สามารถอัปเดตสถานะได้"]);
@@ -316,7 +318,15 @@ export default function RedeemDetail() {
       </BoxPrimary>
 
       <div className="flex justify-end gap-3 mt-4">
-        <ActionButton mode="back" text="Back" onClick={() => navigate(-1)} />
+        <ActionButton
+          mode="back"
+          text="Back"
+          onClick={() =>
+            navigate("/points/line/redeem-reward-list", {
+              state: { tab: location?.state?.fromTab || "list" },
+            })
+          }
+        />
 
         {isRFW && (
           <ActionButton
