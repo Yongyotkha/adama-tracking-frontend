@@ -29,7 +29,7 @@ const Navbar = () => {
   const [activeIndex, setActiveIndex] = useState(0); // Track active index
   const { userInfo, logout } = useContext(AuthContext);
 
-  const menuItems = userInfo?.menu_permissions?.map((menu) => ({
+  const rawMenuItems = userInfo?.menu_permissions?.map((menu) => ({
     label: menu.name,
     icon: `/${menu.icon}`,
     dropdownMenu: menu.dropdownItems?.length > 0,
@@ -40,8 +40,25 @@ const Navbar = () => {
         label: item.name,
         path: item.url,
       }))
-      : [], // ใช้ [] หากไม่มี dropdownItems
+      : [],
   })) || [];
+
+  const farmerPointMenu = {
+    label: "Point Farmer",
+    icon: "/img/icon-menu-point.png",
+    dropdownMenu: true,
+    path: "points/line/farmer-points-list",
+    dropdownItems: [
+      { key: "fp-1", label: "Farmer Point Order", path: "points/line/farmer-points-list" },
+      { key: "fp-2", label: "Farmer Point Collection", path: "points/line/farmer-collect-points-list" },
+      { key: "fp-3", label: "Farmer Point Redeem", path: "points/line/farmer-redeem-reward-list" },
+      { key: "fp-4", label: "Farmer Point Campaign", path: "setting/line/farmer-point-campaign" },
+    ],
+  };
+
+  const menuItems = rawMenuItems.some((m) => m.label?.toLowerCase() === "point farmer")
+    ? rawMenuItems
+    : [...rawMenuItems, farmerPointMenu];
 
   const CustomDropdownMenu = ({ items }) => {
     return (
