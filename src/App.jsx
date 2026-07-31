@@ -175,6 +175,10 @@ import DraftCampaignAction from "./pages/settings/mobile/draft_campaign/DraftCam
 import ViewOrEditTargetGroup from "./pages/settings/mobile/target_group/ViewOrEditTargetGroup";
 import CollectPointsDetail from "./pages/mobile/collect_points/CollectPointsDetail";
 import CollectPointsList from "./pages/settings/mobile/collect_points/CollectPointsList";
+import FarmerPointCollection from "./pages/settings/mobile/collect_points/FarmerPointCollection";
+import FarmerPointOrder from "./pages/settings/mobile/collect_points/FarmerPointOrder";
+import FarmerPointRedeem from "./pages/settings/mobile/redeem_list/FarmerPointRedeem";
+import FarmerPointCampaignPlaceholder from "./pages/settings/mobile/point_campaign/FarmerPointCampaignPlaceholder";
 import RedeemDetail from "./pages/settings/mobile/redeem_list/RedeemDetail";
 import Transportation from "./pages/settings/mobile/transportation/Transportation";
 import RewardProductUpdateStock from "./pages/settings/mobile/request_purchase/RewardProductUpdateStock";
@@ -571,6 +575,22 @@ const App = () => {
             <Route
               path="/points/line/collect-points-list"
               element={<CollectPointsList />}
+            />
+            <Route
+              path="/farmer/points/collection"
+              element={<FarmerPointCollection />}
+            />
+            <Route
+              path="/farmer/points/order"
+              element={<FarmerPointOrder />}
+            />
+            <Route
+              path="/farmer/points/redeem"
+              element={<FarmerPointRedeem />}
+            />
+            <Route
+              path="/farmer/points/campaign"
+              element={<FarmerPointCampaignPlaceholder />}
             />
             <Route
               path="/points/line/collect-points-list/view"
