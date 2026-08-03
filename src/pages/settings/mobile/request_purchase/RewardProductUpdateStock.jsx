@@ -67,12 +67,16 @@ export default function RewardProductUpdateStock() {
   };
 
   const handleUpdate = async () => {
-    if (!row?.id) return;
+    if (!row?.reward_code || !row?.status_code) return;
     setLoading(true);
     try {
-      const payload = { id: row.id, value: row.qty };
+      const payload = {
+        reward_code: row.reward_code,
+        status_code: row.status_code,
+        value: row.qty,
+      };
       const res = await useServiceAPI.post(paths.pathRequestPurchaseUpdateValue, payload);
-      if (res.status === 200) navigate("/points/line/redeem-reward-list");
+      if (res.status === 200) navigate("/setting/line/request-purchase");
     } catch (error) {
       console.error("Failed to update stock:", error);
     } finally {
