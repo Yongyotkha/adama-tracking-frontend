@@ -618,14 +618,14 @@ export default function SalesPointCreate() {
       moderef: true,
       value: subDealerId ?? undefined,
     },
-    {
+    isFarmer && {
       key: "farmer",
       label: "Farmer",
       name: "farmer",
       type: "select",
       options: dataFarmer,
-      disabled: isFarmer ? false : !subDealerId,
-      required: isFarmer ? true : false,
+      disabled: false,
+      required: true,
       placeholder: "Select farmer",
       moderef: true,
       value: farmerId ?? undefined,
@@ -651,7 +651,7 @@ export default function SalesPointCreate() {
       moderef: false,
       value: dayjs().format("YYYY-MM-DD"),
     },
-  ];
+  ].filter(Boolean);
 
   return (
     <MainLayout loading={loading}>

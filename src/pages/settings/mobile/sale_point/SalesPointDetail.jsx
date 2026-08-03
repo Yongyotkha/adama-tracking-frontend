@@ -20,6 +20,7 @@ export default function SalesPointDetail() {
   const { showMsg, showNotification } = useContext(AuthContext);
 
   const [loading, setLoading] = useState(false);
+  const isFarmer = location.pathname.includes("farmer-points-list") || location.state?.data?.is_farmer;
   const [dataSource, setDataSource] = useState([]);
   const [dataSourceOther, setDataSourceOther] = useState([]);
 
@@ -261,7 +262,7 @@ export default function SalesPointDetail() {
       placeholder: "",
       value: getSubDealerId,
     },
-    {
+    isFarmer && {
       key: "farmer",
       label: "Farmer",
       name: "farmer",
@@ -289,7 +290,7 @@ export default function SalesPointDetail() {
       placeholder: dayjs().format("YYYY-MM-DD"),
       value: "",
     },
-  ];
+  ].filter(Boolean);
 
   const formatDate = (date) => {
     if (!date || !date.$d) return "";
@@ -398,7 +399,6 @@ export default function SalesPointDetail() {
     }
   };
 
-  const isFarmer = location.state?.data?.is_farmer;
   const backCreatePath = isFarmer ? "/points/line/farmer-points-list/create" : "/points/line/sales-points-list/create";
 
   return (
