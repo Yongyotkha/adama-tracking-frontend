@@ -55,15 +55,17 @@ export default function CreatePointCampaign() {
   const [detailProductKeys, setDetailProductKeys] = useState([]);
   const preselectProductDoneRef = useRef(false);
 
+  const isFarmer = location.pathname.includes("farmer-point-campaign") || Boolean(location.state?.is_farmer);
+
   const isCreate = mode === "create";
   const isEdit = mode === "edit";
   const isView = mode === "view";
 
   const pageTitle = isCreate
-    ? "Create Point Campaign"
+    ? isFarmer ? "Create Point Campaign (Farmer)" : "Create Point Campaign"
     : isEdit
-      ? "Edit Point Campaign"
-      : "View Point Campaign";
+      ? isFarmer ? "Edit Point Campaign (Farmer)" : "Edit Point Campaign"
+      : isFarmer ? "View Point Campaign (Farmer)" : "View Point Campaign";
   const formDisabled = isView;
   const fileUploadRefReceive = useRef(null);
   const [fileListReceive, setFileListReceive] = useState([]); // picture
@@ -625,6 +627,7 @@ export default function CreatePointCampaign() {
         setLoading(true);
         const res = await useServiceAPI.post(paths.pathPointCampaignDetail, {
           id: recordId,
+          ...(isFarmer ? { mode: "farmer" } : {}),
         });
         const d = res?.data || {};
         const c = d?.campaign || {};
@@ -842,6 +845,7 @@ export default function CreatePointCampaign() {
         crops,
         date_start: start ? dayjs(start).format("YYYY-MM-DD HH:mm:ss") : null,
         date_end: end ? dayjs(end).format("YYYY-MM-DD HH:mm:ss") : null,
+        ...(isFarmer ? { mode: "farmer" } : {}),
       };
 
       if (productModeNum === 2) payload.categorys = categoryIds;
@@ -1007,24 +1011,30 @@ export default function CreatePointCampaign() {
             Customer Group <span className="text-[#ff4d4f]">*</span>
           </div>
           <Row gutter={[24, 16]}>
-            <Col xs={24} md={6}>
-              <div className="text-[#666] mb-2">Dealer</div>
-              <Form.Item name="target_dealer" noStyle>
-                <Checkbox.Group options={dealerOptions} />
-              </Form.Item>
-            </Col>
-            <Col xs={24} md={6}>
-              <div className="text-[#666] mb-2">Sub Dealer</div>
-              <Form.Item name="target_subdealer" noStyle>
-                <Checkbox.Group options={subDealerOptions} />
-              </Form.Item>
-            </Col>
-            <Col xs={24} md={6}>
-              <div className="text-[#666] mb-2">Farmer</div>
-              <Form.Item name="target_farmer" noStyle>
-                <Checkbox.Group options={farmerOptions} />
-              </Form.Item>
-            </Col>
+            {!isFarmer && (
+              <>
+                <Col xs={24} md={6}>
+                  <div className="text-[#666] mb-2">Dealer</div>
+                  <Form.Item name="target_dealer" noStyle>
+                    <Checkbox.Group options={dealerOptions} />
+                  </Form.Item>
+                </Col>
+                <Col xs={24} md={6}>
+                  <div className="text-[#666] mb-2">Sub Dealer</div>
+                  <Form.Item name="target_subdealer" noStyle>
+                    <Checkbox.Group options={subDealerOptions} />
+                  </Form.Item>
+                </Col>
+              </>
+            )}
+            {isFarmer && (
+              <Col xs={24} md={6}>
+                <div className="text-[#666] mb-2">Farmer</div>
+                <Form.Item name="target_farmer" noStyle>
+                  <Checkbox.Group options={farmerOptions} />
+                </Form.Item>
+              </Col>
+            )}
             <Col xs={24} md={6}>
               <div className="text-[#666] mb-2">Crop</div>
               <Form.Item name="target_crop" noStyle>

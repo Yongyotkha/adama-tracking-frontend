@@ -350,7 +350,7 @@ export default function AdvanceExpense() {
       customer_name: "",
       page: "all",
       page_mode: "list",
-      orderby_column: "document_date",
+      orderby_column: "document_number",
       orderby: "desc",
       page_length: current,
       page_size: pageSize,

@@ -52,19 +52,33 @@ export default function SalesPointCreate() {
   const [userInfo] = useState(JSON.parse(localStorage.getItem("users")));
   const [formCustom] = Form.useForm();
 
+  const isFarmer = location.pathname.includes("farmer-points-list") || location.state?.is_farmer;
+  const backPath = location.state?.back_path || (isFarmer ? "/points/line/farmer-points-list" : "/points/line/sales-points-list");
+
   // ===== โหลดค่าจาก state กรณีมาจากหน้า previous =====
   useEffect(() => {
     if (location.state?.data) {
-      const { user_id, dealer_id, sub_dealer_id, farmer_id, others, products, remark } =
+      const { user_id, dealer_id, sub_dealer_id, farmer_id, others, products, remark, fileList: savedFileList, fileListReceive: savedFileListReceive } =
         location.state?.data;
-
-      setDataSaleId(user_id ? Number(user_id) : undefined);
-      setDealerId(dealer_id ? Number(dealer_id) : undefined);
-      setSubDealerId(sub_dealer_id ? Number(sub_dealer_id) : undefined);
-      setFarmerId(farmer_id ? String(farmer_id) : undefined);
-      setDataSource(products || []);
-      setDataSourceOther(others || []);
+      setDataSaleId(user_id);
+      setDealerId(dealer_id);
+      setSubDealerId(sub_dealer_id);
+      setFarmerId(farmer_id);
       setInputRemark(remark || "");
+
+      if (Array.isArray(savedFileList) && savedFileList.length > 0) {
+        setFileList(savedFileList);
+      }
+      if (Array.isArray(savedFileListReceive) && savedFileListReceive.length > 0) {
+        setFileListReceive(savedFileListReceive);
+      }
+
+      if (Array.isArray(products) && products.length > 0) {
+        setDataSource(products);
+      }
+      if (Array.isArray(others) && others.length > 0) {
+        setDataSourceOther(others);
+      }
     }
   }, [location.state]);
 
@@ -144,7 +158,7 @@ export default function SalesPointCreate() {
     fetchSubDealer();
   }, [dealerId]);
 
-  // ===== โหลด farmer เมื่อเลือก sub dealer =====
+  // ===== โหลด farmer โดยใช้ paths.pathUserLineFarmer (user-line/farmers) =====
   useEffect(() => {
     const fetchFarmer = async () => {
       if (!subDealerId) {
@@ -153,12 +167,19 @@ export default function SalesPointCreate() {
       }
       setLoading(true);
       try {
-        const res = await useServiceAPI.get(paths.pathUserLineFarmer, { sub_dealer_id: subDealerId });
+        const params = { platform: "web", sub_dealer_id: subDealerId };
+        const res = await useServiceAPI.get(paths.pathUserLineFarmer, params);
         const list = Array.isArray(res?.data?.data) ? res.data.data : Array.isArray(res?.data) ? res.data : [];
-        const normalized = list.map(item => ({
-          id: String(item.farmer_id || item.id),
-          name: item.farmer_name || item.name || String(item.farmer_id || item.id)
-        }));
+        const normalized = list.map((item) => {
+          const id = item.id || item.farmer_id;
+          const name = item.name || item.farmer_name || String(id || "");
+          return {
+            id,
+            name,
+            value: id,
+            label: name,
+          };
+        });
         setDataFarmer(normalized);
       } catch (e) {
         // no-op
@@ -166,8 +187,10 @@ export default function SalesPointCreate() {
         setLoading(false);
       }
     };
-    fetchFarmer();
-  }, [subDealerId]);
+    if (isFarmer) {
+      fetchFarmer();
+    }
+  }, [subDealerId, isFarmer]);
 
   // ===== Upload handlers =====
   const handleFileRemove = (file) =>
@@ -185,6 +208,32 @@ export default function SalesPointCreate() {
   };
 
   // ===== Modal handlers =====
+  const handleOpenTeamModal = async () => {
+    setGetOtherProductData([]);
+    setLoading(true);
+    try {
+      const res = await useServiceAPI.get(paths.pathMasterPromotionList, {
+        page_size: 100,
+        page_length: 1,
+        platform: "web",
+      });
+      const list = res?.data?.data || res?.data || [];
+      const productData = list.map((item, index) => ({
+        key: item.id,
+        no: index + 1,
+        name: item.name,
+        unit: item.unit,
+        value: parseFloat(item.value || 0),
+      }));
+      setGetOtherProductData(productData);
+      setIsTeamModalVisible(true);
+    } catch (e) {
+      showMsg("error", e?.message || "เกิดข้อผิดพลาด");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleCloseTeamModal = () => {
     setGetOtherProductData([]);
     setIsTeamModalVisible(false);
@@ -272,7 +321,7 @@ export default function SalesPointCreate() {
       setSubDealerId(value || undefined);
       setFarmerId(undefined);
       setDataFarmer([]);
-      
+
       formCustom.setFieldsValue({
         farmer: undefined,
       });
@@ -388,8 +437,65 @@ export default function SalesPointCreate() {
     );
   };
 
+  const headerOther = [
+    { title: "No", dataIndex: "no", key: "no", width: 50 },
+    { title: "Name", dataIndex: "product_name", key: "product_name" },
+    { title: "Unit", dataIndex: "product_unit", key: "product_unit" },
+    { title: "QTY", dataIndex: "quantity", key: "quantity" },
+    {
+      title: <div className="text-end">Value (THB)</div>,
+      dataIndex: "net_amount",
+      key: "net_amount",
+      render: (t) => (
+        <div className="text-end">
+          {Number(t || 0).toLocaleString("en-US", { minimumFractionDigits: 2 })}
+        </div>
+      ),
+    },
+    {
+      title: <div className="text-center">Action</div>,
+      key: "action",
+      width: 90,
+      align: "center",
+      render: (_, record) => (
+        <button type="button" className="delete-button flex justify-center mx-auto">
+          <img
+            src="/img/icons/delete.png"
+            alt="delete"
+            className="cursor-pointer w-6 h-6"
+            onClick={() => {
+              const updated = dataSourceOther.filter((i) => i.key !== record.key).map((i, idx) => ({
+                ...i,
+                key: idx + 1,
+                no: idx + 1,
+              }));
+              setDataSourceOther(updated);
+            }}
+          />
+        </button>
+      ),
+    },
+  ];
+
+  const footerOtherList = () => {
+    const totalQty = dataSourceOther.reduce((t, i) => t + (Number(i.quantity) || 0), 0);
+    const totalAmount = dataSourceOther.reduce((t, i) => t + (Number(String(i.net_amount).replace(/,/g, "")) || 0), 0);
+    return (
+      <tr className="bg-[#978B87]">
+        <td colSpan={6} className="text-right pr-2 text-white">
+          Item: {dataSourceOther.length} &nbsp; | QTY: {totalQty} &nbsp; | Total:{" "}
+          {totalAmount.toLocaleString("en-US", { minimumFractionDigits: 2 })}
+        </td>
+      </tr>
+    );
+  };
+
   // ===== ค้นหา/เพิ่มสินค้า (คงของเดิม) =====
+  const [selectedProduct, setSelectedProduct] = useState(undefined);
+
   const onChangeProduct = async (value) => {
+    if (!value) return;
+    setSelectedProduct(value);
     setSearchProductData([]);
     setLoading(true);
     try {
@@ -427,6 +533,7 @@ export default function SalesPointCreate() {
     } catch (e) {
       showMsg("error", e.message || "เกิดข้อผิดพลาด");
     } finally {
+      setSelectedProduct(undefined);
       setLoading(false);
     }
   };
@@ -465,10 +572,14 @@ export default function SalesPointCreate() {
           others: dataSourceOther,
           fileList,
           fileListReceive,
+          mode: isFarmer ? "farmer" : undefined,
+          type: isFarmer ? "farmer" : undefined,
         };
 
-        navigate("/points/line/sales-points-list/detail", {
-          state: { data: body },
+        const detailPath = isFarmer ? "/points/line/farmer-points-list/detail" : "/points/line/sales-points-list/detail";
+
+        navigate(detailPath, {
+          state: { data: { ...body, is_farmer: isFarmer, back_path: backPath } },
         });
       })
       .catch((e) => console.error("Validation Failed:", e));
@@ -480,50 +591,55 @@ export default function SalesPointCreate() {
   // ===== ฟิลด์ฟอร์ม (คุม disabled + placeholder ป้องกัน NaN) =====
   const formFields = [
     {
+      key: "sale",
       label: "Sales",
       name: "sale",
       type: "select",
       options: dataSale,
       disabled: false,
-      required: true,
+      required: !isFarmer,
       placeholder: "Select sales",
       moderef: true,
       value: dataSaleId ?? undefined,
     },
     {
+      key: "dealer",
       label: "Dealer",
       name: "dealer",
       type: "select",
       options: dataDealer,
       disabled: !dataSaleId,
-      required: true,
-      placeholder: dataSaleId ? "Select dealer" : "Please select sales first",
-      moderef: false,
+      required: !isFarmer,
+      placeholder: "Select dealer",
+      moderef: true,
       value: dealerId ?? undefined,
     },
     {
+      key: "sub_dealer",
       label: "Sub Dealer",
       name: "sub_dealer",
       type: "select",
       options: dataSubDealer,
       disabled: !dealerId,
-      required: true,
-      placeholder: dealerId ? "Select sub dealer" : "Please select dealer first",
-      moderef: false,
+      required: !isFarmer,
+      placeholder: "Select sub dealer",
+      moderef: true,
       value: subDealerId ?? undefined,
     },
-    {
+    isFarmer && {
+      key: "farmer",
       label: "Farmer",
       name: "farmer",
       type: "select",
       options: dataFarmer,
       disabled: !subDealerId,
-      required: false,
-      placeholder: subDealerId ? "Select farmer" : "Please select sub dealer first",
-      moderef: false,
+      required: true,
+      placeholder: "Select farmer",
+      moderef: true,
       value: farmerId ?? undefined,
     },
     {
+      key: "order_no",
       label: "Order No",
       name: "order_no",
       type: "text",
@@ -534,19 +650,22 @@ export default function SalesPointCreate() {
       value: "",
     },
     {
+      key: "order_date",
       label: "Date",
       name: "order_date",
-      type: "date",
+      type: "text",
       disabled: true,
       required: false,
       moderef: false,
       value: dayjs().format("YYYY-MM-DD"),
     },
-  ];
+  ].filter(Boolean);
 
   return (
     <MainLayout loading={loading}>
-      <div className="title-page">Create Sales Point Order</div>
+      <div className="title-page">
+        {isFarmer ? "Create Sales Point Order (Farmer)" : "Create Sales Point Order"}
+      </div>
 
       <FormCustom fields={formFields} form={formCustom} onChange={handleChange} />
 
@@ -560,16 +679,31 @@ export default function SalesPointCreate() {
             onChange={onChangeProduct}
             onSearch={onSearchProduct}
             options={searchProductData}
-            value=""
+            value={selectedProduct}
           />
         </div>
+        <TableComponent
+          header={header}
+          dataSource={dataSource}
+          pageSize={10}
+          footer={footerOrderList}
+          pagination={false}
+        />
       </BoxPrimary>
 
-      <BoxPrimary title="Order List">
-        <TableComponent header={header} dataSource={dataSource} pageSize={10} footer={footerOrderList} />
-      </BoxPrimary>
+      {/* <BoxPrimary title="Other">
+        <div className="mb-3 flex justify-end">
+          <ActionButton mode="create" text="Add Other" onClick={handleOpenTeamModal} />
+        </div>
+        <TableComponent
+          header={headerOther}
+          dataSource={dataSourceOther}
+          pageSize={10}
+          footer={footerOtherList}
+          pagination={false}
+        />
+      </BoxPrimary> */}
 
-      {/* Attachments Section */}
       <UploadSection
         title="Attached file/Picture"
         fileUploadRef={fileUploadRef}
@@ -603,7 +737,7 @@ export default function SalesPointCreate() {
       </BoxPrimary>
 
       <div className="flex justify-end space-x-4">
-        <ActionButton mode="back" text="Back" onClick={() => navigate("/points/line/sales-points-list")} />
+        <ActionButton mode="back" text="Back" onClick={() => navigate(backPath)} />
         <ActionButton mode="save" text="Confirm" onClick={handleNavigateToOrderView} />
       </div>
 

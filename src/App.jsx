@@ -175,6 +175,10 @@ import DraftCampaignAction from "./pages/settings/mobile/draft_campaign/DraftCam
 import ViewOrEditTargetGroup from "./pages/settings/mobile/target_group/ViewOrEditTargetGroup";
 import CollectPointsDetail from "./pages/mobile/collect_points/CollectPointsDetail";
 import CollectPointsList from "./pages/settings/mobile/collect_points/CollectPointsList";
+import FarmerPointCollection from "./pages/settings/mobile/collect_points/FarmerPointCollection";
+import FarmerPointOrder from "./pages/settings/mobile/collect_points/FarmerPointOrder";
+import FarmerPointRedeem from "./pages/settings/mobile/redeem_list/FarmerPointRedeem";
+import FarmerPointCampaignList from "./pages/settings/mobile/point_campaign/FarmerPointCampaignList";
 import RedeemDetail from "./pages/settings/mobile/redeem_list/RedeemDetail";
 import Transportation from "./pages/settings/mobile/transportation/Transportation";
 import RewardProductUpdateStock from "./pages/settings/mobile/request_purchase/RewardProductUpdateStock";
@@ -571,6 +575,46 @@ const App = () => {
             <Route
               path="/points/line/collect-points-list"
               element={<CollectPointsList />}
+            />
+            <Route
+              path="/points/line/farmer-points-list"
+              element={<FarmerPointOrder />}
+            />
+            <Route
+              path="/points/line/farmer-points-list/create"
+              element={<SalesPointCreate />}
+            />
+            <Route
+              path="/points/line/farmer-points-list/edit"
+              element={<SalesPointEdit />}
+            />
+            <Route
+              path="/points/line/farmer-points-list/view"
+              element={<SalesPointView />}
+            />
+            <Route
+              path="/points/line/farmer-points-list/detail"
+              element={<SalesPointDetail />}
+            />
+            <Route
+              path="/points/line/farmer-collect-points-list"
+              element={<FarmerPointCollection />}
+            />
+            <Route
+              path="/points/line/farmer-redeem-reward-list"
+              element={<FarmerPointRedeem />}
+            />
+            <Route
+              path="/setting/line/farmer-point-campaign"
+              element={<FarmerPointCampaignList />}
+            />
+            <Route
+              path="/setting/line/farmer-point-campaign/create"
+              element={<CreatePointCampaign />}
+            />
+            <Route
+              path="/setting/line/farmer-point-campaign/:mode"
+              element={<CreatePointCampaign />}
             />
             <Route
               path="/points/line/collect-points-list/view"
