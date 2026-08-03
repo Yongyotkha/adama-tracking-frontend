@@ -285,9 +285,14 @@ export default function SalesPointView() {
     },
   ];
 
+  const isFarmer = location.state?.is_farmer;
+  const backPath = location.state?.back_path || "/points/line/sales-points-list";
+
   return (
     <MainLayout loading={loading}>
-      <div className="title-page">View Sales Point Order</div>
+      <div className="title-page">
+        {isFarmer ? "View Sales Point Order (Farmer)" : "View Sales Point Order"}
+      </div>
 
       <FormCustom fields={formFields} form={formCustom} onChange="" />
 
@@ -344,7 +349,7 @@ export default function SalesPointView() {
           mode="back"
           text="Back"
           onClick={() =>
-            navigate("/points/line/sales-points-list", {
+            navigate(backPath, {
               state: {},
             })
           }

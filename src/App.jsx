@@ -581,6 +581,14 @@ const App = () => {
               element={<FarmerPointOrder />}
             />
             <Route
+              path="/points/line/farmer-points-list/create"
+              element={<SalesPointCreate />}
+            />
+            <Route
+              path="/points/line/farmer-points-list/detail"
+              element={<SalesPointDetail />}
+            />
+            <Route
               path="/points/line/farmer-collect-points-list"
               element={<FarmerPointCollection />}
             />

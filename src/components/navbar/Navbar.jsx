@@ -43,22 +43,7 @@ const Navbar = () => {
       : [],
   })) || [];
 
-  const farmerPointMenu = {
-    label: "Point Farmer",
-    icon: "/img/icon-menu-point.png",
-    dropdownMenu: true,
-    path: "points/line/farmer-points-list",
-    dropdownItems: [
-      { key: "fp-1", label: "Farmer Point Order", path: "points/line/farmer-points-list" },
-      { key: "fp-2", label: "Farmer Point Collection", path: "points/line/farmer-collect-points-list" },
-      { key: "fp-3", label: "Farmer Point Redeem", path: "points/line/farmer-redeem-reward-list" },
-      { key: "fp-4", label: "Farmer Point Campaign", path: "setting/line/farmer-point-campaign" },
-    ],
-  };
-
-  const menuItems = rawMenuItems.some((m) => m.label?.toLowerCase() === "point farmer")
-    ? rawMenuItems
-    : [...rawMenuItems, farmerPointMenu];
+  const menuItems = rawMenuItems;
 
   const CustomDropdownMenu = ({ items }) => {
     return (

@@ -204,7 +204,7 @@ export default function FarmerPointOrder() {
                           mode="view"
                           onClick={() =>
                             navigate("/points/line/sales-points-list/view", {
-                              state: { document_number: order.document_number },
+                              state: { document_number: order.document_number, is_farmer: true, back_path: "/points/line/farmer-points-list" },
                             })
                           }
                         />
@@ -219,7 +219,7 @@ export default function FarmerPointOrder() {
                           mode="edit"
                           onClick={() =>
                             navigate("/points/line/sales-points-list/edit", {
-                              state: { document_number: order.document_number },
+                              state: { document_number: order.document_number, is_farmer: true, back_path: "/points/line/farmer-points-list" },
                             })
                           }
                         />
@@ -282,7 +282,12 @@ export default function FarmerPointOrder() {
       sub_dealer_id: filters.sub_dealer || "",
       farmer_id: filters.farmer || "",
       keyword: filters.order_no || "",
-      status_code: filters.status_code || " ",
+      status_code: filters.status_code || "ODI",
+      page: "all",
+      use_flag: 1,
+      orderby_column: "document_date",
+      orderby: "desc",
+      platform: "web",
       page_length: current,
       page_size: pageSize,
       mode: "farmer",
@@ -293,7 +298,7 @@ export default function FarmerPointOrder() {
     }
 
     try {
-      const response = await useServiceAPI.get(paths.pathSalePointOrderRequestList, requestData);
+      const response = await useServiceAPI.get(paths.pathSalePointOrderList, requestData);
       if (response.status === 200) {
         const { data = [], records_filtered } = response.data || {};
         const rows = data.map((order, index) => ({
@@ -314,19 +319,63 @@ export default function FarmerPointOrder() {
           action: (
             <Dropdown
               menu={{
-                items: (order.action || []).map((a, i) => ({
-                  key: i,
-                  label: (
-                    <ItemDropDown
-                      mode={String(a.action).toLowerCase()}
-                      onClick={() =>
-                        navigate(`/points/line/sales-points-request/${a.action}`, {
-                          state: { document_number: order.document_number },
-                        })
-                      }
-                    />
-                  ),
-                })),
+                items: (order.action || []).map((a, i) => {
+                  const actionName = String(a.action).toLowerCase();
+                  if (actionName === "view") {
+                    return {
+                      key: `view-${i}`,
+                      label: (
+                        <ItemDropDown
+                          mode="view"
+                          onClick={() =>
+                            navigate("/points/line/sales-points-list/view", {
+                              state: { document_number: order.document_number, is_farmer: true, back_path: "/points/line/farmer-points-list" },
+                            })
+                          }
+                        />
+                      ),
+                    };
+                  }
+                  if (actionName === "edit") {
+                    return {
+                      key: `edit-${i}`,
+                      label: (
+                        <ItemDropDown
+                          mode="edit"
+                          onClick={() =>
+                            navigate("/points/line/sales-points-list/edit", {
+                              state: { document_number: order.document_number, is_farmer: true, back_path: "/points/line/farmer-points-list" },
+                            })
+                          }
+                        />
+                      ),
+                    };
+                  }
+                  if (actionName === "delete") {
+                    return {
+                      key: `delete-${i}`,
+                      label: (
+                        <ItemDropDown
+                          mode="delete"
+                          onClick={() => handleDelete(order.document_number)}
+                        />
+                      ),
+                    };
+                  }
+                  return {
+                    key: `act-${i}`,
+                    label: (
+                      <ItemDropDown
+                        mode={actionName}
+                        onClick={() =>
+                          navigate(`/points/line/sales-points-request/${a.action}`, {
+                            state: { document_number: order.document_number },
+                          })
+                        }
+                      />
+                    ),
+                  };
+                }),
               }}
               trigger={["click"]}
             >
@@ -470,19 +519,21 @@ export default function FarmerPointOrder() {
 
   return (
     <MainLayout loading={loading}>
-      <div className="title-page">Sales Point Order (Farmer)</div>
-
-      <div className="flex justify-between items-center mb-3">
-        <Tabs activeKey={activeTab} onChange={(key) => setActiveTab(key)} className="custom-tabs">
-          <TabPane tab="Sales Point Order List" key="list" />
-          <TabPane tab="Sales Point Order Request" key="request" />
-        </Tabs>
-        <ActionButton
-          text="Create"
-          icon="/img/icon-plus.png"
-          onClick={() => navigate("/points/line/sales-points-list/create")}
-        />
+      <div className="flex justify-between items-center">
+        <div className="title-page">Sales Point Order (Farmer)</div>
+        <div className="flex gap-2">
+          <ActionButton
+            mode="create"
+            text="Create"
+            onClick={() => navigate("/points/line/farmer-points-list/create", { state: { is_farmer: true, back_path: "/points/line/farmer-points-list" } })}
+          />
+        </div>
       </div>
+
+      <Tabs activeKey={activeTab} onChange={setActiveTab} className="custom-tabs">
+        <TabPane tab={<span className="tab-title">Sales Point Order List</span>} key="list" />
+        <TabPane tab={<span className="tab-title">Sales Point Order Request</span>} key="request" />
+      </Tabs>
 
       <Filter
         onSearch={handleSearch}

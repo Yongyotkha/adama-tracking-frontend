@@ -628,9 +628,14 @@ export default function SalesPointEdit() {
     }
   };
 
+  const isFarmer = location.state?.is_farmer;
+  const backPath = location.state?.back_path || "/points/line/sales-points-list";
+
   return (
     <MainLayout loading={loading}>
-      <div className="title-page">Edit Sales Point Order</div>
+      <div className="title-page">
+        {isFarmer ? "Edit Sales Point Order (Farmer)" : "Edit Sales Point Order"}
+      </div>
 
       <FormCustom fields={formFields} form={formCustom} onChange="" />
 
@@ -708,7 +713,7 @@ export default function SalesPointEdit() {
         <ActionButton
           mode="back"
           text="Back"
-          onClick={() => navigate("/points/line/sales-points-list")}
+          onClick={() => navigate(backPath)}
         />
 
         {permission?.btn_receive && (
