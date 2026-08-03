@@ -188,26 +188,39 @@ export default function TransportationDetail() {
 
   const handleSaveDelivery = async () => {
     if (!detail?.id) return;
+
+    const pictures = uploadedFiles.map((file) => file.url).filter(Boolean);
+    if (pictures.length === 0) {
+      notification.error({
+        message: "Error",
+        description: "Please upload at least one document.",
+      });
+      return;
+    }
+
     try {
+      setLoading(true);
       const payload = {
         id: detail.id,
-        picture: uploadedFiles.map((file) => file.url), // Extract URLs from uploaded files
+        picture: pictures,
       };
 
-      const res = await useServiceAPI.post(paths.pathTransportReceive, payload);
+      const res = await useServiceAPI.post(paths.pathTransportSaveDraft, payload);
       if (res.status === 200) {
         notification.success({
           message: "Success",
-          description: "Transportation details have been successfully updated.",
+          description: "Documents saved successfully.",
         });
-        navigate(-1); // Navigate back to the list
+        // อยู่หน้าเดิม เพื่อให้บันทึกเอกสารซ้ำได้
       }
     } catch (error) {
-      console.error("Failed to save transportation detail:", error);
+      console.error("Failed to save draft documents:", error);
       notification.error({
         message: "Error",
-        description: "Failed to update transportation details.",
+        description: "Failed to save documents.",
       });
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -376,10 +389,14 @@ export default function TransportationDetail() {
         <ActionButton mode="saveDraft" text="PDF Delivery Slip" onClick={handlePDFDeliverySlip} />
 
         {isDelivery && (
-          <ActionButton mode="save" text="Save" onClick={handleSaveDelivery} />
+          <ActionButton mode="sync" text="Save Draft" onClick={handleSaveDelivery} />
         )}
+        {isDelivery && (
+          <ActionButton mode="save" text="Save 2" onClick={handleSaveDelivery} />
+        )}
+        
         {isPrepare && (
-          <ActionButton mode="save" text="Save" onClick={handleSavePrepare} />
+          <ActionButton mode="save" text="Save 1" onClick={handleSavePrepare} />
         )}
       </div>
     </MainLayout>
