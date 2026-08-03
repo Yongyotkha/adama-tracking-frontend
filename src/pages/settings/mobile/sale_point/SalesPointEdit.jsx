@@ -557,10 +557,12 @@ export default function SalesPointEdit() {
             dealer_id: Number(dealerId) || 0,
             sub_dealer_id: Number(subDealerId) || 0,
             farmer_id: 1,
+            platform: "web",
             remark: remark || "",
             picture: fileListPicture.map((f) => f.url).filter(Boolean),
             bill: fileListBill.map((f) => f.url).filter(Boolean),
             products: buildProductsPayload(),
+            ...(isFarmer ? { mode: "farmer", type: "farmer" } : {}),
           };
 
           const res = await useServiceAPI.put(paths.pathSalePointOrderUpdate, payload);
@@ -601,6 +603,8 @@ export default function SalesPointEdit() {
 
       const payload = {
         document_number: docNo,
+        platform: "web",
+        ...(isFarmer ? { mode: "farmer" } : {}),
       };
 
       const res = await useServiceAPI.post(paths.pathSalePointOrderUpdateAdmin, payload);
