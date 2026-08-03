@@ -11,6 +11,10 @@ import ItemDropDown from "../../../../components/dropdown/ItemDropDown";
 import useServiceAPI from "../../../../services/CorsService";
 import { paths } from "../../../../services/CorsPath";
 import { AuthContext } from "../../../../contexts/AuthContext";
+import dayjs from "dayjs";
+
+const formatDate = (dateStr) =>
+  dateStr ? dayjs(dateStr).format("DD/MM/YYYY HH:mm:ss") : "-";
 
 export default function FarmerPointCampaignList() {
   const navigate = useNavigate();
@@ -171,6 +175,42 @@ export default function FarmerPointCampaignList() {
     }
   };
 
+  const handleClone = (item) => {
+    Modal.confirm({
+      title: "Confirm Clone",
+      content: `Do you want to clone campaign "${item.name}" ?`,
+      okText: "Confirm",
+      cancelText: "Cancel",
+      centered: true,
+      onOk: async () => {
+        try {
+          const response = await useServiceAPI.post(
+            paths.pathPointCampaignClone,
+            { document_number: item.document_number, mode: "farmer" }
+          );
+
+          if (response.status === 200) {
+            const newId = response.data?.data?.id ?? response.data?.id;
+            notification.success({
+              message: response.data?.message || "Clone successful",
+            });
+            navigate(`/setting/line/farmer-point-campaign/edit`, {
+              state: { id: newId },
+            });
+          } else {
+            notification.error({ message: "Clone failed" });
+          }
+        } catch (error) {
+          const msg = error?.response?.data?.data;
+          showNotification?.(
+            "แจ้งเตือน",
+            msg?.Message?.Message_Header || "เกิดข้อผิดพลาด"
+          );
+        }
+      },
+    });
+  };
+
   const fetchData = async () => {
     setTableLoading(true);
     const { current, pageSize } = tableParams.pagination;
@@ -200,51 +240,65 @@ export default function FarmerPointCampaignList() {
           key: index + 1 + (current - 1) * pageSize,
           id: item.id,
           document_number: item.document_number,
+          code: item.document_number,
           name: item.name,
           customer_type_name: buildCustomerTypeName(item),
           type_name: buildCustomerTypeSubName(item),
           product_name: item.product_name,
-          campaign: item.campaign,
-          created_at: item.created_at,
-          period: item.period,
+          campaign: item.type_name || item.campaign,
+          created_at: formatDate(item.created_at),
+          period:
+            item.date_start && item.date_end
+              ? `${formatDate(item.date_start)} - ${formatDate(item.date_end)}`
+              : (item.period || "-").replace(/\.\d+/g, ""),
           status: (
             <BadgeStatus
-              text={item.status_name || (item.status === 1 ? "Active" : "Inactive")}
-              bgColor={item.status === 1 ? "#E6F4EA" : "#FEE2E2"}
-              textColor={item.status === 1 ? "#137333" : "#DC2626"}
+              text={item.status_mapping_name || item.status_name || (item.status === 1 ? "Active" : "Inactive")}
+              bgColor={item.status_mapping_bg_color || (item.status === 1 ? "#E6F4EA" : "#FEE2E2")}
+              textColor={item.status_mapping_color || (item.status === 1 ? "#137333" : "#DC2626")}
             />
           ),
           action: (
             <Dropdown
               menu={{
-                items: [
-                  {
-                    key: "view",
+                items: (item.action && item.action.length > 0
+                  ? item.action
+                  : [{ action: "view" }, { action: "edit" }, { action: "delete" }]
+                ).map((act, i) => {
+                  const actionType = String(act.action || "").toLowerCase();
+                  const handleClick = () => {
+                    if (actionType === "edit") {
+                      navigate(`/setting/line/farmer-point-campaign/edit`, {
+                        state: { id: item.id },
+                      });
+                    } else if (actionType === "delete") {
+                      handleDelete(item.document_number);
+                    } else if (actionType === "clone") {
+                      handleClone(item);
+                    } else {
+                      navigate(`/setting/line/farmer-point-campaign/${actionType}`, {
+                        state: { id: item.id },
+                      });
+                    }
+                  };
+
+                  return {
+                    key: i,
                     label: (
                       <ItemDropDown
-                        mode="view"
-                        onClick={() =>
-                          navigate("/setting/line/farmer-point-campaign/view", {
-                            state: { id: item.id },
-                          })
-                        }
+                        mode={actionType}
+                        onClick={handleClick}
+                        text={act.action}
                       />
                     ),
-                  },
-                  {
-                    key: "delete",
-                    label: (
-                      <ItemDropDown
-                        mode="delete"
-                        onClick={() => handleDelete(item.document_number)}
-                      />
-                    ),
-                  },
-                ],
+                  };
+                }),
               }}
-              trigger={["click"]}
+              placement="bottom"
             >
-              <button className="p-1 hover:bg-gray-100 rounded">...</button>
+              <a onClick={(e) => e.preventDefault()}>
+                <img src="/img/icons/action.png" alt="action icon" className="inline-block w-5 h-5" />
+              </a>
             </Dropdown>
           ),
         }));
@@ -297,7 +351,19 @@ export default function FarmerPointCampaignList() {
 
   return (
     <MainLayout loading={loading}>
-      <div className="title-page">Point Campaign (Farmer)</div>
+      <div className="flex items-center justify-between">
+        <div className="title-page">Point Campaign (Farmer)</div>
+        <ActionButton
+          mode="create"
+          text="Create"
+          onClick={() =>
+            navigate("/setting/line/farmer-point-campaign/create", {
+              state: { mode: "create", is_farmer: true },
+            })
+          }
+        />
+      </div>
+
       <Filter
         onSearch={handleSearch}
         onClear={handleClear}
@@ -305,14 +371,8 @@ export default function FarmerPointCampaignList() {
         filters={filters}
         values={filterValues}
       />
+
       <BoxPrimary>
-        <div className="flex justify-end mb-3">
-          <ActionButton
-            text="Create"
-            icon="/img/icon-plus.png"
-            onClick={() => navigate("/setting/line/farmer-point-campaign/create")}
-          />
-        </div>
         <TableComponent
           header={header}
           dataSource={dataSource}

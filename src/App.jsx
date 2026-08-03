@@ -609,6 +609,14 @@ const App = () => {
               element={<FarmerPointCampaignList />}
             />
             <Route
+              path="/setting/line/farmer-point-campaign/create"
+              element={<CreatePointCampaign />}
+            />
+            <Route
+              path="/setting/line/farmer-point-campaign/:mode"
+              element={<CreatePointCampaign />}
+            />
+            <Route
               path="/points/line/collect-points-list/view"
               element={<CollectPointsView />}
             />
