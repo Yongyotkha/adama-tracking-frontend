@@ -193,6 +193,23 @@ export default function FarmerPointCollection() {
   const [subDealerOptions, setSubDealerOptions] = useState([]);
   const [filterValues, setFilterValues] = useState(persistedState.filterValues || {});
 
+  useEffect(() => {
+    const loadMasterAreas = async () => {
+      try {
+        const areaRes = await useServiceAPI.get(paths.pathMasterAreas, {});
+        setAreaList(
+          (Array.isArray(areaRes?.data) ? areaRes.data : []).map((item) => ({
+            id: item.id,
+            name: item.name,
+          }))
+        );
+      } catch (e) {
+        // no-op
+      }
+    };
+    loadMasterAreas();
+  }, []);
+
   // Point Detail popup
   const [detailModalVisible, setDetailModalVisible] = useState(false);
   const [detailLoading, setDetailLoading] = useState(false);
@@ -326,9 +343,35 @@ export default function FarmerPointCollection() {
             <button
               onClick={() => handleOpenDetail(row.document_number)}
               title="Point Detail"
-              style={{ background: "none", border: "none", cursor: "pointer" }}
+              style={{
+                background: "none",
+                border: "none",
+                cursor: "pointer",
+                padding: "2px 6px",
+                display: "inline-flex",
+                alignItems: "center",
+                justifyContent: "center",
+              }}
             >
-              <img src="/img/icons/info-blue.svg" alt="info" style={{ width: 18, height: 18 }} />
+              <span
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  width: 22,
+                  height: 22,
+                  borderRadius: "50%",
+                  background: "#1677ff",
+                  color: "#fff",
+                  fontWeight: "bold",
+                  fontSize: 13,
+                  lineHeight: 1,
+                  fontStyle: "italic",
+                  fontFamily: "serif",
+                }}
+              >
+                i
+              </span>
             </button>
           ),
           status: (
@@ -357,9 +400,11 @@ export default function FarmerPointCollection() {
                   },
                 ],
               }}
-              trigger={["click"]}
+              placement="bottom"
             >
-              <button className="p-1 hover:bg-gray-100 rounded">...</button>
+              <a onClick={(e) => e.preventDefault()}>
+                <img src="/img/icons/action.png" alt="button icon" className="inline-block w-5 h-5 mr-2" />
+              </a>
             </Dropdown>
           ),
         }));
@@ -497,6 +542,13 @@ export default function FarmerPointCollection() {
               }}
             >
               <Radio value="orderby_column">Order Date</Radio>
+              {(areaList.length ? areaList : [{ id: 1, name: "Area 1" }, { id: 2, name: "Area 2" }]).map(
+                (area) => (
+                  <Radio key={area.id} value={`area_id_${area.id}`}>
+                    {area.name || `Area ${area.id}`}
+                  </Radio>
+                )
+              )}
             </Radio.Group>
           </div>
           <ExportButton
