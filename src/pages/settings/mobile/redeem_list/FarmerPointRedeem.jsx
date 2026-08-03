@@ -274,16 +274,7 @@ export default function FarmerPointRedeem() {
 
   return (
     <MainLayout loading={loading}>
-      <div className="flex items-center justify-between">
-        <div className="title-page">Points Redeem (Farmer)</div>
-        <div className="flex gap-2">
-          <ActionButton
-            mode="create"
-            text="Create"
-            onClick={() => navigate("/points/line/sales-points-list/create")}
-          />
-        </div>
-      </div>
+      <div className="title-page mb-4">Points Redeem (Farmer)</div>
 
       <Tabs className="custom-tabs" activeKey={activeTab} onChange={setActiveTab}>
         <TabPane tab={<span className="tab-title">Points Redeem List</span>} key="list">

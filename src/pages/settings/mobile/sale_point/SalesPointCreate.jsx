@@ -121,13 +121,13 @@ export default function SalesPointCreate() {
   // ===== โหลด dealer เมื่อเลือก sale =====
   useEffect(() => {
     const fetchDealer = async () => {
-      if (!dataSaleId && !isFarmer) {
+      if (!dataSaleId) {
         setDataDealer([]);
         return;
       }
       setLoading(true);
       try {
-        const dealer = await useServiceAPI.get(paths.pathMasterDealerDropdown, dataSaleId ? { user_id: dataSaleId } : {});
+        const dealer = await useServiceAPI.get(paths.pathMasterDealerDropdown, { user_id: dataSaleId });
         setDataDealer(dealer?.data || []);
       } catch (e) {
         // no-op
@@ -136,18 +136,18 @@ export default function SalesPointCreate() {
       }
     };
     fetchDealer();
-  }, [dataSaleId, isFarmer]);
+  }, [dataSaleId]);
 
   // ===== โหลด sub dealer เมื่อเลือก dealer =====
   useEffect(() => {
     const fetchSubDealer = async () => {
-      if (!dealerId && !isFarmer) {
+      if (!dealerId) {
         setSubDataDealer([]);
         return;
       }
       setLoading(true);
       try {
-        const res = await useServiceAPI.get(paths.pathUserLineSubDealer, dealerId ? { dealer_id: dealerId } : {});
+        const res = await useServiceAPI.get(paths.pathUserLineSubDealer, { dealer_id: dealerId });
         setSubDataDealer(res?.data || []);
       } catch (e) {
         // no-op
@@ -156,17 +156,18 @@ export default function SalesPointCreate() {
       }
     };
     fetchSubDealer();
-  }, [dealerId, isFarmer]);
+  }, [dealerId]);
 
   // ===== โหลด farmer โดยใช้ paths.pathUserLineFarmer (user-line/farmers) =====
   useEffect(() => {
     const fetchFarmer = async () => {
+      if (!subDealerId) {
+        setDataFarmer([]);
+        return;
+      }
       setLoading(true);
       try {
-        const params = { platform: "web" };
-        if (subDealerId) {
-          params.sub_dealer_id = subDealerId;
-        }
+        const params = { platform: "web", sub_dealer_id: subDealerId };
         const res = await useServiceAPI.get(paths.pathUserLineFarmer, params);
         const list = Array.isArray(res?.data?.data) ? res.data.data : Array.isArray(res?.data) ? res.data : [];
         const normalized = list.map((item) => {
@@ -186,7 +187,9 @@ export default function SalesPointCreate() {
         setLoading(false);
       }
     };
-    fetchFarmer();
+    if (isFarmer) {
+      fetchFarmer();
+    }
   }, [subDealerId, isFarmer]);
 
   // ===== Upload handlers =====
@@ -605,7 +608,7 @@ export default function SalesPointCreate() {
       name: "dealer",
       type: "select",
       options: dataDealer,
-      disabled: isFarmer ? false : !dataSaleId,
+      disabled: !dataSaleId,
       required: !isFarmer,
       placeholder: "Select dealer",
       moderef: true,
@@ -617,7 +620,7 @@ export default function SalesPointCreate() {
       name: "sub_dealer",
       type: "select",
       options: dataSubDealer,
-      disabled: isFarmer ? false : !dealerId,
+      disabled: !dealerId,
       required: !isFarmer,
       placeholder: "Select sub dealer",
       moderef: true,
@@ -629,7 +632,7 @@ export default function SalesPointCreate() {
       name: "farmer",
       type: "select",
       options: dataFarmer,
-      disabled: false,
+      disabled: !subDealerId,
       required: true,
       placeholder: "Select farmer",
       moderef: true,

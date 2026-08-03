@@ -98,7 +98,6 @@ export default function SalesPointsList() {
     { key: "sale", type: "select", label: "Sales", placeholder: "All", options: saleList, moderef: true },
     { key: "dealer", type: "select", label: "Dealer", placeholder: "All", options: dataDealer, moderef: true, disabled: !hasSale },
     { key: "sub_dealer", type: "select", label: "Sub Dealer", placeholder: "All", options: subDealerOptions, disabled: !hasDealer },
-    { key: "farmer", type: "select", label: "Farmer", placeholder: "All", options: farmerOptions, disabled: !hasSubDealer },
     { key: "order_no", type: "text", label: "Order No", placeholder: "Order No" },
     { key: "status_code", type: "select", label: "Status", placeholder: "All", options: STATUS_OPTIONS_LIST },
     { key: "dater", type: "dater", label: "Date", placeholder: "Date" },
@@ -106,13 +105,11 @@ export default function SalesPointsList() {
 
   const reqHasSale = !!requestFiltersValues.sale;
   const reqHasDealer = !!requestFiltersValues.dealer;
-  const reqHasSubDealer = !!requestFiltersValues.sub_dealer;
 
   const requestFilters = [
     { key: "sale", type: "select", label: "Sales", placeholder: "All", options: saleList, moderef: true },
     { key: "dealer", type: "select", label: "Dealer", placeholder: "All", options: dataDealer, moderef: true, disabled: !reqHasSale },
     { key: "sub_dealer", type: "select", label: "Sub Dealer", placeholder: "All", options: subDealerOptions, disabled: !reqHasDealer },
-    { key: "farmer", type: "select", label: "Farmer", placeholder: "All", options: farmerOptions, disabled: !reqHasSubDealer },
     { key: "order_no", type: "text", label: "Order No", placeholder: "Order No" },
     { key: "status_code", type: "select", label: "Status", placeholder: "All", options: STATUS_OPTIONS_LIST },
     { key: "dater", type: "dater", label: "Date", placeholder: "Date" },
@@ -124,7 +121,6 @@ export default function SalesPointsList() {
     { title: "Sales", width: 200, dataIndex: "sale", align: "left" },
     { title: "Dealer", width: 200, dataIndex: "dealer", align: "left" },
     { title: "Sub Dealer", width: 200, dataIndex: "sub_dealer", align: "left" },
-    { title: "Farmer", width: 200, dataIndex: "farmer", align: "left" },
     { title: "Value (THB)", width: 100, dataIndex: "value", align: "right" },
     { title: "Order Date", width: 150, dataIndex: "orderDate", align: "center" },
     { title: "Points", width: 150, dataIndex: "point", align: "center" },
@@ -138,7 +134,6 @@ export default function SalesPointsList() {
     { title: "Sales", width: 200, dataIndex: "sale", align: "left" },
     { title: "Dealer", width: 220, dataIndex: "dealer", align: "left" },
     { title: "Sub Dealer", width: 200, dataIndex: "sub_dealer", align: "left" },
-    { title: "Farmer", width: 200, dataIndex: "farmer", align: "left" },
     { title: "Request Date", width: 160, dataIndex: "document_date", align: "center" },
     { title: "Status", width: 160, dataIndex: "status", align: "center" },
     { title: "Action", width: 120, dataIndex: "action", align: "center" },
