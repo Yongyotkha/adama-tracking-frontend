@@ -585,6 +585,14 @@ const App = () => {
               element={<SalesPointCreate />}
             />
             <Route
+              path="/points/line/farmer-points-list/edit"
+              element={<SalesPointEdit />}
+            />
+            <Route
+              path="/points/line/farmer-points-list/view"
+              element={<SalesPointView />}
+            />
+            <Route
               path="/points/line/farmer-points-list/detail"
               element={<SalesPointDetail />}
             />

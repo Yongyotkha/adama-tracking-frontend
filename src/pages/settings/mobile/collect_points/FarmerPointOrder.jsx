@@ -203,7 +203,7 @@ export default function FarmerPointOrder() {
                         <ItemDropDown
                           mode="view"
                           onClick={() =>
-                            navigate("/points/line/sales-points-list/view", {
+                            navigate("/points/line/farmer-points-list/view", {
                               state: { document_number: order.document_number, is_farmer: true, back_path: "/points/line/farmer-points-list" },
                             })
                           }
@@ -218,7 +218,7 @@ export default function FarmerPointOrder() {
                         <ItemDropDown
                           mode="edit"
                           onClick={() =>
-                            navigate("/points/line/sales-points-list/edit", {
+                            navigate("/points/line/farmer-points-list/edit", {
                               state: { document_number: order.document_number, is_farmer: true, back_path: "/points/line/farmer-points-list" },
                             })
                           }
@@ -251,9 +251,11 @@ export default function FarmerPointOrder() {
                   return null;
                 }).filter(Boolean),
               }}
-              trigger={["click"]}
+              placement="bottom"
             >
-              <button className="p-1 hover:bg-gray-100 rounded">...</button>
+              <a onClick={(e) => e.preventDefault()}>
+                <img src="/img/icons/action.png" alt="button icon" className="inline-block w-5 h-5 mr-2" />
+              </a>
             </Dropdown>
           ),
         }));
@@ -328,7 +330,7 @@ export default function FarmerPointOrder() {
                         <ItemDropDown
                           mode="view"
                           onClick={() =>
-                            navigate("/points/line/sales-points-list/view", {
+                            navigate("/points/line/farmer-points-list/view", {
                               state: { document_number: order.document_number, is_farmer: true, back_path: "/points/line/farmer-points-list" },
                             })
                           }
@@ -343,7 +345,7 @@ export default function FarmerPointOrder() {
                         <ItemDropDown
                           mode="edit"
                           onClick={() =>
-                            navigate("/points/line/sales-points-list/edit", {
+                            navigate("/points/line/farmer-points-list/edit", {
                               state: { document_number: order.document_number, is_farmer: true, back_path: "/points/line/farmer-points-list" },
                             })
                           }
@@ -377,9 +379,11 @@ export default function FarmerPointOrder() {
                   };
                 }),
               }}
-              trigger={["click"]}
+              placement="bottom"
             >
-              <button className="p-1 hover:bg-gray-100 rounded">...</button>
+              <a onClick={(e) => e.preventDefault()}>
+                <img src="/img/icons/action.png" alt="button icon" className="inline-block w-5 h-5 mr-2" />
+              </a>
             </Dropdown>
           ),
         }));

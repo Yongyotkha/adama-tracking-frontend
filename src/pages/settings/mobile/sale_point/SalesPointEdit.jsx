@@ -19,6 +19,8 @@ export default function SalesPointEdit() {
   const { showMsg } = useContext(AuthContext);
 
   const [loading, setLoading] = useState(false);
+  const isFarmer = location.pathname.includes("farmer-points-list") || location.state?.is_farmer;
+  const backPath = location.state?.back_path || (isFarmer ? "/points/line/farmer-points-list" : "/points/line/sales-points-list");
 
   const [dataSource, setDataSource] = useState([]);
   const [dataSourceOther, setDataSourceOther] = useState([]);
@@ -568,7 +570,7 @@ export default function SalesPointEdit() {
               "success",
               res.data?.data?.message_line?.join("\n") || "Update successful"
             );
-            navigate("/points/line/sales-points-list");
+            navigate(backPath);
           } else {
             showMsg("warning", res?.data?.message || "อัปเดตไม่สำเร็จ");
           }
@@ -599,16 +601,6 @@ export default function SalesPointEdit() {
 
       const payload = {
         document_number: docNo,
-        // document_date: docDate || dayjs().format("YYYY-MM-DD"),
-        // user_id: Number(userId) || 0,
-        // status_code: "ODW",
-        // dealer_id: Number(dealerId) || 0,
-        // sub_dealer_id: String(subDealerId || ""),
-        // remark: remark || "",
-        // products: buildProductsPayload(),
-        // others: dataSourceOther,
-        // bill: fileListBill.map((f) => f.url).filter(Boolean),
-        // product: fileListPicture.map((f) => f.url).filter(Boolean),
       };
 
       const res = await useServiceAPI.post(paths.pathSalePointOrderUpdateAdmin, payload);
@@ -620,16 +612,13 @@ export default function SalesPointEdit() {
           "Receive successful"
       );
 
-      navigate("/points/line/sales-points-list");
+      navigate(backPath);
     } catch (e) {
       showMsg("error", e?.message || "Receive ไม่สำเร็จ");
     } finally {
       setLoading(false);
     }
   };
-
-  const isFarmer = location.state?.is_farmer;
-  const backPath = location.state?.back_path || "/points/line/sales-points-list";
 
   return (
     <MainLayout loading={loading}>

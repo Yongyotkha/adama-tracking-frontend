@@ -318,7 +318,7 @@ export default function SalesPointCreate() {
       setSubDealerId(value || undefined);
       setFarmerId(undefined);
       setDataFarmer([]);
-      
+
       formCustom.setFieldsValue({
         farmer: undefined,
       });
@@ -488,7 +488,11 @@ export default function SalesPointCreate() {
   };
 
   // ===== ค้นหา/เพิ่มสินค้า (คงของเดิม) =====
+  const [selectedProduct, setSelectedProduct] = useState(undefined);
+
   const onChangeProduct = async (value) => {
+    if (!value) return;
+    setSelectedProduct(value);
     setSearchProductData([]);
     setLoading(true);
     try {
@@ -526,6 +530,7 @@ export default function SalesPointCreate() {
     } catch (e) {
       showMsg("error", e.message || "เกิดข้อผิดพลาด");
     } finally {
+      setSelectedProduct(undefined);
       setLoading(false);
     }
   };
@@ -671,7 +676,7 @@ export default function SalesPointCreate() {
             onChange={onChangeProduct}
             onSearch={onSearchProduct}
             options={searchProductData}
-            value=""
+            value={selectedProduct}
           />
         </div>
         <TableComponent
