@@ -10,11 +10,9 @@ import { paths } from "../../../../services/CorsPath";
 
 export default function RewardProductUpdateStock() {
   const navigate = useNavigate();
-  const { state } = useLocation(); // Expecting { id: <id>, value: <initial value> }
+  const { state } = useLocation(); // Expecting { reward_code, status_code, value }
   const [row, setRow] = useState(null);
   const [loading, setLoading] = useState(false);
-  
-  console.log('state : ',state)
 
   const subTotal = useMemo(() => (row?.cost || 0) * (row?.qty || 0), [row]);
   const formatMoney = (n) =>
@@ -41,18 +39,24 @@ export default function RewardProductUpdateStock() {
   };
 
   const fetchDetail = async () => {
+    if (!state?.reward_code || !state?.status_code) return;
+
     setLoading(true);
     try {
-      const res = await useServiceAPI.get(`${paths.pathRequestPurchaseDetail}/${state?.id}`);
+      const res = await useServiceAPI.get(paths.pathRequestPurchaseDetail, {
+        reward_code: state.reward_code,
+        status_code: state.status_code,
+      });
       if (res.status === 200) {
         const data = res.data || {};
         setRow({
-          id: data.id, // id จาก detail
+          id: data.id,
           reward_code: data.reward_code || "-",
+          status_code: data.status_code || state.status_code,
           category_name: data.reward_category || "-",
           reward_name: data.reward_name || "-",
           cost: Number(data.reward_cost) || 0,
-          qty: 1 // ค่าเริ่มต้นจาก list และจะบวกต่อจากค่านี้
+          qty: Number(state?.value ?? data.reward_value ?? 1) || 1,
         });
       }
     } catch (error) {
