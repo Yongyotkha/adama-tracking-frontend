@@ -119,7 +119,7 @@ export default function TransportationDetail() {
       user_number: data.user_number || "-",
       created_at: data.created_at.split(" ")[0] || "-",
       user_address: data.user_address || "-",
-      status_name: data.status_tran_namsse || "-",
+      status_name: data.status_tran_name || "-",
       remark: data.remark || "-",
     });
 
@@ -447,11 +447,11 @@ export default function TransportationDetail() {
         )}
         
         {isDelivery && (
-          <ActionButton mode="save" text="Save 2" onClick={confirmSaveDelivery} />
+          <ActionButton mode="save" text="Save" onClick={confirmSaveDelivery} />
         )}
         
         {isPrepare && (
-          <ActionButton mode="save" text="Save 1" onClick={confirmSavePrepare} />
+          <ActionButton mode="save" text="Save" onClick={confirmSavePrepare} />
         )}
       </div>
     </MainLayout>
