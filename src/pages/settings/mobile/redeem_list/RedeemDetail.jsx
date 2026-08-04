@@ -17,7 +17,7 @@ export default function RedeemDetail() {
   const navigate = useNavigate();
   const { mode: urlMode } = useParams(); // (ยังไม่ใช้)
   const location = useLocation();
-  const { showNotification } = useContext(AuthContext);
+  const { showNotification, userInfo } = useContext(AuthContext);
 
   const [loading, setLoading] = useState(false);
   const [detail, setDetail] = useState(null);
@@ -291,6 +291,7 @@ export default function RedeemDetail() {
   // โหมดจาก API / list (RFA/RFR/RFW) เพื่อคุมปุ่ม
   const currentMode = (detail?.status_code || location?.state?.mode || "").toUpperCase();
   const isRFW = currentMode === "RFW";
+  const canSendToPurchase = [1, 2].includes(Number(userInfo?.role_id));
 
   return (
     <MainLayout loading={loading}>
@@ -328,7 +329,7 @@ export default function RedeemDetail() {
           }
         />
 
-        {isRFW && (
+        {isRFW && canSendToPurchase && (
           <ActionButton
             mode="reject"
             text="Send to Purchase"
