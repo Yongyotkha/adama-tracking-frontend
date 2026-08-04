@@ -19,6 +19,7 @@ export default function SalesPointView() {
   const { showMsg } = useContext(AuthContext);
 
   const [loading, setLoading] = useState(false);
+  const isFarmer = location.pathname.includes("farmer-points-list") || location.state?.is_farmer;
 
   // ตาราง
   const [dataSource, setDataSource] = useState([]);
@@ -146,10 +147,15 @@ export default function SalesPointView() {
     { title: "No", dataIndex: "no", key: "no", width: 10 },
     { title: "SKU", dataIndex: "product_code", key: "product_code" },
     { title: "Product Name", dataIndex: "product_name", key: "product_name" },
-    { title: "Unit", dataIndex: "product_unit", key: "product_unit" },
-    { title: "THB/Unit", dataIndex: "product_unit_thb", key: "product_unit_thb" },
+    { title: isFarmer ? "Pack Size" : "Unit", dataIndex: "product_unit", key: "product_unit" },
     {
-      title: <div className="text-center">QTY (ctn)</div>,
+      title: isFarmer ? "THB/Pack Size" : "THB/Unit",
+      dataIndex: "product_unit_thb",
+      key: "product_unit_thb",
+      render: (text) => parseFloat(String(text || 0).replace(/,/g, "")).toLocaleString("en-US", { minimumFractionDigits: 2 }),
+    },
+    {
+      title: <div className="text-center">{isFarmer ? "No of Pack" : "QTY (ctn)"}</div>,
       dataIndex: "quantity",
       key: "quantity",
       render: (text) => (
@@ -285,7 +291,6 @@ export default function SalesPointView() {
     },
   ];
 
-  const isFarmer = location.state?.is_farmer;
   const backPath = location.state?.back_path || "/points/line/sales-points-list";
 
   return (

@@ -250,7 +250,7 @@ export default function SalesPointEdit() {
         setDataSource(next);
       } else {
         const quantity = 1;
-        const unitTHB = toNumber(d.bath_unit);
+        const unitTHB = toNumber(isFarmer ? d.farmer : d.bath_unit);
         const net = quantity * unitTHB;
         const foc = d.product_campaign_order_min_foc
           ? Math.floor(quantity / toNumber(d.product_campaign_order_min_foc))
@@ -263,7 +263,7 @@ export default function SalesPointEdit() {
           product_code: d.product_code,
           product_name: d.product_name,
           product_unit: d.packing_list,
-          product_unit_thb: d.bath_unit,
+          product_unit_thb: isFarmer ? d.farmer : d.bath_unit,
           point: d.point,
           product_campaign_order_min_foc: toNumber(d.product_campaign_order_min_foc),
           product_campaign_foc: toNumber(d.product_campaign_foc),
@@ -292,16 +292,16 @@ export default function SalesPointEdit() {
       { title: "No", dataIndex: "no", key: "no", width: 50 },
       { title: "SKU", dataIndex: "product_code", key: "product_code" },
       { title: "Product Name", dataIndex: "product_name", key: "product_name" },
-      { title: "Unit", dataIndex: "product_unit", key: "product_unit" },
+      { title: isFarmer ? "Pack Size" : "Unit", dataIndex: "product_unit", key: "product_unit" },
       {
-        title: "THB/Unit",
+        title: isFarmer ? "THB/Pack Size" : "THB/Unit",
         dataIndex: "product_unit_thb",
         key: "product_unit_thb",
         render: (t) =>
           toNumber(t).toLocaleString("en-US", { minimumFractionDigits: 2 }),
       },
       {
-        title: <div className="text-center">QTY (ctn)</div>,
+        title: <div className="text-center">{isFarmer ? "No of Pack" : "QTY (ctn)"}</div>,
         dataIndex: "quantity",
         key: "quantity",
         render: (_, r) => (

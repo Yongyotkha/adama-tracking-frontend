@@ -347,15 +347,15 @@ export default function SalesPointCreate() {
     { title: "No", dataIndex: "no", key: "no" },
     { title: "SKU", dataIndex: "product_code", key: "product_code" },
     { title: "Product Name", dataIndex: "product_name", key: "product_name" },
-    { title: "Unit", dataIndex: "product_unit", key: "product_unit" },
+    { title: isFarmer ? "Pack Size" : "Unit", dataIndex: "product_unit", key: "product_unit" },
     {
-      title: "THB/Unit",
+      title: isFarmer ? "THB/Pack Size" : "THB/Unit",
       dataIndex: "product_unit_thb",
       key: "product_unit_thb",
-      render: (text) => parseFloat(text || 0).toLocaleString("en-US", { minimumFractionDigits: 2 }),
+      render: (text) => parseFloat(String(text || 0).replace(/,/g, "")).toLocaleString("en-US", { minimumFractionDigits: 2 }),
     },
     {
-      title: <div className="text-center">QTY (ctn)</div>,
+      title: <div className="text-center">{isFarmer ? "No of Pack" : "QTY (ctn)"}</div>,
       dataIndex: "quantity",
       key: "quantity",
       render: (_, record) => (
@@ -386,7 +386,7 @@ export default function SalesPointCreate() {
       title: "Sub Total (THB)",
       dataIndex: "net_amount",
       key: "net_amount",
-      render: (text) => parseFloat(text || 0).toLocaleString("en-US", { minimumFractionDigits: 2 }),
+      render: (text) => parseFloat(String(text || 0).replace(/,/g, "")).toLocaleString("en-US", { minimumFractionDigits: 2 }),
     },
     {
       title: "Point",
@@ -519,12 +519,12 @@ export default function SalesPointCreate() {
           product_code: data.product_code,
           product_name: data.product_name,
           product_unit: data.packing_list,
-          product_unit_thb: data.bath_unit,
+          product_unit_thb: isFarmer ? data.farmer : data.bath_unit,
           product_campaign_order_min_foc: data.product_campaign_order_min_foc,
           product_campaign_foc: data.product_campaign_foc,
           quantity: 1,
           foc: parseInt(1 / data.product_campaign_order_min_foc),
-          net_amount: (1 * parseFloat(String(data.bath_unit).replace(/,/g, ""))).toFixed(2),
+          net_amount: (1 * parseFloat(String(isFarmer ? data.farmer : data.bath_unit).replace(/,/g, ""))).toFixed(2),
           point: data.point,
         };
         const next = [...dataSource, newRow].map((i, idx) => ({ ...i, key: idx + 1, no: idx + 1 }));

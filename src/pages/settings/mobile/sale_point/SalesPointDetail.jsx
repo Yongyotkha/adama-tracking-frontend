@@ -131,10 +131,15 @@ export default function SalesPointDetail() {
     { title: "No", dataIndex: "no", key: "no", width: 10 },
     { title: "SKU", dataIndex: "product_code", key: "product_code" },
     { title: "Product Name", dataIndex: "product_name", key: "product_name" },
-    { title: "Unit", dataIndex: "product_unit", key: "product_unit" },
-    { title: "THB/Unit", dataIndex: "product_unit_thb", key: "product_unit_thb" },
+    { title: isFarmerMode ? "Pack Size" : "Unit", dataIndex: "product_unit", key: "product_unit" },
     {
-      title: <div className="text-center">QTY (ctn)</div>,
+      title: isFarmerMode ? "THB/Pack Size" : "THB/Unit",
+      dataIndex: "product_unit_thb",
+      key: "product_unit_thb",
+      render: (text) => parseFloat(String(text || 0).replace(/,/g, "")).toLocaleString("en-US", { minimumFractionDigits: 2 }),
+    },
+    {
+      title: <div className="text-center">{isFarmerMode ? "No of Pack" : "QTY (ctn)"}</div>,
       dataIndex: "quantity",
       key: "quantity",
       render: (text) => (
