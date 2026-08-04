@@ -196,7 +196,8 @@ export default function RedeemDetail() {
         // โหลดใหม่เพื่อให้ข้อมูลล่าสุด (หรือจะย้อนกลับ list ก็ได้)
         // await loadDetail();
         // ✅ อัปเดตเสร็จแล้ว redirect กลับหน้า List (คง tab เดิม)
-        navigate("/points/line/redeem-reward-list", {
+        const backPath = location?.state?.back_path || "/points/line/redeem-reward-list";
+        navigate(backPath, {
           state: { tab: location?.state?.fromTab || "list" },
         });
 
@@ -323,7 +324,7 @@ export default function RedeemDetail() {
           mode="back"
           text="Back"
           onClick={() =>
-            navigate("/points/line/redeem-reward-list", {
+            navigate(location?.state?.back_path || "/points/line/redeem-reward-list", {
               state: { tab: location?.state?.fromTab || "list" },
             })
           }

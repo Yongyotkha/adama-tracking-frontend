@@ -605,6 +605,10 @@ const App = () => {
               element={<FarmerPointRedeem />}
             />
             <Route
+              path="/points/line/farmer-redeem-reward/:mode"
+              element={<RedeemDetail />}
+            />
+            <Route
               path="/setting/line/farmer-point-campaign"
               element={<FarmerPointCampaignList />}
             />

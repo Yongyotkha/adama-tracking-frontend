@@ -133,8 +133,8 @@ export default function FarmerPointRedeem() {
               <ItemDropDown
                 mode={String(act.action || "view").toLowerCase()}
                 onClick={() =>
-                  navigate(`/points/line/redeem-reward/${String(act.action || "view").toLowerCase()}`, {
-                    state: { id: item.id, mode: item.status },
+                  navigate(`/points/line/farmer-redeem-reward/${String(act.action || "view").toLowerCase()}`, {
+                    state: { id: item.id, mode: item.status, is_farmer: true, back_path: "/points/line/farmer-redeem-reward-list" },
                   })
                 }
               />
