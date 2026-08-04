@@ -578,11 +578,11 @@ export default function FarmerPointCollection() {
               <tr style={{ background: "#00783F", color: "#fff" }}>
                 <th style={thStyle}>No</th>
                 <th style={{ ...thStyle, textAlign: "left" }}>Product Name</th>
-                <th style={thStyle}>Unit</th>
-                <th style={thStyle}>QTY (Pcs / Unit)</th>
-                <th style={thStyle}>Farmer Price / Piece</th>
-                <th style={thStyle}>Farmer Point / Piece</th>
-                <th style={thStyle}>Total Farmer Point</th>
+                <th style={thStyle}>Pack Size</th>
+                <th style={thStyle}>No of pack</th>
+                <th style={thStyle}>Price/Pack</th>
+                <th style={thStyle}>Point/Pack</th>
+                <th style={thStyle}>Total point</th>
               </tr>
             </thead>
             <tbody>
@@ -602,7 +602,7 @@ export default function FarmerPointCollection() {
             </tbody>
             <tfoot>
               <tr style={{ background: "#978B87", color: "#fff" }}>
-                <td colSpan={6} style={{ ...tdStyle, textAlign: "right", fontWeight: 700 }}>Total Farmer Point</td>
+                <td colSpan={6} style={{ ...tdStyle, textAlign: "right", fontWeight: 700 }}>Total point</td>
                 <td style={{ ...tdStyle, fontWeight: 700, fontSize: 14 }}>{totalPoint.toLocaleString()}</td>
               </tr>
             </tfoot>
