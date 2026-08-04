@@ -111,7 +111,7 @@ export default function PointHistory() {
   const getStatusInfo = (code) => {
     switch (code) {
       case "RTP":
-        return { text: "รอจัดส่ง", textColor: "#FFFFFF", bgColor: "#FBBF24" };
+        return { text: "กำลังดำเนินการ", textColor: "#FFFFFF", bgColor: "#FBBF24" };
       case "RTD":
         return { text: "กำลังจัดส่ง", textColor: "#FFFFFF", bgColor: "#3B82F6" };
       case "RTV":

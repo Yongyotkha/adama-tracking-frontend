@@ -29,6 +29,8 @@ export default function RewardCampaignList() {
   const [pointRows, setPointRows] = useState([]);
   const [pointTitle, setPointTitle] = useState("Point By Customer Group");
 
+  const defaultFilters = { status: "1" }; // Active
+
   const [tableParams, setTableParams] = useState({
     pagination: {
       current: 1,
@@ -37,7 +39,7 @@ export default function RewardCampaignList() {
       showSizeChanger: true,
       pageSizeOptions: ["10", "20", "50", "100"],
     },
-    filters: {},
+    filters: defaultFilters,
   });
 
   const pointColumns = [
@@ -85,8 +87,8 @@ export default function RewardCampaignList() {
       type: "select",
       label: "Status",
       options: [
-        { id: "0", name: "Inactive" },
-        { id: "1", name: "Active" },
+        { id: "0", code: "0", name: "Inactive" },
+        { id: "1", code: "1", name: "Active" },
       ],
     },
   ];
@@ -304,7 +306,8 @@ export default function RewardCampaignList() {
   const handleClear = () => {
     setTableParams((prev) => ({
       ...prev,
-      filters: {},
+      pagination: { ...prev.pagination, current: 1 },
+      filters: defaultFilters,
     }));
   };
 
@@ -315,7 +318,12 @@ export default function RewardCampaignList() {
         <ActionButton mode="create" text="Create" onClick={() => navigate("create")} />
       </div>
 
-      <Filter filters={filters} onSearch={handleSearch} onClear={handleClear} />
+      <Filter
+        filters={filters}
+        values={tableParams.filters}
+        onSearch={handleSearch}
+        onClear={handleClear}
+      />
 
       <BoxPrimary>
         <TableComponent

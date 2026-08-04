@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef, useContext } from "react";
-import { Form, Input, DatePicker, Select, notification } from "antd";
+import { Form, Input, DatePicker, Select, notification, Modal } from "antd";
 import dayjs from "dayjs";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 
@@ -119,7 +119,7 @@ export default function TransportationDetail() {
       user_number: data.user_number || "-",
       created_at: data.created_at.split(" ")[0] || "-",
       user_address: data.user_address || "-",
-      status_name: data.status_tran_namsse || "-",
+      status_name: data.status_tran_name || "-",
       remark: data.remark || "-",
     });
 
@@ -186,7 +186,7 @@ export default function TransportationDetail() {
     setUploadedFiles((prev) => prev.filter((item) => item.uid !== file.uid));
   };
 
-  const handleSaveDelivery = async () => {
+  const handleSaveDeliveryConfirm = async () => {
     if (!detail?.id) return;
     try {
       const payload = {
@@ -208,6 +208,44 @@ export default function TransportationDetail() {
         message: "Error",
         description: "Failed to update transportation details.",
       });
+    }
+  };
+
+  const handleSaveDelivery = async () => {
+    if (!detail?.id) return;
+
+    const pictures = uploadedFiles.map((file) => file.url).filter(Boolean);
+    if (pictures.length === 0) {
+      notification.error({
+        message: "Error",
+        description: "Please upload at least one document.",
+      });
+      return;
+    }
+
+    try {
+      setLoading(true);
+      const payload = {
+        id: detail.id,
+        picture: pictures,
+      };
+
+      const res = await useServiceAPI.post(paths.pathTransportSaveDraft, payload);
+      if (res.status === 200) {
+        notification.success({
+          message: "Success",
+          description: "Documents saved successfully.",
+        });
+        // อยู่หน้าเดิม เพื่อให้บันทึกเอกสารซ้ำได้
+      }
+    } catch (error) {
+      console.error("Failed to save draft documents:", error);
+      notification.error({
+        message: "Error",
+        description: "Failed to save documents.",
+      });
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -255,6 +293,35 @@ export default function TransportationDetail() {
   const handlePDFDeliverySlip = () => {
     const id = location?.state?.id;
     window.open(`/points/line/pdf/delivery-slip?id=${id}`, "_blank", "noopener,noreferrer");
+  };
+
+  const confirmSaveDelivery = () => {
+    const pictures = uploadedFiles.map((file) => file.url).filter(Boolean);
+    if (pictures.length === 0) {
+      notification.warning({
+        message: "Warning",
+        description: "Please attach at least one document before saving.",
+      });
+      return;
+    }
+
+    Modal.confirm({
+      title: "Confirm Save",
+      content: "Do you want to save delivery and complete this transaction?",
+      okText: "OK",
+      cancelText: "Cancel",
+      onOk: () => handleSaveDeliveryConfirm(),
+    });
+  };
+
+  const confirmSavePrepare = () => {
+    Modal.confirm({
+      title: "Confirm Save",
+      content: "Do you want to save shipping details?",
+      okText: "OK",
+      cancelText: "Cancel",
+      onOk: () => handleSavePrepare(),
+    });
   };
 
   useEffect(() => {
@@ -376,10 +443,15 @@ export default function TransportationDetail() {
         <ActionButton mode="saveDraft" text="PDF Delivery Slip" onClick={handlePDFDeliverySlip} />
 
         {isDelivery && (
-          <ActionButton mode="save" text="Save" onClick={handleSaveDelivery} />
+          <ActionButton mode="sync" text="Save Draft" onClick={handleSaveDelivery} />
         )}
+        
+        {isDelivery && (
+          <ActionButton mode="save" text="Save" onClick={confirmSaveDelivery} />
+        )}
+        
         {isPrepare && (
-          <ActionButton mode="save" text="Save" onClick={handleSavePrepare} />
+          <ActionButton mode="save" text="Save" onClick={confirmSavePrepare} />
         )}
       </div>
     </MainLayout>

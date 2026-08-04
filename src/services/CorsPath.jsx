@@ -362,6 +362,7 @@ export const paths = {
   pathTransportDetail: "transport/detail",
   pathTransportSend: "transport/send",
   pathTransportReceive: "transport/receive",
+  pathTransportSaveDraft: "transport/save-draft",
 
   // Expense Traveling
   pathGetExpenseTravelingList: "expense/traveling/list",

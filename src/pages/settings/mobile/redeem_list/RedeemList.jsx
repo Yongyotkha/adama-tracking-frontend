@@ -6,7 +6,7 @@ import TableComponent from "../../../../components/table/TableComponent";
 import BadgeStatus from "../../../../components/badge/BadgeStatus";
 import BoxPrimary from "../../../../components/box_primary/BoxPrimary";
 import ItemDropDown from "../../../../components/dropdown/ItemDropDown";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import useServiceAPI from "../../../../services/corsService";
 import { paths } from "../../../../services/CorsPath";
 
@@ -32,8 +32,16 @@ const STATUS_OPTIONS_REQUEST = [
 
 export default function RedeemList() {
   const navigate = useNavigate();
+  const location = useLocation();
   const [loading, setLoading] = useState(false);
-  const [activeTab, setActiveTab] = useState("list");
+  const [activeTab, setActiveTab] = useState(location.state?.tab || "list");
+
+  // restore tab เมื่อกลับมาจากหน้า detail
+  useEffect(() => {
+    if (location.state?.tab) {
+      setActiveTab(location.state.tab);
+    }
+  }, [location.state?.tab]);
 
   // --- List state ---
   const [tableLoading, setTableLoading] = useState(false);
@@ -141,7 +149,7 @@ export default function RedeemList() {
                 mode={String(act.action || "view").toLowerCase()}
                 onClick={() =>
                   navigate(`/points/line/redeem-reward/${String(act.action || "view").toLowerCase()}`, {
-                    state: { id: item.id, mode: item.status },
+                    state: { id: item.id, mode: item.status, fromTab: activeTab },
                   })
                 }
               />
