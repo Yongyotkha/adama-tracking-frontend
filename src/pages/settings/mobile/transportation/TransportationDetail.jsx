@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef, useContext } from "react";
-import { Form, Input, DatePicker, Select, notification } from "antd";
+import { Form, Input, DatePicker, Select, notification, Modal } from "antd";
 import dayjs from "dayjs";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 
@@ -186,6 +186,31 @@ export default function TransportationDetail() {
     setUploadedFiles((prev) => prev.filter((item) => item.uid !== file.uid));
   };
 
+  const handleSaveDeliveryConfirm = async () => {
+    if (!detail?.id) return;
+    try {
+      const payload = {
+        id: detail.id,
+        picture: uploadedFiles.map((file) => file.url), // Extract URLs from uploaded files
+      };
+
+      const res = await useServiceAPI.post(paths.pathTransportReceive, payload);
+      if (res.status === 200) {
+        notification.success({
+          message: "Success",
+          description: "Transportation details have been successfully updated.",
+        });
+        navigate(-1); // Navigate back to the list
+      }
+    } catch (error) {
+      console.error("Failed to save transportation detail:", error);
+      notification.error({
+        message: "Error",
+        description: "Failed to update transportation details.",
+      });
+    }
+  };
+
   const handleSaveDelivery = async () => {
     if (!detail?.id) return;
 
@@ -268,6 +293,35 @@ export default function TransportationDetail() {
   const handlePDFDeliverySlip = () => {
     const id = location?.state?.id;
     window.open(`/points/line/pdf/delivery-slip?id=${id}`, "_blank", "noopener,noreferrer");
+  };
+
+  const confirmSaveDelivery = () => {
+    const pictures = uploadedFiles.map((file) => file.url).filter(Boolean);
+    if (pictures.length === 0) {
+      notification.warning({
+        message: "Warning",
+        description: "Please attach at least one document before saving.",
+      });
+      return;
+    }
+
+    Modal.confirm({
+      title: "Confirm Save",
+      content: "Do you want to save delivery and complete this transaction?",
+      okText: "OK",
+      cancelText: "Cancel",
+      onOk: () => handleSaveDeliveryConfirm(),
+    });
+  };
+
+  const confirmSavePrepare = () => {
+    Modal.confirm({
+      title: "Confirm Save",
+      content: "Do you want to save shipping details?",
+      okText: "OK",
+      cancelText: "Cancel",
+      onOk: () => handleSavePrepare(),
+    });
   };
 
   useEffect(() => {
@@ -391,12 +445,13 @@ export default function TransportationDetail() {
         {isDelivery && (
           <ActionButton mode="sync" text="Save Draft" onClick={handleSaveDelivery} />
         )}
+        
         {isDelivery && (
-          <ActionButton mode="save" text="Save 2" onClick={handleSaveDelivery} />
+          <ActionButton mode="save" text="Save 2" onClick={confirmSaveDelivery} />
         )}
         
         {isPrepare && (
-          <ActionButton mode="save" text="Save 1" onClick={handleSavePrepare} />
+          <ActionButton mode="save" text="Save 1" onClick={confirmSavePrepare} />
         )}
       </div>
     </MainLayout>
