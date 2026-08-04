@@ -147,6 +147,7 @@ const tdStyle = {
 export default function FarmerPointCollection() {
   const navigate = useNavigate();
   const { showMsg, showNotification } = useContext(AuthContext);
+  const { confirm } = Modal;
   const PAGE_STATE_KEY = "farmer-collect-points-list";
   const persistedState = loadListPageState(PAGE_STATE_KEY, {});
 
@@ -315,6 +316,59 @@ export default function FarmerPointCollection() {
     return mapOrderRows(res.data?.data || []);
   };
 
+  const handleRefund = (documentNumber) => {
+    let remark = "";
+    confirm({
+      title: "Refund Order ?",
+      icon: <ExclamationCircleFilled />,
+      content: (
+        <div className="mt-4">
+          <div className="mb-2 text-sm font-medium text-gray-700">หมายเหตุ <span className="text-red-500">*</span></div>
+          <textarea
+            className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            rows="3"
+            placeholder="กรุณาใส่หมายเหตุ"
+            onChange={(e) => { remark = e.target.value; }}
+          />
+        </div>
+      ),
+      centered: true,
+      async onOk() {
+        if (!remark || remark.trim() === "") {
+          showMsg?.("warning", "กรุณาใส่หมายเหตุ");
+          return Promise.reject();
+        }
+        try {
+          const res = await useServiceAPI.put(paths.pathSalePointRefund, {
+            document_number: documentNumber,
+            remark: remark,
+          });
+          showNotification?.("success", res?.data?.message || "Refund successful");
+          fetchData();
+        } catch (error) {
+          showNotification?.("warning", "Refund failed");
+        }
+      },
+    });
+  };
+
+  const handleDelete = (documentNumber) => {
+    confirm({
+      title: "Do you want to delete ?",
+      icon: <ExclamationCircleFilled />,
+      centered: true,
+      async onOk() {
+        try {
+          const res = await useServiceAPI.delete(paths.pathSalePointOrderDelete, { document_number: documentNumber });
+          showNotification?.("success", res?.data?.message || "Delete successful");
+          fetchData();
+        } catch (error) {
+          showNotification?.("warning", "Delete failed");
+        }
+      },
+    });
+  };
+
   const fetchData = async () => {
     setTableLoading(true);
     const { current, pageSize } = tableParams.pagination;
@@ -386,21 +440,62 @@ export default function FarmerPointCollection() {
           action: (
             <Dropdown
               menu={{
-                items: [
-                  {
-                    key: "view",
-                    label: (
-                      <ItemDropDown
-                        mode="view"
-                        onClick={() =>
-                          navigate("/points/line/collect-points-list/view", {
-                            state: { document_number: row.document_number },
-                          })
-                        }
-                      />
-                    ),
-                  },
-                ],
+                items: (row.action || []).map((a, i) => {
+                  const actionName = String(a.action).toLowerCase();
+                  if (actionName === "view") {
+                    return {
+                      key: `view-${i}`,
+                      label: (
+                        <ItemDropDown
+                          mode="view"
+                          onClick={() =>
+                            navigate("/points/line/farmer-points-list/view", {
+                              state: { document_number: row.document_number, is_farmer: true, back_path: "/points/line/farmer-collect-points-list" },
+                            })
+                          }
+                        />
+                      ),
+                    };
+                  }
+                  if (actionName === "edit") {
+                    return {
+                      key: `edit-${i}`,
+                      label: (
+                        <ItemDropDown
+                          mode="edit"
+                          onClick={() =>
+                            navigate("/points/line/farmer-points-list/edit", {
+                              state: { document_number: row.document_number, is_farmer: true, back_path: "/points/line/farmer-collect-points-list" },
+                            })
+                          }
+                        />
+                      ),
+                    };
+                  }
+                  if (actionName === "delete") {
+                    return {
+                      key: `delete-${i}`,
+                      label: (
+                        <ItemDropDown
+                          mode="delete"
+                          onClick={() => handleDelete(row.document_number)}
+                        />
+                      ),
+                    };
+                  }
+                  if (["refund", "refund point"].includes(actionName)) {
+                    return {
+                      key: `refund_point-${i}`,
+                      label: (
+                        <ItemDropDown
+                          mode="refund_point"
+                          onClick={() => handleRefund(row.document_number)}
+                        />
+                      ),
+                    };
+                  }
+                  return null;
+                }).filter(Boolean),
               }}
               placement="bottom"
             >
