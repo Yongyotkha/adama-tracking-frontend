@@ -429,8 +429,8 @@ export default function SalesPointCreate() {
     return (
       <tr className="bg-[#978B87]">
         <td colSpan={9} className="text-right pr-2 text-white">
-          Item: {dataSource.length} &nbsp; | QTY (ctn): {totalQty}
-          &nbsp; | Total: {totalAmount.toLocaleString("en-US", { minimumFractionDigits: 2 })} |
+          Item: {dataSource.length} &nbsp; | {isFarmer ? "Total Pack" : "QTY (ctn)"}: {totalQty}
+          &nbsp; | {isFarmer ? "Total Value" : "Total"}: {totalAmount.toLocaleString("en-US", { minimumFractionDigits: 2 })} |
           &nbsp; Total Point: {totalPoint.toLocaleString("en-US")}
         </td>
       </tr>

@@ -400,7 +400,7 @@ export default function SalesPointEdit() {
     return (
       <tr className="bg-[#978B87]">
         <td colSpan={canDeleteProducts ? 10 : 9} className="text-right pr-2 text-white">
-          Item: {dataSource.length} | QTY (ctn): {totalQty}&nbsp;| Total:{" "}
+          Item: {dataSource.length} | {isFarmer ? "Total Pack" : "QTY (ctn)"}: {totalQty}&nbsp;| {isFarmer ? "Total Value" : "Total"}:{" "}
           {totalAmount.toLocaleString("en-US", { minimumFractionDigits: 2 })}&nbsp;|
           Total Point: {totalPoint.toLocaleString("en-US")}
         </td>

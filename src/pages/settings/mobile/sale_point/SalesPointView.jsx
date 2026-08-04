@@ -222,8 +222,8 @@ export default function SalesPointView() {
       <tr className="bg-[#978B87]">
         <td colSpan={9} className="text-right pr-2 text-white">
           Item: {dataSource.length}
-          &nbsp;&nbsp; QTY (ctn): {totalQuantity.toLocaleString("en-US")}
-          &nbsp;&nbsp; Total: {totalAmount.toLocaleString("en-US", { minimumFractionDigits: 2 })}
+          &nbsp;&nbsp; {isFarmer ? "Total Pack" : "QTY (ctn)"}: {totalQuantity.toLocaleString("en-US")}
+          &nbsp;&nbsp; {isFarmer ? "Total Value" : "Total"}: {totalAmount.toLocaleString("en-US", { minimumFractionDigits: 2 })}
           &nbsp;&nbsp; <strong>Total Point: {totalPoint.toLocaleString("en-US")}</strong>
         </td>
       </tr>

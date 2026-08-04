@@ -216,7 +216,7 @@ export default function SalesPointDetail() {
     return (
       <tr className="bg-[#978B87]">
         <td colSpan={9} className="text-right pr-2 text-white">
-          Item: {dataSource.length} &nbsp;| QTY (ctn): {totalQuantity} &nbsp; | Total: 
+          Item: {dataSource.length} &nbsp;| {isFarmerMode ? "Total Pack" : "QTY (ctn)"}: {totalQuantity} &nbsp; | {isFarmerMode ? "Total Value" : "Total"}: 
           {totalAmount.toLocaleString("en-US", { minimumFractionDigits: 2 })} |
           Total Point: {dataSource.reduce((total, item) => total + (parseFloat(item.point || 0) * parseFloat(item.quantity || 0)), 0).toLocaleString("en-US")}
         </td>
