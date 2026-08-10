@@ -335,6 +335,7 @@ export const paths = {
   pathSalePointOrderRequest: "/sale-point/order-request",
   pathSalePointOrderRequestDetail: "/sale-point/order-request-detail",
   pathSalePointOrderRequestEdit: "/sale-point/order-request-edit",
+  pathSalePointPointList: "/sale-point/point-list",
   // customer stock
   pathStockList: "/stock/list",
   pathStockCreate: "/stock/create",
