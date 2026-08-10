@@ -525,7 +525,7 @@ export default function SalesPointCreate() {
           quantity: 1,
           foc: parseInt(1 / data.product_campaign_order_min_foc),
           net_amount: (1 * parseFloat(String(isFarmer ? data.farmer : data.bath_unit).replace(/,/g, ""))).toFixed(2),
-          point: data.point,
+          point: isFarmer ? (data.point_farmer ?? data.point) : data.point,
         };
         const next = [...dataSource, newRow].map((i, idx) => ({ ...i, key: idx + 1, no: idx + 1 }));
         setDataSource(next);

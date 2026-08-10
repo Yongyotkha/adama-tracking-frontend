@@ -264,7 +264,7 @@ export default function SalesPointEdit() {
           product_name: d.product_name,
           product_unit: d.packing_list,
           product_unit_thb: isFarmer ? d.farmer : d.bath_unit,
-          point: d.point,
+          point: isFarmer ? (d.point_farmer ?? d.point) : d.point,
           product_campaign_order_min_foc: toNumber(d.product_campaign_order_min_foc),
           product_campaign_foc: toNumber(d.product_campaign_foc),
           quantity,

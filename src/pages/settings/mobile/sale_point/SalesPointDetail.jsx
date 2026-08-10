@@ -20,7 +20,8 @@ export default function SalesPointDetail() {
   const { showMsg, showNotification } = useContext(AuthContext);
 
   const [loading, setLoading] = useState(false);
-  const isFarmer = location.pathname.includes("farmer-points-list") || location.state?.data?.is_farmer;
+  const isFarmerMode = location.pathname.includes("farmer-points-list") || location?.state?.data?.is_farmer;
+  const isFarmer = isFarmerMode;
   const [dataSource, setDataSource] = useState([]);
   const [dataSourceOther, setDataSourceOther] = useState([]);
 
@@ -88,7 +89,6 @@ export default function SalesPointDetail() {
 
   // 3) โหลด master (sale / dealer / sub-dealer) เพื่อแสดงชื่อใน FormCustom (readonly)
   useEffect(() => {
-    const isFarmerMode = location.pathname.includes("farmer-points-list") || location?.state?.data?.is_farmer;
     const getMaster = async () => {
       setLoading(true);
       try {
