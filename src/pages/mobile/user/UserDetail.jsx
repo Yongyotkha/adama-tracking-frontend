@@ -94,6 +94,16 @@ export default function UserDetail() {
                     </span>
                   </div>
                   <div className="flex justify-between border-b pb-2">
+                    <span className="text-gray-500 sarabun-font">
+                      ประเภทสมาชิก
+                    </span>
+                    <span className="sarabun-font">
+                      {user?.shop_type
+                        ? String(user.shop_type).replaceAll("_", " ").toUpperCase()
+                        : "-"}
+                    </span>
+                  </div>
+                  <div className="flex justify-between border-b pb-2">
                     <span className="text-gray-500 sarabun-font">ชื่อร้าน</span>
                     <span className="sarabun-font">
                       {user?.shop_name || "-"}
