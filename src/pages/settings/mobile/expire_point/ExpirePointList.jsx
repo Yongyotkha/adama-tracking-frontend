@@ -96,8 +96,9 @@ export default function ExpirePointList() {
   }, [tableParams.pagination.current, tableParams.pagination.pageSize, filterValues]);
 
   const filters = [
+    { key: "shop_name", type: "text", label: "Shop Name" },
+    { key: "contact_name", type: "text", label: "Contact Name" },
     { key: "phone_number", type: "text", label: "Phone No" },
-    { key: "user_id", type: "text", label: "User ID" },
     {
       key: "shop_type",
       type: "select",
