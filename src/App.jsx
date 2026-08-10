@@ -415,14 +415,6 @@ const App = () => {
               element={<ApprovalClearingExpense />}
             />
 
-            {/* <Route path="/expenses/advance/approval/area" element={<AdvanceExpenseArea />} />
-            <Route path="/expenses/advance/approval/head-of-sales" element={<AdvanceExpenseHead />} />
-            <Route path="/expenses/advance/approval/accounting" element={<AdvanceExpenseAcct />} />
-            <Route path="/expenses/clearing/approval/area" element={<ClearingExpenseArea />} />
-            <Route path="/expenses/clearing/approval/head-of-sales" element={<ClearingExpenseHead />} />
-            <Route path="/expenses/clearing/approval/accounting" element={<ClearingExpenseAcct />} /> */}
-
-            {/* Customer Route */}
             <Route path="/customer/dealer" element={<Dealer />} />
             <Route
               path="/customer/dealer/create"
