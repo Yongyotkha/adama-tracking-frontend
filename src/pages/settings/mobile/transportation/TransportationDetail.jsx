@@ -131,12 +131,20 @@ export default function TransportationDetail() {
     });
   };
 
+  const isFarmer =
+    location.pathname.includes("farmer-transpotation") ||
+    location.pathname.includes("farmer-transportation") ||
+    Boolean(location.state?.is_farmer);
+
   const fetchDetail = async () => {
     setLoading(true);
     const id = location?.state?.id;
 
     try {
-      const res = await useServiceAPI.get(`${paths.pathTransportDetail}/${id}`);
+      const res = await useServiceAPI.get(
+        `${paths.pathTransportDetail}/${id}`,
+        isFarmer ? { mode: "farmer" } : {}
+      );
       if (res.status === 200) {
         const data = res.data || {};
         data.reward_value = 1
@@ -156,7 +164,7 @@ export default function TransportationDetail() {
         fillForm(data);
       }
     } catch (error) {
-      console.error(e);
+      console.error(error);
       showNotification("error", "Load failed", ["ไม่สามารถโหลดรายละเอียดได้"]);
     } finally {
       setLoading(false);
@@ -192,6 +200,7 @@ export default function TransportationDetail() {
       const payload = {
         id: detail.id,
         picture: uploadedFiles.map((file) => file.url), // Extract URLs from uploaded files
+        ...(isFarmer ? { mode: "farmer" } : {}),
       };
 
       const res = await useServiceAPI.post(paths.pathTransportReceive, payload);
@@ -228,6 +237,7 @@ export default function TransportationDetail() {
       const payload = {
         id: detail.id,
         picture: pictures,
+        ...(isFarmer ? { mode: "farmer" } : {}),
       };
 
       const res = await useServiceAPI.post(paths.pathTransportSaveDraft, payload);
@@ -266,6 +276,7 @@ export default function TransportationDetail() {
         send_by: toApiSendBy(values.send_by),
         send_date: values.send_date ? dayjs(values.send_date).format("YYYY-MM-DD") : null,
         remark: values.send_remark || "",
+        ...(isFarmer ? { mode: "farmer" } : {}),
       };
 
       const res = await useServiceAPI.post(paths.pathTransportSend, payload);

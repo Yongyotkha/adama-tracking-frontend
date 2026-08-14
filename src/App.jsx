@@ -130,6 +130,7 @@ import { LineOARoute, LinePrivateRoute } from "./components/auth/LineOARoute";
 import CustomerLineList from "./pages/settings/mobile/customer/CustomerLineList";
 import CreateCustomerLine from "./pages/settings/mobile/customer/CreateCustomerLine";
 import ExpirePointList from "./pages/settings/mobile/expire_point/ExpirePointList";
+import FarmerExpirePointList from "./pages/settings/mobile/expire_point/FarmerExpirePointList";
 // import ManagePromotionList from "./pages/settings/mobile/manage-promotion/ManagePromotionList";
 // import CreateManagePromotion from "./pages/settings/mobile/manage-promotion/CreateManagePromotion";
 import ApprovalAdvanceExpense from "./pages/expenses/advance/ApprovalAdvanceExpense";
@@ -181,6 +182,7 @@ import FarmerPointRedeem from "./pages/settings/mobile/redeem_list/FarmerPointRe
 import FarmerPointCampaignList from "./pages/settings/mobile/point_campaign/FarmerPointCampaignList";
 import RedeemDetail from "./pages/settings/mobile/redeem_list/RedeemDetail";
 import Transportation from "./pages/settings/mobile/transportation/Transportation";
+import FarmerTransportation from "./pages/settings/mobile/transportation/FarmerTransportation";
 import RewardProductUpdateStock from "./pages/settings/mobile/request_purchase/RewardProductUpdateStock";
 import RequestPurchaseList from "./pages/settings/mobile/request_purchase/RequestPurchaseList";
 import TransportationDetail from "./pages/settings/mobile/transportation/TransportationDetail";
@@ -599,6 +601,26 @@ const App = () => {
             <Route
               path="/points/line/farmer-redeem-reward/:mode"
               element={<RedeemDetail />}
+            />
+            <Route
+              path="/points/line/farmer-expire-point"
+              element={<FarmerExpirePointList />}
+            />
+            <Route
+              path="/points/line/farmer-transportation"
+              element={<FarmerTransportation />}
+            />
+            <Route
+              path="/points/line/farmer-transpotation"
+              element={<FarmerTransportation />}
+            />
+            <Route
+              path="/points/line/farmer-transportation/:mode"
+              element={<TransportationDetail />}
+            />
+            <Route
+              path="/points/line/farmer-transpotation/:mode"
+              element={<TransportationDetail />}
             />
             <Route
               path="/setting/line/farmer-point-campaign"
