@@ -61,6 +61,13 @@ export const paths = {
   pathMasterTerritory: "master/territory",
   pathMasterAreas: "master/areas",
   pathMasterRoles: "master/roles",
+
+  pathMenuTree: "menus/tree",
+  pathMenuParents: "menus/parents",
+  pathMenuDetail: "menus/detail",
+  pathMenuCreate: "menus/create",
+  pathMenuUpdate: "menus/update",
+  pathMenuDelete: "menus/delete",
   pathMasterCrop: "master/crop",
   pathMasterPrefix: "master/prefix",
   pathMasterEquipment: "master/equ",

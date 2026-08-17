@@ -16,6 +16,7 @@ import WorkPlan from "./pages/sale_plan/workplan/WorkPlan";
 import WorkPlanCreate from "./pages/sale_plan/workplan/WorkPlanCreate";
 import WorkPlanCreateStepTwo from "./pages/sale_plan/workplan/WorkPlanCreateStepTwo";
 import SettingRole from "./pages/settings/role/SettingRole";
+import SettingMenu from "./pages/settings/menu/SettingMenu";
 import SettingUser from "./pages/settings/user/SettingUser";
 import LogUser from "./pages/settings/user/LogUser";
 import ProfileUser from "./pages/settings/user/ProfileUser";
@@ -468,6 +469,7 @@ const App = () => {
             <Route path="/setting/info/view" element={<ActionInfo />} />
 
             <Route path="/setting/role" element={<SettingRole />} />
+            <Route path="/setting/menu" element={<SettingMenu />} />
             <Route path="/setting/profile" element={<ProfileUser />} />
             <Route path="/setting/user" element={<SettingUser />} />
             <Route path="/setting/user/create" element={<CreateUser />} />
