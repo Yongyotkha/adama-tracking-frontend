@@ -126,6 +126,7 @@ import FaqOA from "./pages/mobile/user/settings/faq/Faq";
 import PrivacyPolicy from "./pages/mobile/user/settings/privacy_policy/PrivacyPolicy";
 import TermsConditions from "./pages/mobile/user/settings/terms_conditions/TermsConditions";
 import CheckLogin from "./pages/mobile/auth/CheckLogin";
+import LoginBypassOA from "./pages/mobile/auth/LoginBypassOA";
 import { LineOARoute, LinePrivateRoute } from "./components/auth/LineOARoute";
 import CustomerLineList from "./pages/settings/mobile/customer/CustomerLineList";
 import CreateCustomerLine from "./pages/settings/mobile/customer/CreateCustomerLine";
@@ -811,6 +812,8 @@ const App = () => {
               element={<SaleHistoryReport />}
             />
           </Route>
+
+          <Route path="/mobile/bypass" element={<LoginBypassOA />} />
 
           <Route element={<LineOARoute />}>
             <Route path="/mobile/login" element={<CheckLogin />} />
