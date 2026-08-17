@@ -5,6 +5,16 @@ import { paths } from "../../../services/CorsPath";
 import useServiceAPI from "../../../services/CorsService";
 import { AuthContext } from "../../../contexts/AuthContext";
 
+const shopTypeShortLabel = (shopType) => {
+  const map = {
+    farmer: "fm",
+    dealer: "dl",
+    sub_dealer: "sd",
+  };
+  const key = String(shopType || "").toLowerCase();
+  return map[key] || key.replaceAll("_", "");
+};
+
 const HeadSectionUser = () => {
   const navigate = useNavigate();
   const [user, setUser] = useState(null);
@@ -66,8 +76,13 @@ const HeadSectionUser = () => {
 
         {/* Profile Info */}
         <div className="flex flex-col items-start flex-1 text-center">
-          <h4 className="text-md font-semibold text-[#A19793] sarabun-font">
+          <h4 className="text-md font-semibold text-[#A19793] sarabun-font flex items-center gap-1.5">
             {user.shop_name}
+            {user.shop_type && (
+              <span className="text-[10px] font-normal leading-none px-1.5 py-0.5 rounded bg-[#F0EDE9] text-[#A19793] uppercase">
+                {shopTypeShortLabel(user.shop_type)}
+              </span>
+            )}
           </h4>
           <p className="text-[#A19793] sarabun-font">
             {/* รหัสสมาชิก : {userIdFromStorage || "ไม่พบข้อมูล"} */}
