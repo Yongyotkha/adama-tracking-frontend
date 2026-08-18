@@ -114,6 +114,21 @@ export default function Dashboard() {
     return `${(value / 1_000_000).toFixed(1)} M THB`;
   };
 
+  const valueFormatterTHB = (value) => {
+    if (typeof value !== "number" || isNaN(value)) return "0 THB";
+    return `${Number(value).toLocaleString("en-US")} THB`;
+  };
+
+  const valueFormatterTimes = (value) => {
+    if (typeof value !== "number" || isNaN(value)) return "0 ครั้ง";
+    return `${Number(value).toLocaleString("en-US")} ครั้ง`;
+  };
+
+  const valueFormatterPoint = (value) => {
+    if (typeof value !== "number" || isNaN(value)) return "0 Point";
+    return `${Number(value).toLocaleString("en-US")} Point`;
+  };
+
   useEffect(() => {
     const resolveActiveSale = async () => {
       try {
@@ -1053,7 +1068,8 @@ export default function Dashboard() {
               <div>
                 <h3 className="text-lg font-bold text-[#00783F]">Dealer</h3>
                 <div className="text-4xl font-bold text-[#00783F]">
-                  {Number(dashboardData.dealer_count || 0).toLocaleString()}
+                  {Number(dashboardData.dealer_count || 0).toLocaleString()}{" "}
+                  <span className="text-base font-normal text-gray-500">Dealer</span>
                 </div>
               </div>
               <div>
@@ -1075,7 +1091,8 @@ export default function Dashboard() {
               <div>
                 <h3 className="text-lg font-bold text-[#00783F]">Sub Dealer</h3>
                 <div className="text-4xl font-bold text-[#00783F]">
-                  {Number(dashboardData.sub_dealer_count || 0).toLocaleString()}
+                  {Number(dashboardData.sub_dealer_count || 0).toLocaleString()}{" "}
+                  <span className="text-base font-normal text-gray-500">Sub Dealer</span>
                 </div>
               </div>
               <div>
@@ -1094,7 +1111,7 @@ export default function Dashboard() {
         <Col xs={12} sm={12} lg={12} xxl={6}>
           <BoxPrimary className="h-full">
             <div className="flex flex-wrap justify-between items-center">
-              <h3 className="text-lg font-bold text-[#00783F]">Expense</h3>
+              <h3 className="text-lg font-bold text-[#00783F]">Expense (THB)</h3>
               <div className="flex flex-wrap gap-2">
                 <Select
                   className="w-36"
@@ -1113,7 +1130,7 @@ export default function Dashboard() {
             <div className="mt-4 grid grid-cols-1 md:grid-cols-3 divide-y md:divide-y-0 md:divide-x divide-gray-300">
               <div className="text-center py-4">
                 <div className="text-md font-bold text-[#00783F]">
-                  {formatNumber(dashboardDataExpense.total_expense_activity_plan)}
+                  {formatNumber(dashboardDataExpense.total_expense_activity_plan)} THB
                   <br />
                   {calPercentage.plan ||
                     dashboardDataExpense.total_expense_activity_plan_percentage}
@@ -1123,14 +1140,14 @@ export default function Dashboard() {
 
               <div className="text-center py-4 flex flex-col justify-between">
                 <div className="text-md font-bold text-[#00783F]">
-                  {formatNumber(dashboardDataExpense.total_expense_advance)}
+                  {formatNumber(dashboardDataExpense.total_expense_advance)} THB
                 </div>
                 <div className="text-sm text-gray-500">Advance</div>
               </div>
 
               <div className="text-center py-4">
                 <div className="text-md font-bold text-[#00783F]">
-                  {formatNumber(dashboardDataExpense.total_expense_actual_exp)}
+                  {formatNumber(dashboardDataExpense.total_expense_actual_exp)} THB
                   <br />
                   {calPercentage.actual ||
                     dashboardDataExpense.total_expense_actual_exp_percentage}
@@ -1145,7 +1162,7 @@ export default function Dashboard() {
         <Col xs={12} sm={12} lg={12} xxl={6}>
           <BoxPrimary className="h-full items-center flex flex-col">
             <div className="flex flex-wrap justify-between items-center w-full">
-              <h3 className="text-lg font-bold text-[#00783F]">Sales By Dealer</h3>
+              <h3 className="text-lg font-bold text-[#00783F]">Sales By Dealer (THB)</h3>
               <div className="flex flex-wrap gap-2">
                 <Select
                   className="w-36"
@@ -1176,14 +1193,14 @@ export default function Dashboard() {
             <div className="my-auto grid grid-cols-1 md:grid-cols-2 divide-y md:divide-y-0 md:divide-x divide-gray-300 w-full">
               <div className="text-center p-2">
                 <div className="text-md font-bold text-[#00783F]">
-                  {formatNumber(dashboardDataOrder.total_amount_target_plan)}
+                  {formatNumber(dashboardDataOrder.total_amount_target_plan)} THB
                 </div>
                 <div className="text-sm text-gray-500">Plan</div>
               </div>
 
               <div className="text-center p-2">
                 <div className="text-md font-bold text-[#00783F]">
-                  {formatNumber(dashboardDataOrder.total_amount_target_actual)}
+                  {formatNumber(dashboardDataOrder.total_amount_target_actual)} THB
                 </div>
                 <div className="text-sm text-gray-500">Actual</div>
               </div>
@@ -1241,19 +1258,19 @@ export default function Dashboard() {
                     series={[
                       {
                         dataKey: "plan",
-                        label: "Work Plan",
+                        label: "Work Plan (THB)",
                         valueFormatter: valueFormatterMB,
                         color: "#10B981",
                       },
                       {
                         dataKey: "rolling",
-                        label: "Rolling Forecast",
+                        label: "Rolling Forecast (THB)",
                         valueFormatter: valueFormatterMB,
                         color: "#F59E0B",
                       },
                       {
                         dataKey: "actual",
-                        label: "Actual",
+                        label: "Actual (THB)",
                         valueFormatter: valueFormatterMB,
                         color: "#3B82F6",
                       },
@@ -1323,13 +1340,35 @@ export default function Dashboard() {
                       },
                     ]}
                     series={[
-                      { dataKey: "total_activity_plan", label: "Activity Plan" },
-                      { dataKey: "total_activity_list", label: "Activity List" },
-                      { dataKey: "total_activity_actual", label: "Activity Actual" },
+                      {
+                        dataKey: "total_activity_plan",
+                        label: "Activity Plan (ครั้ง)",
+                        valueFormatter: valueFormatterTimes,
+                        color: "#10B981",
+                      },
+                      {
+                        dataKey: "total_activity_list",
+                        label: "Activity List (ครั้ง)",
+                        valueFormatter: valueFormatterTimes,
+                        color: "#F59E0B",
+                      },
+                      {
+                        dataKey: "total_activity_actual",
+                        label: "Activity Actual (ครั้ง)",
+                        valueFormatter: valueFormatterTimes,
+                        color: "#3B82F6",
+                      },
                     ]}
-                    yAxis={[{ label: null }]}
+                    yAxis={[{ label: "จำนวน (ครั้ง)" }]}
                     height={400}
-                    slotProps={{ legend: { hidden: true } }}
+                    slotProps={{
+                      legend: {
+                        direction: "row",
+                        position: { vertical: "bottom", horizontal: "middle" },
+                        padding: 0,
+                      },
+                    }}
+                    margin={{ left: 80, bottom: 50 }}
                     sx={{
                       ".MuiBar-root": { borderRadius: "4px" },
                       ".MuiAxis-left .MuiAxis-label": {
@@ -1377,13 +1416,13 @@ export default function Dashboard() {
                     series={[
                       {
                         dataKey: "plan",
-                        label: "Plan",
+                        label: "Plan (THB)",
                         valueFormatter: valueFormatterMB,
                         color: "#3B82F6",
                       },
                       {
                         dataKey: "actual",
-                        label: "Actual",
+                        label: "Actual (THB)",
                         valueFormatter: valueFormatterMB,
                         color: "#10B981",
                       },
@@ -1463,22 +1502,22 @@ export default function Dashboard() {
 
                   <th className="text-center py-2 font-semibold whitespace-normal">
                     <span className="block leading-tight">Plan</span>
-                    <span className="block text-xs text-gray-500">(qty)</span>
+                    <span className="block text-xs text-gray-500">(ครั้ง)</span>
                   </th>
 
                   <th className="text-center py-2 font-semibold whitespace-normal">
                     <span className="block leading-tight">Plan</span>
-                    <span className="block text-xs text-gray-500">(thb)</span>
+                    <span className="block text-xs text-gray-500">(THB)</span>
                   </th>
 
                   <th className="text-center py-2 font-semibold whitespace-normal">
                     <span className="block leading-tight">Actual</span>
-                    <span className="block text-xs text-gray-500">(qty)</span>
+                    <span className="block text-xs text-gray-500">(ครั้ง)</span>
                   </th>
 
                   <th className="text-center py-2 font-semibold whitespace-normal">
                     <span className="block leading-tight">Actual</span>
-                    <span className="block text-xs text-gray-500">(thb)</span>
+                    <span className="block text-xs text-gray-500">(THB)</span>
                   </th>
                 </tr>
               </thead>
@@ -1497,16 +1536,16 @@ export default function Dashboard() {
                     </td>
 
                     <td className="text-center py-2 text-gray-700">
-                      {item.plan?.toLocaleString?.() ?? 0}
+                      {item.plan?.toLocaleString?.() ?? 0} ครั้ง
                     </td>
                     <td className="text-center py-2 text-gray-700">
-                      {item.plan_value?.toLocaleString?.() ?? 0}
+                      {item.plan_value?.toLocaleString?.() ?? 0} THB
                     </td>
                     <td className="text-center py-2 text-gray-700">
-                      {item.actual?.toLocaleString?.() ?? 0}
+                      {item.actual?.toLocaleString?.() ?? 0} ครั้ง
                     </td>
                     <td className="text-center py-2 text-gray-700">
-                      {item.actual_value?.toLocaleString?.() ?? 0}
+                      {item.actual_value?.toLocaleString?.() ?? 0} THB
                     </td>
                   </tr>
                 ))}
@@ -1517,7 +1556,7 @@ export default function Dashboard() {
       </Row>
 
       <Row gutter={[16, 16]} className="mb-4">
-        {/* Sub Dealer by Dealer */}
+        {/* Sub Dealer by Dealer (Bar Chart) */}
         <Col xs={24} lg={24} xl={12}>
           <Card className="shadow-md rounded-lg bg-white border-t-[10px] border-solid border-t-[#00783F] h-full">
             <div className="flex flex-wrap items-center justify-between">
@@ -1539,13 +1578,57 @@ export default function Dashboard() {
               </div>
             </div>
 
-            <div className="flex justify-center items-center">
-              <DoughnutChartComponent data={subdealerByDealerData} />
+            <div className="h-[380px] w-full">
+              {subdealerByDealerData?.length > 0 ? (
+                <BarChart
+                  dataset={subdealerByDealerData}
+                  xAxis={[
+                    {
+                      scaleType: "band",
+                      dataKey: "label",
+                      categoryGapRatio: Math.max(0.2, 0.9 - (subdealerByDealerData?.length || 0) * 0.05),
+                    },
+                  ]}
+                  yAxis={[{ label: "THB" }]}
+                  series={[
+                    {
+                      dataKey: "value",
+                      label: "Sales Plan (THB)",
+                      color: "#00783F",
+                      valueFormatter: valueFormatterTHB,
+                    },
+                  ]}
+                  height={380}
+                  slotProps={{
+                    legend: {
+                      direction: "row",
+                      position: { vertical: "top", horizontal: "right" },
+                      padding: 0,
+                    },
+                  }}
+                  margin={{ left: 90, bottom: 65 }}
+                  sx={{
+                    ".MuiBar-root": { borderRadius: "4px" },
+                    ".MuiAxis-left .MuiAxis-label": {
+                      fontSize: "12px",
+                      fill: "#6B7280",
+                    },
+                    ".MuiAxis-bottom .MuiAxis-tickLabel": {
+                      angle: -35,
+                      textAnchor: "end",
+                    },
+                  }}
+                />
+              ) : (
+                <div className="h-[380px] flex items-center justify-center text-gray-400">
+                  No data to display
+                </div>
+              )}
             </div>
           </Card>
         </Col>
 
-        {/* Sale By Crop */}
+        {/* Sale By Crop (Bar Chart) */}
         <Col xs={24} lg={24} xl={12}>
           <Card className="shadow-md rounded-lg bg-white border-t-[10px] border-solid border-t-[#00783F]">
             <div className="flex flex-wrap justify-between">
@@ -1579,16 +1662,57 @@ export default function Dashboard() {
               </div>
             </div>
 
-            <div className="flex justify-center items-center">
-              <div className="flex-grow flex justify-center items-center">
-                <div className="relative" />
-                <DoughnutChartComponent data={saleCropData} />
-              </div>
+            <div className="h-[380px] w-full">
+              {saleCropData?.length > 0 ? (
+                <BarChart
+                  dataset={saleCropData}
+                  xAxis={[
+                    {
+                      scaleType: "band",
+                      dataKey: "label",
+                      categoryGapRatio: Math.max(0.2, 0.9 - (saleCropData?.length || 0) * 0.05),
+                    },
+                  ]}
+                  yAxis={[{ label: "THB" }]}
+                  series={[
+                    {
+                      dataKey: "value",
+                      label: "Sales (THB)",
+                      color: "#10B981",
+                      valueFormatter: valueFormatterTHB,
+                    },
+                  ]}
+                  height={380}
+                  slotProps={{
+                    legend: {
+                      direction: "row",
+                      position: { vertical: "top", horizontal: "right" },
+                      padding: 0,
+                    },
+                  }}
+                  margin={{ left: 90, bottom: 65 }}
+                  sx={{
+                    ".MuiBar-root": { borderRadius: "4px" },
+                    ".MuiAxis-left .MuiAxis-label": {
+                      fontSize: "12px",
+                      fill: "#6B7280",
+                    },
+                    ".MuiAxis-bottom .MuiAxis-tickLabel": {
+                      angle: -35,
+                      textAnchor: "end",
+                    },
+                  }}
+                />
+              ) : (
+                <div className="h-[380px] flex items-center justify-center text-gray-400">
+                  No data to display
+                </div>
+              )}
             </div>
           </Card>
         </Col>
 
-        {/* Actual Sub Dealer Points */}
+        {/* Actual Sub Dealer Points (Bar Chart) */}
         <Col xs={24} lg={24} xl={24}>
           <Card className="shadow-md rounded-lg bg-white border-t-[10px] border-solid border-t-[#00783F] h-full">
             <div className="flex flex-wrap items-center justify-between">
@@ -1611,55 +1735,61 @@ export default function Dashboard() {
             </div>
 
             <div className="h-[350px] w-full">
-              <BarChart
-                dataset={pointUsersData}
-                xAxis={[
-                  {
-                    scaleType: "band",
-                    dataKey: "label",
-                    categoryGapRatio: Math.max(0.2, 0.9 - (pointUsersData?.length || 0) * 0.1),
-                  },
-                ]}
-                yAxis={[{ label: null }]}
-                series={[
-                  {
-                    dataKey: "value",
-                    label: "Point",
-                    color: "#00783F",
-                    valueFormatter: (v) => (v ? v.toLocaleString() : "0"),
-                  },
-                ]}
-                height={350}
-                slotProps={{
-                  legend: {
-                    direction: "row",
-                    position: { vertical: "top", horizontal: "right" },
-                    padding: 0,
-                  },
-                }}
-                margin={{ left: 80, bottom: 50 }}
-                sx={{
-                  ".MuiBar-root": { borderRadius: "4px" },
-                  ".MuiAxis-left .MuiAxis-label": {
-                    fontSize: "12px",
-                    fill: "#6B7280",
-                  },
-                  ".MuiAxis-bottom .MuiAxis-tickLabel": {
-                    angle: -45,
-                    textAnchor: "end",
-                  },
-                }}
-              />
+              {pointUsersData?.length > 0 ? (
+                <BarChart
+                  dataset={pointUsersData}
+                  xAxis={[
+                    {
+                      scaleType: "band",
+                      dataKey: "label",
+                      categoryGapRatio: Math.max(0.2, 0.9 - (pointUsersData?.length || 0) * 0.1),
+                    },
+                  ]}
+                  yAxis={[{ label: "Point" }]}
+                  series={[
+                    {
+                      dataKey: "value",
+                      label: "Point",
+                      color: "#00783F",
+                      valueFormatter: valueFormatterPoint,
+                    },
+                  ]}
+                  height={350}
+                  slotProps={{
+                    legend: {
+                      direction: "row",
+                      position: { vertical: "top", horizontal: "right" },
+                      padding: 0,
+                    },
+                  }}
+                  margin={{ left: 80, bottom: 50 }}
+                  sx={{
+                    ".MuiBar-root": { borderRadius: "4px" },
+                    ".MuiAxis-left .MuiAxis-label": {
+                      fontSize: "12px",
+                      fill: "#6B7280",
+                    },
+                    ".MuiAxis-bottom .MuiAxis-tickLabel": {
+                      angle: -45,
+                      textAnchor: "end",
+                    },
+                  }}
+                />
+              ) : (
+                <div className="h-[350px] flex items-center justify-center text-gray-400">
+                  No data to display
+                </div>
+              )}
             </div>
           </Card>
         </Col>
 
-        {/* Sub Dealer Donut Chart */}
+        {/* Sub Dealer Bar Chart */}
         <Col xs={24} lg={24} xl={12}>
           <Card className="shadow-md rounded-lg bg-white border-t-[10px] border-solid border-t-[#00783F] h-full">
             <div className="flex flex-wrap items-center justify-between mb-3">
               <h3 className="text-[#00783F] text-lg font-semibold">
-                Sub Dealer
+                Sub Dealer (Point)
               </h3>
               <div className="flex flex-wrap gap-2">
                 <Select
@@ -1687,19 +1817,61 @@ export default function Dashboard() {
               </div>
             </div>
             {sdChartLoading ? (
-              <div className="h-[300px] flex items-center justify-center text-gray-400">Loading...</div>
+              <div className="h-[350px] flex items-center justify-center text-gray-400">Loading...</div>
+            ) : sdChartData?.length > 0 ? (
+              <div className="h-[350px] w-full">
+                <BarChart
+                  dataset={sdChartData}
+                  xAxis={[
+                    {
+                      scaleType: "band",
+                      dataKey: "label",
+                      categoryGapRatio: Math.max(0.2, 0.9 - (sdChartData?.length || 0) * 0.05),
+                    },
+                  ]}
+                  yAxis={[{ label: "Point" }]}
+                  series={[
+                    {
+                      dataKey: "value",
+                      label: "Point",
+                      color: "#00783F",
+                      valueFormatter: valueFormatterPoint,
+                    },
+                  ]}
+                  height={350}
+                  slotProps={{
+                    legend: {
+                      direction: "row",
+                      position: { vertical: "top", horizontal: "right" },
+                      padding: 0,
+                    },
+                  }}
+                  margin={{ left: 80, bottom: 50 }}
+                  sx={{
+                    ".MuiBar-root": { borderRadius: "4px" },
+                    ".MuiAxis-left .MuiAxis-label": {
+                      fontSize: "12px",
+                      fill: "#6B7280",
+                    },
+                    ".MuiAxis-bottom .MuiAxis-tickLabel": {
+                      angle: -40,
+                      textAnchor: "end",
+                    },
+                  }}
+                />
+              </div>
             ) : (
-              <DoughnutChartComponent data={sdChartData} tooltipMode="default" />
+              <div className="h-[350px] flex items-center justify-center text-gray-400">No data to display</div>
             )}
           </Card>
         </Col>
 
-        {/* Farmer Donut Chart */}
+        {/* Farmer Bar Chart */}
         <Col xs={24} lg={24} xl={12}>
           <Card className="shadow-md rounded-lg bg-white border-t-[10px] border-solid border-t-[#00783F] h-full">
             <div className="flex flex-wrap items-center justify-between mb-3">
               <h3 className="text-[#00783F] text-lg font-semibold">
-                Farmer
+                Farmer (Point)
               </h3>
               <div className="flex flex-wrap gap-2">
                 <Select
@@ -1741,9 +1913,51 @@ export default function Dashboard() {
               </div>
             </div>
             {fmChartLoading ? (
-              <div className="h-[300px] flex items-center justify-center text-gray-400">Loading...</div>
+              <div className="h-[350px] flex items-center justify-center text-gray-400">Loading...</div>
+            ) : fmChartData?.length > 0 ? (
+              <div className="h-[350px] w-full">
+                <BarChart
+                  dataset={fmChartData}
+                  xAxis={[
+                    {
+                      scaleType: "band",
+                      dataKey: "label",
+                      categoryGapRatio: Math.max(0.2, 0.9 - (fmChartData?.length || 0) * 0.05),
+                    },
+                  ]}
+                  yAxis={[{ label: "Point" }]}
+                  series={[
+                    {
+                      dataKey: "value",
+                      label: "Point",
+                      color: "#10B981",
+                      valueFormatter: valueFormatterPoint,
+                    },
+                  ]}
+                  height={350}
+                  slotProps={{
+                    legend: {
+                      direction: "row",
+                      position: { vertical: "top", horizontal: "right" },
+                      padding: 0,
+                    },
+                  }}
+                  margin={{ left: 80, bottom: 50 }}
+                  sx={{
+                    ".MuiBar-root": { borderRadius: "4px" },
+                    ".MuiAxis-left .MuiAxis-label": {
+                      fontSize: "12px",
+                      fill: "#6B7280",
+                    },
+                    ".MuiAxis-bottom .MuiAxis-tickLabel": {
+                      angle: -40,
+                      textAnchor: "end",
+                    },
+                  }}
+                />
+              </div>
             ) : (
-              <DoughnutChartComponent data={fmChartData} tooltipMode="default" />
+              <div className="h-[350px] flex items-center justify-center text-gray-400">No data to display</div>
             )}
           </Card>
         </Col>
