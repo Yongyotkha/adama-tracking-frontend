@@ -1,7 +1,7 @@
 import { Navigate, useNavigate, useLocation } from "react-router-dom";
 import React, { createContext, useState, useEffect } from "react";
 
-import { endPoint, paths } from "../services/CorsPath.jsx";
+import { endPoint, MOBILE_BYPASS_KEY } from "../services/CorsPath.jsx";
 import { axiosInstance } from "../services/CorsService.jsx";
 import { message, notification } from "antd";
 
@@ -118,7 +118,8 @@ export const AuthProvider = ({ children }) => {
         await Promise.all([
           localStorage.setItem("users", JSON.stringify(userData)),
           localStorage.setItem("accessToken", accessToken),
-          localStorage.setItem("expiredToken", expiredToken)
+          localStorage.setItem("expiredToken", expiredToken),
+          localStorage.setItem("user_id", userData?.id || user_id || ""),
         ]);
 
         return response.data;
@@ -137,9 +138,11 @@ export const AuthProvider = ({ children }) => {
     localStorage.removeItem("user_id");
     localStorage.removeItem("accessToken");
     localStorage.removeItem("expiredToken");
+    localStorage.removeItem(MOBILE_BYPASS_KEY);
   };
 
   const logout = (mode = 'web') => {
+    const usedBypass = localStorage.getItem(MOBILE_BYPASS_KEY) === "true";
     setIsLoggedIn(false);
     setUserInfo(null);
 
@@ -149,6 +152,8 @@ export const AuthProvider = ({ children }) => {
 
     if(mode === 'web'){
       navigate("/login");
+    }else if(mode === 'bypass' || usedBypass){
+      navigate("/mobile/bypass");
     }else{
       navigate("/mobile/verify");
     }

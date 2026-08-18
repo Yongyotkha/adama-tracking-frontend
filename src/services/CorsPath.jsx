@@ -11,6 +11,11 @@ export const endPoint = _env("VITE_API_BASE_URL");
 export const liffId = _env("VITE_LIFF_ID");
 export const isUAT = _env("VITE_IS_UAT") === "true";
 
+export const MOBILE_BYPASS_KEY = "mobileBypassAuth";
+export const isMobileBypassAuth = () =>
+  typeof window !== "undefined" &&
+  localStorage.getItem(MOBILE_BYPASS_KEY) === "true";
+
 export const paths = {
   pathLogList: "log/list",
 
@@ -47,6 +52,7 @@ export const paths = {
   pathOtpShopVerify: "/shop-otp/verify",
   pathOtpverify: "shop-otp/verify-phone",
   pathOtpShopGetLineToken: "/shop-otp/get_line_token",
+  pathShopLoginBypass: "shop/login-bypass",
 
   // Master
   pathMasterUserAll: "master/sale-user-all",
@@ -55,6 +61,13 @@ export const paths = {
   pathMasterTerritory: "master/territory",
   pathMasterAreas: "master/areas",
   pathMasterRoles: "master/roles",
+
+  pathMenuTree: "menus/tree",
+  pathMenuParents: "menus/parents",
+  pathMenuDetail: "menus/detail",
+  pathMenuCreate: "menus/create",
+  pathMenuUpdate: "menus/update",
+  pathMenuDelete: "menus/delete",
   pathMasterCrop: "master/crop",
   pathMasterPrefix: "master/prefix",
   pathMasterEquipment: "master/equ",

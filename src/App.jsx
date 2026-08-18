@@ -16,6 +16,7 @@ import WorkPlan from "./pages/sale_plan/workplan/WorkPlan";
 import WorkPlanCreate from "./pages/sale_plan/workplan/WorkPlanCreate";
 import WorkPlanCreateStepTwo from "./pages/sale_plan/workplan/WorkPlanCreateStepTwo";
 import SettingRole from "./pages/settings/role/SettingRole";
+import SettingMenu from "./pages/settings/menu/SettingMenu";
 import SettingUser from "./pages/settings/user/SettingUser";
 import LogUser from "./pages/settings/user/LogUser";
 import ProfileUser from "./pages/settings/user/ProfileUser";
@@ -126,6 +127,7 @@ import FaqOA from "./pages/mobile/user/settings/faq/Faq";
 import PrivacyPolicy from "./pages/mobile/user/settings/privacy_policy/PrivacyPolicy";
 import TermsConditions from "./pages/mobile/user/settings/terms_conditions/TermsConditions";
 import CheckLogin from "./pages/mobile/auth/CheckLogin";
+import LoginBypassOA from "./pages/mobile/auth/LoginBypassOA";
 import { LineOARoute, LinePrivateRoute } from "./components/auth/LineOARoute";
 import CustomerLineList from "./pages/settings/mobile/customer/CustomerLineList";
 import CreateCustomerLine from "./pages/settings/mobile/customer/CreateCustomerLine";
@@ -467,6 +469,7 @@ const App = () => {
             <Route path="/setting/info/view" element={<ActionInfo />} />
 
             <Route path="/setting/role" element={<SettingRole />} />
+            <Route path="/setting/menu" element={<SettingMenu />} />
             <Route path="/setting/profile" element={<ProfileUser />} />
             <Route path="/setting/user" element={<SettingUser />} />
             <Route path="/setting/user/create" element={<CreateUser />} />
@@ -811,6 +814,8 @@ const App = () => {
               element={<SaleHistoryReport />}
             />
           </Route>
+
+          <Route path="/mobile/bypass" element={<LoginBypassOA />} />
 
           <Route element={<LineOARoute />}>
             <Route path="/mobile/login" element={<CheckLogin />} />

@@ -1,5 +1,5 @@
 import axios from "axios";
-import { endPoint } from "./CorsPath";
+import { endPoint, isMobileBypassAuth } from "./CorsPath";
 import { useLocation } from "react-router-dom";
 import liff from "@line/liff";
 
@@ -31,6 +31,7 @@ const handleUnauthorized = (pathname) => {
   if (
     pathname === "/login" ||
     pathname === "/mobile/verify" ||
+    pathname === "/mobile/bypass" ||
     pathname === "/mobile/login" ||
     pathname === "/mobile/register" ||
     // pathname === "/mobile/main" ||
@@ -40,7 +41,11 @@ const handleUnauthorized = (pathname) => {
 
 
   } else {
-    if (liff.isLoggedIn()) {
+    if (isMobileBypassAuth()) {
+      localStorage.removeItem("users");
+      localStorage.removeItem("accessToken");
+      window.location.href = "/mobile/bypass";
+    } else if (liff.isLoggedIn()) {
       window.location.href = "/mobile/verify";
     } else {
       localStorage.removeItem("users");
