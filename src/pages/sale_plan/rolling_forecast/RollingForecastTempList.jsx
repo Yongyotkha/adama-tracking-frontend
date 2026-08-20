@@ -1,21 +1,13 @@
 import React, { useContext, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { Tag } from "antd";
 import MainLayout from "../../../layouts/MainLayout";
-import Filter from "../../../components/filter/Filter";
 import BoxPrimary from "../../../components/box_primary/BoxPrimary";
 import TableComponent from "../../../components/table/TableComponent";
 import ActionButton from "../../../components/button/ActionButton";
 import useServiceAPI from "../../../services/CorsService";
 import { paths } from "../../../services/CorsPath";
 import { AuthContext } from "../../../contexts/AuthContext";
-
-const displayValue = (value) => {
-  if (value === null || value === undefined || value === "") {
-    return "-";
-  }
-
-  return value;
-};
 
 const formatDateTime = (value) => {
   if (!value) {
@@ -25,236 +17,138 @@ const formatDateTime = (value) => {
   return String(value).replace("T", " ").split(".")[0];
 };
 
+const IMPORT_STATUS = {
+  uploaded: { color: "blue", label: "อัปโหลดแล้ว รอนำเข้า" },
+  processing: { color: "orange", label: "กำลังนำเข้า Temp" },
+  completed: { color: "green", label: "นำเข้า Temp สำเร็จ" },
+  failed: { color: "red", label: "นำเข้า Temp ล้มเหลว" },
+};
+
+const FORECAST_STATUS = {
+  pending: { color: "gold", label: "รอนำเข้า Rolling Forecast" },
+  processing: { color: "orange", label: "กำลังนำเข้า Rolling Forecast" },
+  completed: { color: "green", label: "นำเข้า Rolling Forecast สำเร็จ" },
+  failed: { color: "red", label: "นำเข้า Rolling Forecast ล้มเหลว" },
+};
+
+const renderStatusTag = (code, message, config) => {
+  if (!code) {
+    return <Tag>ยังไม่เริ่ม</Tag>;
+  }
+
+  const status = config[code] || { color: "default", label: message || code };
+  return <Tag color={status.color}>{message || status.label}</Tag>;
+};
+
 export default function RollingForecastTempList() {
   const navigate = useNavigate();
-  const { showNotification, formatNumber } = useContext(AuthContext);
-
-  const [loading, setLoading] = useState(false);
+  const { showNotification } = useContext(AuthContext);
   const [tableLoading, setTableLoading] = useState(false);
   const [dataSource, setDataSource] = useState([]);
-  const [years, setYears] = useState([]);
-  const [sales, setSales] = useState([]);
-  const [dealers, setDealers] = useState([]);
-  const [filterValues, setFilterValues] = useState({});
-
   const [tableParams, setTableParams] = useState({
-    pagination: { current: 1, pageSize: 50, total: 0 },
-    filters: {},
+    pagination: { current: 1, pageSize: 20, total: 0 },
   });
 
-  const filters = [
-    {
-      key: "year_code",
-      type: "select",
-      label: "Year",
-      options: years,
-    },
-    {
-      key: "user_id",
-      type: "select",
-      label: "Sale",
-      options: sales,
-    },
-    {
-      key: "dealer_id",
-      type: "select",
-      label: "Dealer",
-      options: dealers,
-      disabled: !filterValues.user_id,
-    },
-  ];
-
   const header = [
-    { title: "No", dataIndex: "key", width: 70, align: "center", fixed: "left" },
-    // { title: "ID", dataIndex: "id", width: 80, align: "center", fixed: "left" },
-    { title: "Year", dataIndex: "year_code", width: 80, align: "center" },
-    { title: "Type", dataIndex: "type", width: 180 },
-    // { title: "Use Flag", dataIndex: "use_flag", width: 90, align: "center" },
+    { title: "No", dataIndex: "key", width: 70, align: "center" },
+    { title: "Upload ID", dataIndex: "upload_id", width: 100, align: "center" },
+    { title: "File Name", dataIndex: "file_name", width: 260 },
     {
-      title: "H ID",
-      dataIndex: "workplan_header_id",
+      title: "สถานะนำเข้า Temp",
+      dataIndex: "status_code",
+      width: 200,
+      align: "center",
+      render: (value, row) =>
+        renderStatusTag(value, row.status_message, IMPORT_STATUS),
+    },
+    {
+      title: "สถานะนำเข้า Rolling Forecast",
+      dataIndex: "forecast_status_code",
+      width: 240,
+      align: "center",
+      render: (value, row) =>
+        renderStatusTag(value, row.forecast_status_message, FORECAST_STATUS),
+    },
+    {
+      title: "Inserted (Temp)",
+      dataIndex: "inserted",
+      width: 130,
       align: "center",
     },
     {
-      title: "A H ID",
-      dataIndex: "workplan_area_header_id",
+      title: "Failed",
+      dataIndex: "failed_count",
+      width: 90,
       align: "center",
     },
     {
-      title: "S H ID",
-      dataIndex: "workplan_sale_header_id",
+      title: "Forecast Inserted",
+      dataIndex: "forecast_inserted_count",
+      width: 150,
       align: "center",
     },
-    // { title: "Area ID", dataIndex: "area_id", width: 90, align: "center" },
-    { title: "Area", dataIndex: "area_name", width: 120 },
-    // { title: "Sale Area ID", dataIndex: "sale_area_id", width: 110, align: "center" },
-    { title: "Sale Area", dataIndex: "sale_area_name", width: 160 },
-    // { title: "User ID", dataIndex: "user_id", width: 90, align: "center" },
-    { title: "Sale", dataIndex: "user_name", width: 160 },
-    // { title: "Quarter ID", dataIndex: "quarter_id", width: 100, align: "center" },
-    { title: "Quarter", dataIndex: "quarter_name", width: 100, align: "center" },
-    // { title: "Month ID", dataIndex: "month_id", width: 90, align: "center" },
-    { title: "Month", dataIndex: "month_name", width: 80, align: "center" },
-    // { title: "Product ID", dataIndex: "product_id", width: 100, align: "center" },
-    { title: "Product", dataIndex: "product_name", width: 180 },
-    { title: "Pack Size", dataIndex: "pack_size", width: 120 },
     {
-      title: "Unit Convert",
-      dataIndex: "unit_convert_value",
-      width: 110,
-      align: "right",
+      title: "Uploaded At",
+      dataIndex: "created_at",
+      width: 160,
+      align: "center",
     },
-    // { title: "Dealer ID", dataIndex: "dealer_id", width: 100, align: "center" },
-    { title: "Dealer", dataIndex: "dealer_name", width: 220 },
-    { title: "Qty", dataIndex: "qty", width: 100, align: "right" },
-    { title: "Value", dataIndex: "value", width: 100, align: "right" },
-    { title: "Qty2", dataIndex: "qty2", width: 100, align: "right" },
-    { title: "Value2", dataIndex: "value2", width: 100, align: "right" },
-    { title: "Remark", dataIndex: "remark", width: 140 },
-    // {
-    //   title: "Created At",
-    //   dataIndex: "created_at",
-    //   width: 160,
-    //   align: "center",
-    // },
-    // {
-    //   title: "Updated At",
-    //   dataIndex: "updated_at",
-    //   width: 160,
-    //   align: "center",
-    // },
-    // {
-    //   title: "Deleted At",
-    //   dataIndex: "deleted_at",
-    //   width: 160,
-    //   align: "center",
-    // },
-    // { title: "Created By", dataIndex: "created_by", width: 100, align: "center" },
-    // { title: "Updated By", dataIndex: "updated_by", width: 100, align: "center" },
-    // { title: "Deleted By", dataIndex: "deleted_by", width: 100, align: "center" },
+    {
+      title: "Processed At",
+      dataIndex: "processed_at",
+      width: 160,
+      align: "center",
+    },
+    {
+      title: "Action",
+      dataIndex: "action",
+      width: 140,
+      align: "center",
+      fixed: "right",
+    },
   ];
-
-  const formatDecimal = (value) => {
-    if (value === null || value === undefined || value === "") {
-      return "-";
-    }
-
-    return formatNumber ? formatNumber(value) : value;
-  };
-
-  const loadDealers = async (userId) => {
-    if (!userId) {
-      setDealers([]);
-      return;
-    }
-
-    try {
-      const response = await useServiceAPI.get(paths.pathMasterDealerDropdown, {
-        user_id: userId,
-      });
-
-      if (response?.status === 200) {
-        setDealers(response.data || []);
-      }
-    } catch (error) {
-      setDealers([]);
-      showNotification("error", error.message || "โหลดข้อมูล Dealer ไม่สำเร็จ");
-    }
-  };
-
-  useEffect(() => {
-    const getMaster = async () => {
-      setLoading(true);
-      try {
-        const [yearRes, saleRes] = await Promise.all([
-          useServiceAPI.get(paths.pathMasterYear),
-          useServiceAPI.get(paths.pathMasterSaleDropdown),
-        ]);
-
-        if (yearRes?.status === 200) {
-          setYears(yearRes.data || []);
-        }
-
-        if (saleRes?.status === 200) {
-          setSales(saleRes.data || []);
-        }
-      } catch (error) {
-        showNotification("error", error.message || "โหลดข้อมูล Filter ไม่สำเร็จ");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    getMaster();
-  }, []);
-
-  useEffect(() => {
-    loadDealers(filterValues.user_id);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [filterValues.user_id]);
 
   const fetchData = async () => {
     setTableLoading(true);
-
     const { current, pageSize } = tableParams.pagination;
-    const f = tableParams.filters || {};
-
-    const requestData = {
-      orderby_column: "id",
-      orderby: "desc",
-      page_length: pageSize,
-      page_size: current,
-      year_code: f.year_code ?? "",
-      user_id: f.user_id ?? "",
-      dealer_id: f.dealer_id ?? "",
-    };
 
     try {
       const response = await useServiceAPI.get(
-        paths.pathTempMasterRollingList,
-        requestData
+        paths.pathTempMasterRollingUploadList,
+        {
+          page_length: pageSize,
+          page_size: current,
+        }
       );
 
       if (response?.status === 200) {
-        const { data, records_filtered, recordsFiltered } = response;
-        const list = Array.isArray(data) ? data : [];
-
+        const list = Array.isArray(response.data) ? response.data : [];
         const formatted = list.map((item, index) => ({
           key: index + 1 + (current - 1) * pageSize,
-          id: displayValue(item.id),
-          year_code: displayValue(item.year_code),
-          type: displayValue(item.type),
-          use_flag: displayValue(item.use_flag),
-          workplan_header_id: displayValue(item.workplan_header_id),
-          workplan_area_header_id: displayValue(item.workplan_area_header_id),
-          workplan_sale_header_id: displayValue(item.workplan_sale_header_id),
-          area_id: displayValue(item.area_id),
-          area_name: displayValue(item.area_name),
-          sale_area_id: displayValue(item.sale_area_id),
-          sale_area_name: displayValue(item.sale_area_name),
-          user_id: displayValue(item.user_id),
-          user_name: displayValue(item.user_name),
-          quarter_id: displayValue(item.quarter_id),
-          quarter_name: displayValue(item.quarter_name),
-          month_id: displayValue(item.month_id),
-          month_name: displayValue(item.month_name),
-          product_id: displayValue(item.product_id),
-          product_name: displayValue(item.product_name),
-          pack_size: displayValue(item.pack_size),
-          unit_convert_value: formatDecimal(item.unit_convert_value),
-          dealer_id: displayValue(item.dealer_id),
-          dealer_name: displayValue(item.dealer_name),
-          qty: formatDecimal(item.qty),
-          value: formatDecimal(item.value),
-          qty2: formatDecimal(item.qty2),
-          value2: formatDecimal(item.value2),
-          remark: displayValue(item.remark),
+          upload_id: item.upload_id,
+          file_name: item.file_name || "-",
+          status_code: item.status_code,
+          status_message: item.status_message,
+          forecast_status_code: item.forecast_status_code,
+          forecast_status_message: item.forecast_status_message,
+          inserted: item.inserted ?? "-",
+          failed_count: item.failed_count ?? "-",
+          forecast_inserted_count: item.forecast_inserted_count ?? "-",
           created_at: formatDateTime(item.created_at),
-          updated_at: formatDateTime(item.updated_at),
-          deleted_at: formatDateTime(item.deleted_at),
-          created_by: displayValue(item.created_by),
-          updated_by: displayValue(item.updated_by),
-          deleted_by: displayValue(item.deleted_by),
+          processed_at: formatDateTime(item.processed_at),
+          action: (
+            <button
+              type="button"
+              className="text-[#009845] underline"
+              onClick={() =>
+                navigate(
+                  `/sale-plan/rolling-forecast/temp-list/${item.upload_id}`
+                )
+              }
+            >
+              ดูข้อมูล
+            </button>
+          ),
         }));
 
         setDataSource(formatted);
@@ -262,7 +156,9 @@ export default function RollingForecastTempList() {
           ...prev,
           pagination: {
             ...prev.pagination,
-            total: Number(records_filtered ?? recordsFiltered ?? 0),
+            total: Number(
+              response.records_filtered ?? response.recordsFiltered ?? 0
+            ),
           },
         }));
       }
@@ -276,59 +172,18 @@ export default function RollingForecastTempList() {
   useEffect(() => {
     fetchData();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [
-    tableParams.pagination.current,
-    tableParams.pagination.pageSize,
-    JSON.stringify(tableParams.filters),
-  ]);
-
-  const handleSearch = (filtersFromUI) => {
-    setTableParams((prev) => ({
-      ...prev,
-      pagination: { ...prev.pagination, current: 1 },
-      filters: { ...filtersFromUI },
-    }));
-    setFilterValues({ ...filtersFromUI });
-  };
-
-  const handleClear = () => {
-    setFilterValues({});
-    setDealers([]);
-    setTableParams((prev) => ({
-      ...prev,
-      filters: {},
-      pagination: { ...prev.pagination, current: 1 },
-    }));
-  };
-
-  const handleFilterChange = (values) => {
-    if (values.user_id !== filterValues.user_id) {
-      const nextValues = { ...values, dealer_id: "" };
-      setFilterValues(nextValues);
-      return;
-    }
-
-    setFilterValues(values);
-  };
+  }, [tableParams.pagination.current, tableParams.pagination.pageSize]);
 
   return (
-    <MainLayout loading={loading}>
+    <MainLayout>
       <div className="flex items-center justify-between">
-        <div className="title-page">Temp Master Rolling List</div>
+        <div className="title-page">Temp Master Rolling Uploads</div>
         <ActionButton
           mode="create"
           text="อัปโหลดไฟล์ CSV"
           onClick={() => navigate("/sale-plan/rolling-forecast/upload-temp")}
         />
       </div>
-
-      <Filter
-        filters={filters}
-        onChange={handleFilterChange}
-        onSearch={handleSearch}
-        onClear={handleClear}
-        values={filterValues}
-      />
 
       <BoxPrimary>
         <TableComponent
