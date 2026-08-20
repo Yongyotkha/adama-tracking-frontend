@@ -719,10 +719,12 @@ export default function DraftCampaignAction() {
 
   useEffect(() => {
     form.setFieldsValue({
+      total_point: totals.point,
+      diff_form_plan: toNumber(watchTargetPoint) - toNumber(totals.point),
       diff_form_target:
         toNumber(watchCurrentPoint) - toNumber(watchTargetPoint),
     });
-  }, [form, watchCurrentPoint, watchTargetPoint]);
+  }, [form, watchCurrentPoint, watchTargetPoint, totals.point]);
 
   useEffect(() => {
     if (!isDealerOnly) return;
@@ -1042,6 +1044,24 @@ export default function DraftCampaignAction() {
                 className="w-full"
                 disabled={readOnly}
                 min={0}
+                formatter={numberInputFormatter}
+                parser={numberInputParser}
+              />
+            </Form.Item>
+
+            <Form.Item label="Sale Plan Point" name="total_point">
+              <InputNumber
+                className="w-full"
+                disabled
+                formatter={numberInputFormatter}
+                parser={numberInputParser}
+              />
+            </Form.Item>
+
+            <Form.Item label="Diff Form Plan" name="diff_form_plan">
+              <InputNumber
+                className="w-full"
+                disabled
                 formatter={numberInputFormatter}
                 parser={numberInputParser}
               />

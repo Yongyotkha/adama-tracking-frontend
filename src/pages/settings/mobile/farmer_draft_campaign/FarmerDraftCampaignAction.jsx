@@ -723,10 +723,12 @@ export default function FarmerDraftCampaignAction() {
 
   useEffect(() => {
     form.setFieldsValue({
+      total_point: totals.point,
+      diff_form_plan: toNumber(watchTargetPoint) - toNumber(totals.point),
       diff_form_target:
         toNumber(watchCurrentPoint) - toNumber(watchTargetPoint),
     });
-  }, [form, watchCurrentPoint, watchTargetPoint]);
+  }, [form, watchCurrentPoint, watchTargetPoint, totals.point]);
 
   useEffect(() => {
     if (!isDealerOnly) return;
@@ -943,7 +945,7 @@ export default function FarmerDraftCampaignAction() {
             <Form.Item
               label="Sale"
               name="user_id"
-              rules={[{ required: true, message: "Please select sales" }]}
+              rules={[{ required: true, message: "Please select sale" }]}
             >
               <Select
                 options={salesOptions.map((item) => ({
@@ -1002,6 +1004,7 @@ export default function FarmerDraftCampaignAction() {
             <Form.Item
               label="Sub Dealer"
               name="sub_dealer_id"
+              rules={[{ required: true, message: "Please select sub dealer" }]}
             >
               <Select
                 options={subDealerOptions.map((item) => ({
@@ -1030,6 +1033,7 @@ export default function FarmerDraftCampaignAction() {
             <Form.Item
               label="Farmer"
               name="farmer_id"
+              rules={[{ required: true, message: "Please select farmer" }]}
             >
               <Select
                 options={farmerOptions.map((item) => ({
@@ -1089,6 +1093,24 @@ export default function FarmerDraftCampaignAction() {
                 className="w-full"
                 disabled={readOnly}
                 min={0}
+                formatter={numberInputFormatter}
+                parser={numberInputParser}
+              />
+            </Form.Item>
+
+            <Form.Item label="Sale Plan Point" name="total_point">
+              <InputNumber
+                className="w-full"
+                disabled
+                formatter={numberInputFormatter}
+                parser={numberInputParser}
+              />
+            </Form.Item>
+
+            <Form.Item label="Diff Form Plan" name="diff_form_plan">
+              <InputNumber
+                className="w-full"
+                disabled
                 formatter={numberInputFormatter}
                 parser={numberInputParser}
               />
