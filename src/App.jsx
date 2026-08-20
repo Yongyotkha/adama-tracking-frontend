@@ -208,6 +208,9 @@ import ReportSellInByFarmer from "./pages/report/ReportSellInByFarmer";
 import PDFMaterialExpense from "./pages/pdf/PDFMaterialExpense";
 import PDFSampleExpense from "./pages/pdf/PDFSampleExpense";
 import ViewDraftCampaignPDF from "./pages/pdf/DraftCampaignPDF";
+import FarmerDraftCampaignList from "./pages/settings/mobile/farmer_draft_campaign/FarmerDraftCampaignList";
+import FarmerDraftCampaignAction from "./pages/settings/mobile/farmer_draft_campaign/FarmerDraftCampaignAction";
+import FarmerDraftCampaignPDF from "./pages/settings/mobile/farmer_draft_campaign/FarmerDraftCampaignPDF";
 
 const App = () => {
   return (
@@ -684,6 +687,23 @@ const App = () => {
             <Route
               path="/setting/line/draft-campaign/pdf"
               element={<ViewDraftCampaignPDF />}
+            />
+
+            <Route
+              path="/setting/line/farmer-draft-campaign"
+              element={<FarmerDraftCampaignList />}
+            />
+            <Route
+              path="/setting/line/farmer-draft-campaign/create"
+              element={<FarmerDraftCampaignAction />}
+            />
+            <Route
+              path="/setting/line/farmer-draft-campaign/:mode"
+              element={<FarmerDraftCampaignAction />}
+            />
+            <Route
+              path="/setting/line/farmer-draft-campaign/pdf"
+              element={<FarmerDraftCampaignPDF />}
             />
 
             <Route
