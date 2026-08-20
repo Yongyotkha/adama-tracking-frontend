@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useState } from "react";
+import React, { useContext, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   Upload,
@@ -50,28 +50,6 @@ export default function RollingForecastTempUpload() {
   const statusConfig = STATUS_CONFIG[currentStatus] || null;
   const currentStep = statusConfig?.step ?? 0;
 
-  const fetchUploadHistory = async () => {
-    try {
-      const response = await useServiceAPI.get(
-        paths.pathTempMasterRollingUploadList,
-        {
-          page_length: 10,
-          page_size: 1,
-        },
-      );
-
-      if (response?.status === 200) {
-        setUploadHistory(Array.isArray(response.data) ? response.data : []);
-      }
-    } catch (error) {
-      console.error(error);
-    }
-  };
-
-  useEffect(() => {
-    fetchUploadHistory();
-  }, []);
-
   const handleUpload = async () => {
     if (!selectedFile) {
       showMsg("error", "กรุณาเลือกไฟล์ CSV");
@@ -95,7 +73,6 @@ export default function RollingForecastTempUpload() {
         showNotification("success", response.message || "อัปโหลดไฟล์สำเร็จ", [
           "ไฟล์ถูกเก็บไว้แล้ว กรุณากด Import เพื่อนำเข้าข้อมูล",
         ]);
-        fetchUploadHistory();
       }
     } catch (error) {
       showMsg("error", error.message || "อัปโหลดไม่สำเร็จ");
@@ -137,7 +114,21 @@ export default function RollingForecastTempUpload() {
       );
 
       if (response.status === 200) {
-        setCurrentUpload(response.data || null);
+        const imported = {
+          ...(response.data || {}),
+          status_code: response.data?.status_code || "completed",
+          status_message:
+            response.data?.status_message || STATUS_CONFIG.completed.label,
+        };
+        setCurrentUpload(imported);
+        if (imported.status_code === "completed") {
+          setUploadHistory((prev) => {
+            const next = prev.filter(
+              (item) => item.upload_id !== imported.upload_id
+            );
+            return [imported, ...next];
+          });
+        }
         showNotification(
           "success",
           response.message || "นำเข้าข้อมูลสำเร็จ",
@@ -148,7 +139,6 @@ export default function RollingForecastTempUpload() {
               ]
             : [`นำเข้า ${response.data?.inserted ?? 0} แถว`],
         );
-        fetchUploadHistory();
       }
     } catch (error) {
       setCurrentUpload((prev) => ({
@@ -158,7 +148,6 @@ export default function RollingForecastTempUpload() {
         status_message: error.data?.status_message || "นำเข้าข้อมูลล้มเหลว",
       }));
       showMsg("error", error.message || "นำเข้าข้อมูลไม่สำเร็จ");
-      fetchUploadHistory();
     }
   };
 

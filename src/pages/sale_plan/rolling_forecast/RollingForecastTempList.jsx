@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useState } from "react";
+import React, { useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Tag } from "antd";
 import MainLayout from "../../../layouts/MainLayout";
@@ -49,68 +49,85 @@ export default function RollingForecastTempList() {
     pagination: { current: 1, pageSize: 20, total: 0 },
   });
 
-  const header = [
-    { title: "No", dataIndex: "key", width: 70, align: "center" },
-    { title: "Upload ID", dataIndex: "upload_id", width: 100, align: "center" },
-    { title: "File Name", dataIndex: "file_name", width: 260 },
-    {
-      title: "สถานะนำเข้า Temp",
-      dataIndex: "status_code",
-      width: 200,
-      align: "center",
-      render: (value, row) =>
-        renderStatusTag(value, row.status_message, IMPORT_STATUS),
-    },
-    {
-      title: "สถานะนำเข้า Rolling Forecast",
-      dataIndex: "forecast_status_code",
-      width: 240,
-      align: "center",
-      render: (value, row) =>
-        renderStatusTag(value, row.forecast_status_message, FORECAST_STATUS),
-    },
-    {
-      title: "Inserted (Temp)",
-      dataIndex: "inserted",
-      width: 130,
-      align: "center",
-    },
-    {
-      title: "Failed",
-      dataIndex: "failed_count",
-      width: 90,
-      align: "center",
-    },
-    {
-      title: "Forecast Inserted",
-      dataIndex: "forecast_inserted_count",
-      width: 150,
-      align: "center",
-    },
-    {
-      title: "Uploaded At",
-      dataIndex: "created_at",
-      width: 160,
-      align: "center",
-    },
-    {
-      title: "Processed At",
-      dataIndex: "processed_at",
-      width: 160,
-      align: "center",
-    },
-    {
-      title: "Action",
-      dataIndex: "action",
-      width: 140,
-      align: "center",
-      fixed: "right",
-    },
-  ];
+  const header = useMemo(
+    () => [
+      { title: "No", dataIndex: "key", width: 70, align: "center" },
+      { title: "Upload ID", dataIndex: "upload_id", width: 100, align: "center" },
+      { title: "File Name", dataIndex: "file_name", width: 260 },
+      {
+        title: "สถานะนำเข้า Temp",
+        dataIndex: "status_code",
+        width: 200,
+        align: "center",
+        render: (value, row) =>
+          renderStatusTag(value, row.status_message, IMPORT_STATUS),
+      },
+      {
+        title: "สถานะนำเข้า Rolling Forecast",
+        dataIndex: "forecast_status_code",
+        width: 240,
+        align: "center",
+        render: (value, row) =>
+          renderStatusTag(value, row.forecast_status_message, FORECAST_STATUS),
+      },
+      {
+        title: "Inserted (Temp)",
+        dataIndex: "inserted",
+        width: 130,
+        align: "center",
+      },
+      {
+        title: "Failed",
+        dataIndex: "failed_count",
+        width: 90,
+        align: "center",
+      },
+      {
+        title: "Forecast Inserted",
+        dataIndex: "forecast_inserted_count",
+        width: 150,
+        align: "center",
+      },
+      {
+        title: "Uploaded At",
+        dataIndex: "created_at",
+        width: 160,
+        align: "center",
+      },
+      {
+        title: "Processed At",
+        dataIndex: "processed_at",
+        width: 160,
+        align: "center",
+      },
+      {
+        title: "Action",
+        dataIndex: "upload_id",
+        key: "action",
+        width: 140,
+        align: "center",
+        fixed: "right",
+        render: (uploadId) => (
+          <button
+            type="button"
+            className="text-[#009845] underline"
+            onClick={() =>
+              navigate(`/sale-plan/rolling-forecast/temp-list/${uploadId}`)
+            }
+          >
+            ดูข้อมูล
+          </button>
+        ),
+      },
+    ],
+    [navigate]
+  );
 
-  const fetchData = async () => {
+  const current = tableParams.pagination.current;
+  const pageSize = tableParams.pagination.pageSize;
+
+  const fetchData = useCallback(async () => {
     setTableLoading(true);
-    const { current, pageSize } = tableParams.pagination;
 
     try {
       const response = await useServiceAPI.get(
@@ -121,10 +138,14 @@ export default function RollingForecastTempList() {
         }
       );
 
-      if (response?.status === 200) {
-        const list = Array.isArray(response.data) ? response.data : [];
-        const formatted = list.map((item, index) => ({
-          key: index + 1 + (current - 1) * pageSize,
+      const list = Array.isArray(response?.data) ? response.data : [];
+      const total = Number(
+        response?.records_filtered ?? response?.recordsFiltered ?? list.length ?? 0
+      );
+
+      setDataSource(
+        list.map((item, index) => ({
+          key: item.upload_id || index + 1 + (current - 1) * pageSize,
           upload_id: item.upload_id,
           file_name: item.file_name || "-",
           status_code: item.status_code,
@@ -136,46 +157,56 @@ export default function RollingForecastTempList() {
           forecast_inserted_count: item.forecast_inserted_count ?? "-",
           created_at: formatDateTime(item.created_at),
           processed_at: formatDateTime(item.processed_at),
-          action: (
-            <button
-              type="button"
-              className="text-[#009845] underline"
-              onClick={() =>
-                navigate(
-                  `/sale-plan/rolling-forecast/temp-list/${item.upload_id}`
-                )
-              }
-            >
-              ดูข้อมูล
-            </button>
-          ),
-        }));
+        }))
+      );
 
-        setDataSource(formatted);
-        setTableParams((prev) => ({
+      setTableParams((prev) => {
+        if (prev.pagination.total === total) {
+          return prev;
+        }
+
+        return {
           ...prev,
           pagination: {
             ...prev.pagination,
-            total: Number(
-              response.records_filtered ?? response.recordsFiltered ?? 0
-            ),
+            total,
           },
-        }));
-      }
+        };
+      });
     } catch (error) {
+      setDataSource([]);
       showNotification("error", error.message || "โหลดข้อมูลไม่สำเร็จ");
     } finally {
       setTableLoading(false);
     }
-  };
+  }, [current, pageSize, showNotification]);
 
   useEffect(() => {
     fetchData();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [tableParams.pagination.current, tableParams.pagination.pageSize]);
+  }, [fetchData]);
+
+  const handleTableChange = (pagination) => {
+    setTableParams((prev) => {
+      if (
+        prev.pagination.current === pagination.current &&
+        prev.pagination.pageSize === pagination.pageSize
+      ) {
+        return prev;
+      }
+
+      return {
+        ...prev,
+        pagination: {
+          ...prev.pagination,
+          current: pagination.current,
+          pageSize: pagination.pageSize,
+        },
+      };
+    });
+  };
 
   return (
-    <MainLayout>
+    <MainLayout loading={false}>
       <div className="flex items-center justify-between">
         <div className="title-page">Temp Master Rolling Uploads</div>
         <ActionButton
@@ -191,9 +222,7 @@ export default function RollingForecastTempList() {
           dataSource={dataSource}
           loading={tableLoading}
           pagination={tableParams.pagination}
-          onChange={(pagination) => {
-            setTableParams((prev) => ({ ...prev, pagination }));
-          }}
+          onChange={handleTableChange}
           scroll
         />
       </BoxPrimary>
