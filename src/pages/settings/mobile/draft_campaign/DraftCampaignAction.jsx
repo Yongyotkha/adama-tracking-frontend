@@ -948,11 +948,9 @@ export default function DraftCampaignAction() {
                 onChange={() => {
                   form.setFieldValue("dealer_id", undefined);
                   form.setFieldValue("sub_dealer_id", undefined);
-                  form.setFieldValue("farmer_id", undefined);
 
                   setDealerOptions([]);
                   setSubDealerOptions([]);
-                  setFarmerOptions([]);
 
                   resetCurrentPoint();
                 }}
@@ -976,10 +974,8 @@ export default function DraftCampaignAction() {
                 optionFilterProp="label"
                 onChange={(value) => {
                   form.setFieldValue("sub_dealer_id", undefined);
-                  form.setFieldValue("farmer_id", undefined);
 
                   setSubDealerOptions([]);
-                  setFarmerOptions([]);
 
                   loadCurrentPoint({
                     shop_type: "dealer",
@@ -1004,41 +1000,8 @@ export default function DraftCampaignAction() {
                 showSearch
                 optionFilterProp="label"
                 onChange={(value) => {
-                  form.setFieldValue("farmer_id", undefined);
-                  setFarmerOptions([]);
-
-                  loadFarmerMaster(value);
-
                   loadCurrentPoint({
                     shop_type: "sub_dealer",
-                    id: value,
-                  });
-                }}
-              />
-            </Form.Item>
-
-            <Form.Item
-              label="Farmer"
-              name="farmer_id"
-            >
-              <Select
-                options={farmerOptions.map((item) => ({
-                  label: item.name,
-                  value: item.id,
-                }))}
-                disabled={readOnly || !watchSubDealerId}
-                placeholder="Select"
-                allowClear
-                showSearch
-                optionFilterProp="label"
-                filterOption={(input, option) =>
-                  String(option?.label || "")
-                    .toLowerCase()
-                    .includes(String(input || "").toLowerCase())
-                }
-                onChange={(value) => {
-                  loadCurrentPoint({
-                    shop_type: "farmer",
                     id: value,
                   });
                 }}

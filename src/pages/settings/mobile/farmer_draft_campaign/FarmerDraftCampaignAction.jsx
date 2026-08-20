@@ -426,7 +426,8 @@ export default function FarmerDraftCampaignAction() {
 
     const mapped = mapDraftCampaignDetail(
       draft,
-      getBalancePointFromResponse(currentPointRes)
+      getBalancePointFromResponse(currentPointRes),
+      { isFarmer: true }
     );
 
     setDetail(mapped);
@@ -441,19 +442,19 @@ export default function FarmerDraftCampaignAction() {
           xpoint: toNumber(item.xpoint) || 1,
 
           unit_convert_order_value:
-            item.unit_convert_order_value || item.master_price,
+            item.farmer || item.unit_convert_order_value || item.master_price,
 
           bath_unit:
-            item.unit_convert_order_value || item.master_price,
+            item.farmer || item.unit_convert_order_value || item.master_price,
 
           master_price:
-            item.master_price || item.unit_convert_order_value,
+            item.farmer || item.master_price || item.unit_convert_order_value,
 
           master_point:
-            item.master_point || item.point,
+            item.point_farmer || item.master_point || item.point,
 
           point:
-            item.master_point || item.point,
+            item.point_farmer || item.master_point || item.point,
         })
       )
     );
@@ -601,11 +602,15 @@ export default function FarmerDraftCampaignAction() {
       const productDetail = res?.data || {};
 
       const product = {
-        ...mapDraftCampaignProduct(productDetail),
+        ...mapDraftCampaignProduct(productDetail, { isFarmer: true }),
         unit_convert_order_value:
-          productDetail.unit_convert_order_value,
+          productDetail.farmer || productDetail.unit_convert_order_value,
         bath_unit:
-          productDetail.bath_unit,
+          productDetail.farmer || productDetail.bath_unit,
+        master_price:
+          productDetail.farmer || productDetail.master_price || productDetail.unit_convert_order_value,
+        master_point:
+          productDetail.point_farmer || productDetail.master_point || productDetail.point,
       };
 
       setRows((prev) => [

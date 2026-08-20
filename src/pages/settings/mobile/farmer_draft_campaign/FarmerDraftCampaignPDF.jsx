@@ -34,7 +34,7 @@ const toNumber = (value) => {
 
 const getPdfUnitPrice = (item) => {
   const unitPrice = toNumber(
-    item.unit_convert_order_value || item.master_price || item.bath_unit
+    item.farmer || item.unit_convert_order_value || item.master_price || item.bath_unit
   );
 
   if (unitPrice > 0) return unitPrice;
@@ -50,7 +50,7 @@ const getPdfUnitPrice = (item) => {
 };
 
 const getPdfMasterPoint = (item) => {
-  return toNumber(item.master_point || item.point);
+  return toNumber(item.point_farmer || item.master_point || item.point);
 };
 
 const getPdfRowPoint = (item) => {
@@ -268,7 +268,8 @@ export default function FarmerDraftCampaignPDF() {
 
         const mapped = mapDraftCampaignDetail(
           payload,
-          pointRes?.data?.data?.users?.balance_point ?? 0
+          pointRes?.data?.data?.users?.balance_point ?? 0,
+          { isFarmer: true }
         );
 
         const detailItems = Array.isArray(payload?.items) ? payload.items : [];
@@ -278,10 +279,10 @@ export default function FarmerDraftCampaignPDF() {
           quantity: toNumber(item.quantity),
           xpoint: toNumber(item.xpoint) || 1,
           unit_convert_order_value:
-            item.unit_convert_order_value || item.master_price,
-          bath_unit: item.unit_convert_order_value || item.master_price,
-          master_price: item.master_price || item.unit_convert_order_value,
-          master_point: item.master_point || item.point,
+            item.farmer || item.unit_convert_order_value || item.master_price,
+          bath_unit: item.farmer || item.unit_convert_order_value || item.master_price,
+          master_price: item.farmer || item.master_price || item.unit_convert_order_value,
+          master_point: item.point_farmer || item.master_point || item.point,
         }));
 
         setData({
