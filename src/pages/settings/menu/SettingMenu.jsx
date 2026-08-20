@@ -63,11 +63,14 @@ export default function SettingMenu() {
     setModalOpen(true);
   };
 
-  const loadParents = async (excludeId) => {
+    const loadParents = async (excludeId) => {
     const res = await useServiceAPI.get(paths.pathMenuParents, {
       exclude_id: excludeId || "",
     });
-    setParentOptions(Array.isArray(res?.data) ? res.data : []);
+    const parents = (Array.isArray(res?.data) ? res.data : []).filter(
+      (item) => item.parent_id == null || item.parent_id === "" || item.parent_id === 0
+    );
+    setParentOptions(parents);
   };
 
   const loadEmptyRoles = async () => {
