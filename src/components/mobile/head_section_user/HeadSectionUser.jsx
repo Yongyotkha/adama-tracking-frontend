@@ -15,7 +15,7 @@ const shopTypeShortLabel = (shopType) => {
   return map[key] || key.replaceAll("_", "");
 };
 
-const HeadSectionUser = () => {
+const HeadSectionUser = ({ onProfileLoaded }) => {
   const navigate = useNavigate();
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -40,11 +40,14 @@ const HeadSectionUser = () => {
 
         if (response.status === 200 && response.result) {
           setUser(response.data);
+          onProfileLoaded?.(response.data);
         } else {
           console.error("Failed to fetch user profile:", response);
+          onProfileLoaded?.(null);
         }
       } catch (error) {
         console.error("Error fetching user profile:", error);
+        onProfileLoaded?.(null);
       } finally {
         setLoading(false);
       }
