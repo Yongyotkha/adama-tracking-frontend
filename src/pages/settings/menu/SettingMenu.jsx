@@ -327,7 +327,7 @@ export default function SettingMenu() {
                     <Input placeholder="Dash Board" />
                   </Form.Item>
                   <Form.Item label="URL" name="url">
-                    <Input placeholder="/sale-plan/work-plan or leave empty for parent" />
+                    <Input placeholder="sale-plan/work-plan or leave empty for parent" />
                   </Form.Item>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <Form.Item label="Parent Menu" name="parent_id">

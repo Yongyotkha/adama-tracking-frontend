@@ -288,6 +288,7 @@ export const paths = {
   pathTempMasterRollingImport: "/rolling-forecast/temp-master-rolling/import",
   pathTempMasterRollingUploadStatus: "/rolling-forecast/temp-master-rolling/upload/status",
   pathTempMasterRollingUploadList: "/rolling-forecast/temp-master-rolling/upload/list",
+  pathTempMasterRollingSync: "/rolling-forecast/temp-master-rolling/sync",
 
   //Activity
   pathActivityPlan: "/activity-plan/sale/list",
