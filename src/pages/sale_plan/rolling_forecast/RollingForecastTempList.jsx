@@ -1,5 +1,6 @@
 import React, { useContext, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { Tag, Modal } from "antd";
 import MainLayout from "../../../layouts/MainLayout";
 import Filter from "../../../components/filter/Filter";
 import BoxPrimary from "../../../components/box_primary/BoxPrimary";
@@ -43,109 +44,8 @@ export default function RollingForecastTempList() {
     filters: {},
   });
 
-  const filters = [
-    {
-      key: "year_code",
-      type: "select",
-      label: "Year",
-      options: years,
-    },
-    {
-      key: "user_id",
-      type: "select",
-      label: "Sale",
-      options: sales,
-    },
-    {
-      key: "dealer_id",
-      type: "select",
-      label: "Dealer",
-      options: dealers,
-      disabled: !filterValues.user_id,
-    },
-    {
-      key: "value_not_null_group",
-      type: "checkboxGroup",
-      label: "Qty / Value (Not Null)",
-      size: 6,
-      options: [
-        { key: "has_qty", label: "Qty" },
-        { key: "has_value", label: "Value" },
-        { key: "has_qty2", label: "Qty2" },
-        { key: "has_value2", label: "Value2" },
-      ],
-    },
-  ];
-
-  const header = [
-    { title: "No", dataIndex: "key", width: 70, align: "center", fixed: "left" },
-    // { title: "ID", dataIndex: "id", width: 80, align: "center", fixed: "left" },
-    { title: "Year", dataIndex: "year_code", width: 80, align: "center" },
-    { title: "Type", dataIndex: "type", width: 180 },
-    // { title: "Use Flag", dataIndex: "use_flag", width: 90, align: "center" },
-    {
-      title: "H ID",
-      dataIndex: "workplan_header_id",
-      align: "center",
-    },
-    {
-      title: "A H ID",
-      dataIndex: "workplan_area_header_id",
-      align: "center",
-    },
-    {
-      title: "S H ID",
-      dataIndex: "workplan_sale_header_id",
-      align: "center",
-    },
-    // { title: "Area ID", dataIndex: "area_id", width: 90, align: "center" },
-    { title: "Area", dataIndex: "area_name", width: 120 },
-    // { title: "Sale Area ID", dataIndex: "sale_area_id", width: 110, align: "center" },
-    { title: "Sale Area", dataIndex: "sale_area_name", width: 160 },
-    // { title: "User ID", dataIndex: "user_id", width: 90, align: "center" },
-    { title: "Sale", dataIndex: "user_name", width: 160 },
-    // { title: "Quarter ID", dataIndex: "quarter_id", width: 100, align: "center" },
-    { title: "Quarter", dataIndex: "quarter_name", width: 100, align: "center" },
-    // { title: "Month ID", dataIndex: "month_id", width: 90, align: "center" },
-    { title: "Month", dataIndex: "month_name", width: 80, align: "center" },
-    // { title: "Product ID", dataIndex: "product_id", width: 100, align: "center" },
-    { title: "Product", dataIndex: "product_name", width: 180 },
-    { title: "Pack Size", dataIndex: "pack_size", width: 120 },
-    {
-      title: "Unit Convert",
-      dataIndex: "unit_convert_value",
-      width: 110,
-      align: "right",
-    },
-    // { title: "Dealer ID", dataIndex: "dealer_id", width: 100, align: "center" },
-    { title: "Dealer", dataIndex: "dealer_name", width: 220 },
-    { title: "Qty", dataIndex: "qty", width: 100, align: "right" },
-    { title: "Value", dataIndex: "value", width: 100, align: "right" },
-    { title: "Qty2", dataIndex: "qty2", width: 100, align: "right" },
-    { title: "Value2", dataIndex: "value2", width: 100, align: "right" },
-    { title: "Remark", dataIndex: "remark", width: 140 },
-    // {
-    //   title: "Created At",
-    //   dataIndex: "created_at",
-    //   width: 160,
-    //   align: "center",
-    // },
-    // {
-    //   title: "Updated At",
-    //   dataIndex: "updated_at",
-    //   width: 160,
-    //   align: "center",
-    // },
-    // {
-    //   title: "Deleted At",
-    //   dataIndex: "deleted_at",
-    //   width: 160,
-    //   align: "center",
-    // },
-    // { title: "Created By", dataIndex: "created_by", width: 100, align: "center" },
-    // { title: "Updated By", dataIndex: "updated_by", width: 100, align: "center" },
-    // { title: "Deleted By", dataIndex: "deleted_by", width: 100, align: "center" },
-  ];
+  const current = tableParams.pagination.current;
+  const pageSize = tableParams.pagination.pageSize;
 
   const formatDecimal = (value) => {
     if (value === null || value === undefined || value === "") {
@@ -236,36 +136,17 @@ export default function RollingForecastTempList() {
         const { data, records_filtered, recordsFiltered } = response;
         const list = Array.isArray(data) ? data : [];
 
-        const formatted = list.map((item, index) => ({
-          key: index + 1 + (current - 1) * pageSize,
-          id: displayValue(item.id),
-          year_code: displayValue(item.year_code),
-          type: displayValue(item.type),
-          use_flag: displayValue(item.use_flag),
-          workplan_header_id: displayValue(item.workplan_header_id),
-          workplan_area_header_id: displayValue(item.workplan_area_header_id),
-          workplan_sale_header_id: displayValue(item.workplan_sale_header_id),
-          area_id: displayValue(item.area_id),
-          area_name: displayValue(item.area_name),
-          sale_area_id: displayValue(item.sale_area_id),
-          sale_area_name: displayValue(item.sale_area_name),
-          user_id: displayValue(item.user_id),
-          user_name: displayValue(item.user_name),
-          quarter_id: displayValue(item.quarter_id),
-          quarter_name: displayValue(item.quarter_name),
-          month_id: displayValue(item.month_id),
-          month_name: displayValue(item.month_name),
-          product_id: displayValue(item.product_id),
-          product_name: displayValue(item.product_name),
-          pack_size: displayValue(item.pack_size),
-          unit_convert_value: formatDecimal(item.unit_convert_value),
-          dealer_id: displayValue(item.dealer_id),
-          dealer_name: displayValue(item.dealer_name),
-          qty: formatDecimal(item.qty),
-          value: formatDecimal(item.value),
-          qty2: formatDecimal(item.qty2),
-          value2: formatDecimal(item.value2),
-          remark: displayValue(item.remark),
+      setDataSource(
+        list.map((item, index) => ({
+          key: item.upload_id || index + 1 + (current - 1) * pageSize,
+          upload_id: item.upload_id,
+          file_name: item.file_name || "-",
+          status_code: item.status_code,
+          status_message: item.status_message,
+          status_code_sync: item.status_code_sync,
+          status_message_sync: item.status_message_sync,
+          inserted: item.inserted ?? "-",
+          failed_count: item.failed_count ?? "-",
           created_at: formatDateTime(item.created_at),
           updated_at: formatDateTime(item.updated_at),
           deleted_at: formatDateTime(item.deleted_at),
@@ -328,15 +209,138 @@ export default function RollingForecastTempList() {
     setFilterValues(values);
   };
 
+  const handleSync = useCallback(
+    (uploadId = null) => {
+      Modal.confirm({
+        title: "Sync Rolling Forecast",
+        content: uploadId
+          ? `นำ qty2 / value2 ของ Upload ID ${uploadId} จาก temp_master_rolling ไปบันทึกเป็น qty / value ใน rolling_forecast_month_quarter_month_items ?`
+          : "นำ qty2 / value2 จาก temp_master_rolling ทั้งหมด ไปบันทึกเป็น qty / value ใน rolling_forecast_month_quarter_month_items ?",
+        okText: "Sync",
+        cancelText: "ยกเลิก",
+        onOk: async () => {
+          try {
+            const response = await useServiceAPI.post(
+              paths.pathTempMasterRollingSync,
+              uploadId ? { upload_id: uploadId } : {},
+              setSyncLoading
+            );
+
+            if (response?.status === 200) {
+              showNotification("success", response.message || "Sync สำเร็จ", [
+                `เพิ่ม ${response.data?.inserted ?? 0} แถว`,
+                `อัปเดต ${response.data?.updated ?? 0} แถว`,
+                `ข้าม ${response.data?.skipped ?? 0} แถว`,
+              ]);
+              fetchData();
+            }
+          } catch (error) {
+            showNotification(
+              "error",
+              error?.response?.data?.message || error.message || "Sync ไม่สำเร็จ"
+            );
+          }
+        },
+      });
+    },
+    [fetchData, showNotification]
+  );
+
+  const header = useMemo(
+    () => [
+      { title: "No", dataIndex: "key", width: 70, align: "center" },
+      { title: "Upload ID", dataIndex: "upload_id", width: 100, align: "center" },
+      { title: "File Name", dataIndex: "file_name", width: 260 },
+      {
+        title: "สถานะนำเข้า Temp",
+        dataIndex: "status_code",
+        width: 200,
+        align: "center",
+        render: (value, row) =>
+          renderStatusTag(value, row.status_message, IMPORT_STATUS),
+      },
+      {
+        title: "สถานะ Sync Rolling Forecast",
+        dataIndex: "status_code_sync",
+        width: 240,
+        align: "center",
+        render: (value, row) =>
+          renderStatusTag(value, row.status_message_sync, FORECAST_STATUS),
+      },
+      {
+        title: "Inserted (Temp)",
+        dataIndex: "inserted",
+        width: 130,
+        align: "center",
+      },
+      {
+        title: "Failed",
+        dataIndex: "failed_count",
+        width: 90,
+        align: "center",
+      },
+      {
+        title: "Uploaded At",
+        dataIndex: "created_at",
+        width: 160,
+        align: "center",
+      },
+      {
+        title: "Processed At",
+        dataIndex: "processed_at",
+        width: 160,
+        align: "center",
+      },
+      {
+        title: "Action",
+        dataIndex: "upload_id",
+        key: "action",
+        width: 160,
+        align: "center",
+        fixed: "right",
+        render: (uploadId, record) => (
+          <div className="flex flex-col items-center gap-1">
+            <button
+              type="button"
+              className="text-[#009845] underline"
+              onClick={() =>
+                navigate(`/sale-plan/rolling-forecast/temp-list/${uploadId}`)
+              }
+            >
+              ดูข้อมูล
+            </button>
+            <button
+              type="button"
+              className="text-[#F89E18] underline disabled:text-gray-400 disabled:no-underline"
+              disabled={record.status_code !== "completed" || syncLoading}
+              onClick={() => handleSync(uploadId)}
+            >
+              Sync
+            </button>
+          </div>
+        ),
+      },
+    ],
+    [handleSync, navigate, syncLoading]
+  );
+
   return (
-    <MainLayout loading={loading}>
+    <MainLayout loading={!!syncLoading}>
       <div className="flex items-center justify-between">
-        <div className="title-page">Temp Master Rolling List</div>
-        <ActionButton
-          mode="create"
-          text="อัปโหลดไฟล์ CSV"
-          onClick={() => navigate("/sale-plan/rolling-forecast/upload-temp")}
-        />
+        <div className="title-page">Temp Master Rolling Uploads</div>
+        <div className="flex items-center gap-2">
+          <ActionButton
+            mode="sync"
+            text="Sync ข้อมูล"
+            onClick={() => handleSync()}
+            disabled={syncLoading}
+          />
+          <ActionButton
+            mode="create"
+            text="อัปโหลดไฟล์ CSV"
+            onClick={() => navigate("/sale-plan/rolling-forecast/upload-temp")}
+          />
+        </div>
       </div>
 
       <Filter
