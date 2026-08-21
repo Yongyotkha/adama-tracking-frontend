@@ -42,9 +42,10 @@ const ActionButton = ({
     <>
       {mode === "create" && (
         <button
-          className={`flex text-[#FFFFFF] text-sm rounded-[4px] bg-[#7DB41E] gap-2 p-1 px-2 items-center ${className}`}
+          className={`flex text-[#FFFFFF] text-sm rounded-[4px] bg-[#7DB41E] gap-2 p-1 px-2 items-center justify-center ${className}`}
           onClick={onClick}
           disabled={disabled}
+          style={style}
         >
           {renderDefaultIcon()}
           <div>{text}</div>
@@ -75,7 +76,7 @@ const ActionButton = ({
 
       {mode === "import" && (
         <button
-          className={`flex text-[#FFFFFF] text-sm rounded-[4px] bg-[#1677ff] gap-2 p-1 px-2 items-center ${className}`}
+          className={`flex text-[#FFFFFF] text-sm rounded-[4px] bg-[#1677ff] gap-2 p-1 px-2 items-center justify-center ${className}`}
           onClick={onClick}
           disabled={disabled}
           style={style}
@@ -99,7 +100,7 @@ const ActionButton = ({
 
       {(mode === "back" || mode === "close") && (
         <button
-          className={`flex text-[#FFFFFF] text-sm rounded-sm bg-[#B6AEAB] gap-2 p-2 items-center ${className} min-w-[96px] justify-center`}
+          className={`flex text-[#FFFFFF] text-sm rounded-[4px] bg-[#B6AEAB] gap-2 p-1 px-2 items-center justify-center ${className}`}
           onClick={onClick}
           disabled={disabled}
           style={style}

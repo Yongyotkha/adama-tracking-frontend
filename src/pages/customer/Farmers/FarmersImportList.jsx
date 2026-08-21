@@ -226,15 +226,13 @@ export default function FarmersImportList() {
           <ActionButton
             mode="back"
             text="กลับ"
-            className="justify-center px-3 py-0"
-            style={{ minWidth: 168, height: 36 }}
+            style={{ width: 196, height: 32 }}
             onClick={() => navigate("/customer/farmers")}
           />
           <ActionButton
-            mode="import"
+            mode="create"
             text="อัปโหลดไฟล์ CSV"
-            className="justify-center px-3 py-0"
-            style={{ minWidth: 168, height: 36 }}
+            style={{ width: 196, height: 32 }}
             onClick={() => navigate("/customer/farmers/import/upload")}
           />
         </div>

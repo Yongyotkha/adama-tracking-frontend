@@ -13,6 +13,7 @@ const TableComponent = ({
   loading,
   onChange,
   rowSelection,
+  rowKey = "key",
 
   // ✅ เพิ่มใหม่ (optional) — ถ้าไม่ส่งมา จะทำงานเหมือนเดิม
   scrollX = true,
@@ -85,6 +86,7 @@ const TableComponent = ({
         summary={footer}
         onChange={onChange}
         rowSelection={rowSelection}
+        rowKey={rowKey}
       />
     </ConfigProvider>
   );
