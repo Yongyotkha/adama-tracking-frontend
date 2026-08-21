@@ -73,7 +73,7 @@ export default function FarmersImportList() {
           failed_count: item.failed_count ?? "-",
           created_at: formatDateTime(item.created_at),
           processed_at: formatDateTime(item.processed_at),
-          can_delete: item.can_delete !== false,
+          can_delete: item.can_delete === true,
         }))
       );
 
