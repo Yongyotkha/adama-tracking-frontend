@@ -1,5 +1,5 @@
 import React from "react";
-import { DeleteOutlined, MinusOutlined, PlusOutlined } from "@ant-design/icons";
+import { DeleteOutlined, ImportOutlined, MinusOutlined, PlusOutlined } from "@ant-design/icons";
 
 const ActionButton = ({
   onClick,
@@ -31,6 +31,8 @@ const ActionButton = ({
         return (
           <img src="/img/icons/sync.png" alt="button icon" className="inline-block h-5" />
         );
+      case "import":
+        return <ImportOutlined className="inline-block text-[16px]" />;
       default:
         return null;
     }
@@ -71,6 +73,18 @@ const ActionButton = ({
         </button>
       )}
 
+      {mode === "import" && (
+        <button
+          className={`flex text-[#FFFFFF] text-sm rounded-[4px] bg-[#1677ff] gap-2 p-1 px-2 items-center ${className}`}
+          onClick={onClick}
+          disabled={disabled}
+          style={style}
+        >
+          {renderDefaultIcon()}
+          <div>{text}</div>
+        </button>
+      )}
+
       {mode === "add" && (
         <button
           className={`flex text-[#FFFFFF] text-sm rounded-[4px] bg-[#009845] gap-2 p-2 py-1 items-center ${className} min-w-[80px] justify-center`}
@@ -88,6 +102,7 @@ const ActionButton = ({
           className={`flex text-[#FFFFFF] text-sm rounded-sm bg-[#B6AEAB] gap-2 p-2 items-center ${className} min-w-[96px] justify-center`}
           onClick={onClick}
           disabled={disabled}
+          style={style}
         >
           {renderDefaultIcon()}
           <div>{text}</div>
