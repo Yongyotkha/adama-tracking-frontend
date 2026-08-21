@@ -928,8 +928,8 @@ export default function FarmersCreate() {
           </Col>
 
           <Col xs={24} md={8}>
-            <Form.Item label="Est Input (Baht / Year)" name="est">
-              <Input disabled={isViewMode} placeholder="Enter Estimated Input (Baht / Year)" />
+            <Form.Item label="Est Pesticide Input (Baht / Year)" name="est">
+              <Input disabled={isViewMode} placeholder="Enter Estimated Pesticide Input (Baht / Year)" />
             </Form.Item>
           </Col>
 
@@ -1412,12 +1412,13 @@ export default function FarmersCreate() {
 
   const watchEst = Form.useWatch("est", form);
   const averageEstPerSize = useMemo(() => {
-    const estVal = Number(String(watchEst || "").replace(/,/g, "").trim());
-    if (Number.isFinite(estVal) && estVal > 0) {
-      return (totalFarmSize / estVal).toFixed(2);
+    const rawEst = watchEst !== undefined && watchEst !== null ? watchEst : form.getFieldValue("est");
+    const estVal = Number(String(rawEst || "").replace(/,/g, "").trim());
+    if (Number.isFinite(estVal) && estVal > 0 && totalFarmSize > 0) {
+      return (estVal / totalFarmSize).toFixed(2);
     }
     return "0.00";
-  }, [totalFarmSize, watchEst]);
+  }, [totalFarmSize, watchEst, form]);
 
   const farmSizeCalendarTab = (
     <>
