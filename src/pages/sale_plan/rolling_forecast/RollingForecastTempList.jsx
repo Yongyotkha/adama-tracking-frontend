@@ -1,22 +1,13 @@
-import React, { useContext, useEffect, useState } from "react";
+import React, { useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Tag, Modal } from "antd";
+import { Tag } from "antd";
 import MainLayout from "../../../layouts/MainLayout";
-import Filter from "../../../components/filter/Filter";
 import BoxPrimary from "../../../components/box_primary/BoxPrimary";
 import TableComponent from "../../../components/table/TableComponent";
 import ActionButton from "../../../components/button/ActionButton";
 import useServiceAPI from "../../../services/CorsService";
 import { paths } from "../../../services/CorsPath";
 import { AuthContext } from "../../../contexts/AuthContext";
-
-const displayValue = (value) => {
-  if (value === null || value === undefined || value === "") {
-    return "-";
-  }
-
-  return value;
-};
 
 const formatDateTime = (value) => {
   if (!value) {
@@ -26,115 +17,132 @@ const formatDateTime = (value) => {
   return String(value).replace("T", " ").split(".")[0];
 };
 
+const IMPORT_STATUS = {
+  uploaded: { color: "blue", label: "อัปโหลดแล้ว รอนำเข้า" },
+  processing: { color: "orange", label: "กำลังนำเข้า Temp" },
+  completed: { color: "green", label: "นำเข้า Temp สำเร็จ" },
+  failed: { color: "red", label: "นำเข้า Temp ล้มเหลว" },
+};
+
+const FORECAST_STATUS = {
+  pending: { color: "gold", label: "รอนำเข้า Rolling Forecast" },
+  processing: { color: "orange", label: "กำลังนำเข้า Rolling Forecast" },
+  completed: { color: "green", label: "นำเข้า Rolling Forecast สำเร็จ" },
+  failed: { color: "red", label: "นำเข้า Rolling Forecast ล้มเหลว" },
+};
+
+const renderStatusTag = (code, message, config) => {
+  if (!code) {
+    return <Tag>ยังไม่เริ่ม</Tag>;
+  }
+
+  const status = config[code] || { color: "default", label: message || code };
+  return <Tag color={status.color}>{message || status.label}</Tag>;
+};
+
 export default function RollingForecastTempList() {
   const navigate = useNavigate();
-  const { showNotification, formatNumber } = useContext(AuthContext);
-
-  const [loading, setLoading] = useState(false);
+  const { showNotification } = useContext(AuthContext);
   const [tableLoading, setTableLoading] = useState(false);
   const [syncLoading, setSyncLoading] = useState(false);
   const [dataSource, setDataSource] = useState([]);
-  const [years, setYears] = useState([]);
-  const [sales, setSales] = useState([]);
-  const [dealers, setDealers] = useState([]);
-  const [filterValues, setFilterValues] = useState({});
-
   const [tableParams, setTableParams] = useState({
-    pagination: { current: 1, pageSize: 50, total: 0 },
-    filters: {},
+    pagination: { current: 1, pageSize: 20, total: 0 },
   });
+
+  const header = useMemo(
+    () => [
+      { title: "No", dataIndex: "key", width: 70, align: "center" },
+      { title: "Upload ID", dataIndex: "upload_id", width: 100, align: "center" },
+      { title: "File Name", dataIndex: "file_name", width: 260 },
+      {
+        title: "สถานะนำเข้า Temp",
+        dataIndex: "status_code",
+        width: 200,
+        align: "center",
+        render: (value, row) =>
+          renderStatusTag(value, row.status_message, IMPORT_STATUS),
+      },
+      {
+        title: "สถานะนำเข้า Rolling Forecast",
+        dataIndex: "forecast_status_code",
+        width: 240,
+        align: "center",
+        render: (value, row) =>
+          renderStatusTag(value, row.forecast_status_message, FORECAST_STATUS),
+      },
+      {
+        title: "Inserted (Temp)",
+        dataIndex: "inserted",
+        width: 130,
+        align: "center",
+      },
+      {
+        title: "Failed",
+        dataIndex: "failed_count",
+        width: 90,
+        align: "center",
+      },
+      {
+        title: "Forecast Inserted",
+        dataIndex: "forecast_inserted_count",
+        width: 150,
+        align: "center",
+      },
+      {
+        title: "Uploaded At",
+        dataIndex: "created_at",
+        width: 160,
+        align: "center",
+      },
+      {
+        title: "Processed At",
+        dataIndex: "processed_at",
+        width: 160,
+        align: "center",
+      },
+      {
+        title: "Action",
+        dataIndex: "upload_id",
+        key: "action",
+        width: 140,
+        align: "center",
+        fixed: "right",
+        render: (uploadId) => (
+          <button
+            type="button"
+            className="text-[#009845] underline"
+            onClick={() =>
+              navigate(`/sale-plan/rolling-forecast/temp-list/${uploadId}`)
+            }
+          >
+            ดูข้อมูล
+          </button>
+        ),
+      },
+    ],
+    [navigate]
+  );
 
   const current = tableParams.pagination.current;
   const pageSize = tableParams.pagination.pageSize;
 
-  const formatDecimal = (value) => {
-    if (value === null || value === undefined || value === "") {
-      return "-";
-    }
-
-    return formatNumber ? formatNumber(value) : value;
-  };
-
-  const loadDealers = async (userId) => {
-    if (!userId) {
-      setDealers([]);
-      return;
-    }
-
-    try {
-      const response = await useServiceAPI.get(paths.pathMasterDealerDropdown, {
-        user_id: userId,
-      });
-
-      if (response?.status === 200) {
-        setDealers(response.data || []);
-      }
-    } catch (error) {
-      setDealers([]);
-      showNotification("error", error.message || "โหลดข้อมูล Dealer ไม่สำเร็จ");
-    }
-  };
-
-  useEffect(() => {
-    const getMaster = async () => {
-      setLoading(true);
-      try {
-        const [yearRes, saleRes] = await Promise.all([
-          useServiceAPI.get(paths.pathMasterYear),
-          useServiceAPI.get(paths.pathMasterSaleDropdown),
-        ]);
-
-        if (yearRes?.status === 200) {
-          setYears(yearRes.data || []);
-        }
-
-        if (saleRes?.status === 200) {
-          setSales(saleRes.data || []);
-        }
-      } catch (error) {
-        showNotification("error", error.message || "โหลดข้อมูล Filter ไม่สำเร็จ");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    getMaster();
-  }, []);
-
-  useEffect(() => {
-    loadDealers(filterValues.user_id);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [filterValues.user_id]);
-
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     setTableLoading(true);
-
-    const { current, pageSize } = tableParams.pagination;
-    const f = tableParams.filters || {};
-
-    const requestData = {
-      orderby_column: "id",
-      orderby: "desc",
-      page_length: pageSize,
-      page_size: current,
-      year_code: f.year_code ?? "",
-      user_id: f.user_id ?? "",
-      dealer_id: f.dealer_id ?? "",
-      has_qty: f.has_qty ?? "",
-      has_value: f.has_value ?? "",
-      has_qty2: f.has_qty2 ?? "",
-      has_value2: f.has_value2 ?? "",
-    };
 
     try {
       const response = await useServiceAPI.get(
-        paths.pathTempMasterRollingList,
-        requestData
+        paths.pathTempMasterRollingUploadList,
+        {
+          page_length: pageSize,
+          page_size: current,
+        }
       );
 
-      if (response?.status === 200) {
-        const { data, records_filtered, recordsFiltered } = response;
-        const list = Array.isArray(data) ? data : [];
+      const list = Array.isArray(response?.data) ? response.data : [];
+      const total = Number(
+        response?.records_filtered ?? response?.recordsFiltered ?? list.length ?? 0
+      );
 
       setDataSource(
         list.map((item, index) => ({
@@ -143,70 +151,59 @@ export default function RollingForecastTempList() {
           file_name: item.file_name || "-",
           status_code: item.status_code,
           status_message: item.status_message,
-          status_code_sync: item.status_code_sync,
-          status_message_sync: item.status_message_sync,
+          forecast_status_code: item.forecast_status_code,
+          forecast_status_message: item.forecast_status_message,
           inserted: item.inserted ?? "-",
           failed_count: item.failed_count ?? "-",
+          forecast_inserted_count: item.forecast_inserted_count ?? "-",
           created_at: formatDateTime(item.created_at),
-          updated_at: formatDateTime(item.updated_at),
-          deleted_at: formatDateTime(item.deleted_at),
-          created_by: displayValue(item.created_by),
-          updated_by: displayValue(item.updated_by),
-          deleted_by: displayValue(item.deleted_by),
-        }));
+          processed_at: formatDateTime(item.processed_at),
+        }))
+      );
 
-        setDataSource(formatted);
-        setTableParams((prev) => ({
+      setTableParams((prev) => {
+        if (prev.pagination.total === total) {
+          return prev;
+        }
+
+        return {
           ...prev,
           pagination: {
             ...prev.pagination,
-            total: Number(records_filtered ?? recordsFiltered ?? 0),
+            total,
           },
-        }));
-      }
+        };
+      });
     } catch (error) {
+      setDataSource([]);
       showNotification("error", error.message || "โหลดข้อมูลไม่สำเร็จ");
     } finally {
       setTableLoading(false);
     }
-  };
+  }, [current, pageSize, showNotification]);
 
   useEffect(() => {
     fetchData();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [
-    tableParams.pagination.current,
-    tableParams.pagination.pageSize,
-    JSON.stringify(tableParams.filters),
-  ]);
+  }, [fetchData]);
 
-  const handleSearch = (filtersFromUI) => {
-    setTableParams((prev) => ({
-      ...prev,
-      pagination: { ...prev.pagination, current: 1 },
-      filters: { ...filtersFromUI },
-    }));
-    setFilterValues({ ...filtersFromUI });
-  };
+  const handleTableChange = (pagination) => {
+    setTableParams((prev) => {
+      if (
+        prev.pagination.current === pagination.current &&
+        prev.pagination.pageSize === pagination.pageSize
+      ) {
+        return prev;
+      }
 
-  const handleClear = () => {
-    setFilterValues({});
-    setDealers([]);
-    setTableParams((prev) => ({
-      ...prev,
-      filters: {},
-      pagination: { ...prev.pagination, current: 1 },
-    }));
-  };
-
-  const handleFilterChange = (values) => {
-    if (values.user_id !== filterValues.user_id) {
-      const nextValues = { ...values, dealer_id: "" };
-      setFilterValues(nextValues);
-      return;
-    }
-
-    setFilterValues(values);
+      return {
+        ...prev,
+        pagination: {
+          ...prev.pagination,
+          current: pagination.current,
+          pageSize: pagination.pageSize,
+        },
+      };
+    });
   };
 
   const handleSync = useCallback(
@@ -325,31 +322,15 @@ export default function RollingForecastTempList() {
   );
 
   return (
-    <MainLayout loading={!!syncLoading}>
+    <MainLayout loading={false}>
       <div className="flex items-center justify-between">
         <div className="title-page">Temp Master Rolling Uploads</div>
-        <div className="flex items-center gap-2">
-          <ActionButton
-            mode="sync"
-            text="Sync ข้อมูล"
-            onClick={() => handleSync()}
-            disabled={syncLoading}
-          />
-          <ActionButton
-            mode="create"
-            text="อัปโหลดไฟล์ CSV"
-            onClick={() => navigate("/sale-plan/rolling-forecast/upload-temp")}
-          />
-        </div>
+        <ActionButton
+          mode="create"
+          text="อัปโหลดไฟล์ CSV"
+          onClick={() => navigate("/sale-plan/rolling-forecast/upload-temp")}
+        />
       </div>
-
-      <Filter
-        filters={filters}
-        onChange={handleFilterChange}
-        onSearch={handleSearch}
-        onClear={handleClear}
-        values={filterValues}
-      />
 
       <BoxPrimary>
         <TableComponent
@@ -357,9 +338,7 @@ export default function RollingForecastTempList() {
           dataSource={dataSource}
           loading={tableLoading}
           pagination={tableParams.pagination}
-          onChange={(pagination) => {
-            setTableParams((prev) => ({ ...prev, pagination }));
-          }}
+          onChange={handleTableChange}
           scroll
         />
       </BoxPrimary>
