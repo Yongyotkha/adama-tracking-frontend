@@ -1,6 +1,6 @@
 import React, { useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Tag } from "antd";
+import { Tag, Modal } from "antd";
 import MainLayout from "../../../layouts/MainLayout";
 import BoxPrimary from "../../../components/box_primary/BoxPrimary";
 import TableComponent from "../../../components/table/TableComponent";
@@ -50,80 +50,6 @@ export default function RollingForecastTempList() {
     pagination: { current: 1, pageSize: 20, total: 0 },
   });
 
-  const header = useMemo(
-    () => [
-      { title: "No", dataIndex: "key", width: 70, align: "center" },
-      { title: "Upload ID", dataIndex: "upload_id", width: 100, align: "center" },
-      { title: "File Name", dataIndex: "file_name", width: 260 },
-      {
-        title: "สถานะนำเข้า Temp",
-        dataIndex: "status_code",
-        width: 200,
-        align: "center",
-        render: (value, row) =>
-          renderStatusTag(value, row.status_message, IMPORT_STATUS),
-      },
-      {
-        title: "สถานะนำเข้า Rolling Forecast",
-        dataIndex: "forecast_status_code",
-        width: 240,
-        align: "center",
-        render: (value, row) =>
-          renderStatusTag(value, row.forecast_status_message, FORECAST_STATUS),
-      },
-      {
-        title: "Inserted (Temp)",
-        dataIndex: "inserted",
-        width: 130,
-        align: "center",
-      },
-      {
-        title: "Failed",
-        dataIndex: "failed_count",
-        width: 90,
-        align: "center",
-      },
-      {
-        title: "Forecast Inserted",
-        dataIndex: "forecast_inserted_count",
-        width: 150,
-        align: "center",
-      },
-      {
-        title: "Uploaded At",
-        dataIndex: "created_at",
-        width: 160,
-        align: "center",
-      },
-      {
-        title: "Processed At",
-        dataIndex: "processed_at",
-        width: 160,
-        align: "center",
-      },
-      {
-        title: "Action",
-        dataIndex: "upload_id",
-        key: "action",
-        width: 140,
-        align: "center",
-        fixed: "right",
-        render: (uploadId) => (
-          <button
-            type="button"
-            className="text-[#009845] underline"
-            onClick={() =>
-              navigate(`/sale-plan/rolling-forecast/temp-list/${uploadId}`)
-            }
-          >
-            ดูข้อมูล
-          </button>
-        ),
-      },
-    ],
-    [navigate]
-  );
-
   const current = tableParams.pagination.current;
   const pageSize = tableParams.pagination.pageSize;
 
@@ -151,11 +77,10 @@ export default function RollingForecastTempList() {
           file_name: item.file_name || "-",
           status_code: item.status_code,
           status_message: item.status_message,
-          forecast_status_code: item.forecast_status_code,
-          forecast_status_message: item.forecast_status_message,
+          status_code_sync: item.status_code_sync,
+          status_message_sync: item.status_message_sync,
           inserted: item.inserted ?? "-",
           failed_count: item.failed_count ?? "-",
-          forecast_inserted_count: item.forecast_inserted_count ?? "-",
           created_at: formatDateTime(item.created_at),
           processed_at: formatDateTime(item.processed_at),
         }))
@@ -322,14 +247,22 @@ export default function RollingForecastTempList() {
   );
 
   return (
-    <MainLayout loading={false}>
+    <MainLayout loading={!!syncLoading}>
       <div className="flex items-center justify-between">
         <div className="title-page">Temp Master Rolling Uploads</div>
-        <ActionButton
-          mode="create"
-          text="อัปโหลดไฟล์ CSV"
-          onClick={() => navigate("/sale-plan/rolling-forecast/upload-temp")}
-        />
+        <div className="flex items-center gap-2">
+          <ActionButton
+            mode="sync"
+            text="Sync ข้อมูล"
+            onClick={() => handleSync()}
+            disabled={syncLoading}
+          />
+          <ActionButton
+            mode="create"
+            text="อัปโหลดไฟล์ CSV"
+            onClick={() => navigate("/sale-plan/rolling-forecast/upload-temp")}
+          />
+        </div>
       </div>
 
       <BoxPrimary>
