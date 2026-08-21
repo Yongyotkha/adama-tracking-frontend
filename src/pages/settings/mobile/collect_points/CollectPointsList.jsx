@@ -759,10 +759,6 @@ export default function CollectPointsList() {
             <span className="font-medium text-gray-600">Dealer: </span>
             <span>{detailData.dealer_name || "-"}</span>
           </div>
-          <div>
-            <span className="font-medium text-gray-600">Sub Dealer: </span>
-            <span>{detailData.sub_dealer_name || "-"}</span>
-          </div>
         </div>
 
         {/* Campaigns table */}
