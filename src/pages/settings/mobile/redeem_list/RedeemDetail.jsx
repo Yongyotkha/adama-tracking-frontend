@@ -96,8 +96,12 @@ export default function RedeemDetail() {
         return;
       }
 
+      const isFarmer = Boolean(location?.state?.is_farmer) || location.pathname.includes("farmer-redeem");
       // GET /redeem/detail/{id}
-      const res = await useServiceAPI.get(`${paths.pathRedeemDetail}/${id}`);
+      const res = await useServiceAPI.get(
+        `${paths.pathRedeemDetail}/${id}`,
+        isFarmer ? { mode: "farmer" } : {}
+      );
 
       if (res?.status === 200) {
         // ✅ payload จริงอยู่ใต้ data.data

@@ -92,6 +92,7 @@ export default function SalesPointActionMode() {
   }, [isCreate, location.state]);
 
   // ---------- EDIT/VIEW: load detail ----------
+  const isFarmer = location.pathname.includes("farmer-points-list") || Boolean(location.state?.is_farmer);
   useEffect(() => {
     (async () => {
       if (!isEdit && !isView) return;
@@ -102,6 +103,7 @@ export default function SalesPointActionMode() {
       try {
         const res = await useServiceAPI.get(paths.pathSalePointOrderDetail, {
           document_number,
+          ...(isFarmer ? { mode: "farmer" } : {}),
         });
         const d = res?.data;
         if (!d) return;

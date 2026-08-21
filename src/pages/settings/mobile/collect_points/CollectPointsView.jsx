@@ -52,6 +52,11 @@ export default function CollectPointsView() {
     }
   };
 
+  const isFarmer =
+    location.pathname.includes("farmer-points-list") ||
+    location.pathname.includes("farmer-collect") ||
+    Boolean(location.state?.is_farmer);
+
   useEffect(() => {
     const fetchDetail = async () => {
       if (!document_number) return;
@@ -60,6 +65,7 @@ export default function CollectPointsView() {
       try {
         const res = await useServiceAPI.get(paths.pathSalePointOrderDetail, {
           document_number,
+          ...(isFarmer ? { mode: "farmer" } : {}),
         });
 
         if (res?.status === 200 && res?.data) {
