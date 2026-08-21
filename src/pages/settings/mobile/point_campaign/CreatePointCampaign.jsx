@@ -1218,16 +1218,18 @@ export default function CreatePointCampaign() {
                 disabled={isView}
               />
 
-              {/* ✅ 3) Sub Dealer */}
-              <Select
-                allowClear
-                placeholder="Sub Dealer"
-                style={{ width: 200 }}
-                value={filterSubDealer}
-                onChange={setFilterSubDealer}
-                options={subDealerFilterOptions}
-                disabled={isView}
-              />
+              {/* ✅ 3) Sub Dealer (แสดงเฉพาะโหมด Farmer) */}
+              {isFarmer && (
+                <Select
+                  allowClear
+                  placeholder="Sub Dealer"
+                  style={{ width: 200 }}
+                  value={filterSubDealer}
+                  onChange={setFilterSubDealer}
+                  options={subDealerFilterOptions}
+                  disabled={isView}
+                />
+              )}
 
               {/* Search */}
               <div style={{ width: 260 }}>
