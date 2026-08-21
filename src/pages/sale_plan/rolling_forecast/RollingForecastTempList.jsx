@@ -31,6 +31,7 @@ export default function RollingForecastTempList() {
 
   const [loading, setLoading] = useState(false);
   const [tableLoading, setTableLoading] = useState(false);
+  const [syncLoading, setSyncLoading] = useState(false);
   const [dataSource, setDataSource] = useState([]);
   const [years, setYears] = useState([]);
   const [sales, setSales] = useState([]);
