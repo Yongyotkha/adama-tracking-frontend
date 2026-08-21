@@ -426,11 +426,18 @@ export default function CollectPointsList() {
           sale: row.sale_name,
           dealer: row.dealer_name,
           sub_dealer: row.sub_dealer_name,
-          value: row.net_amount_display,
+          value:
+            row.net_amount_display ||
+            (row.net_amount
+              ? parseFloat(String(row.net_amount).replace(/,/g, "") || 0).toLocaleString("en-US", { minimumFractionDigits: 2 })
+              : "-"),
           orderDate: row.document_date,
           pointRaw: row.point,
           statusText: row.status_transaction_name,
-          point: row.point,
+          point:
+            row.point !== undefined && row.point !== null && row.point !== ""
+              ? parseFloat(String(row.point).replace(/,/g, "") || 0).toLocaleString("en-US")
+              : "-",
           pointDetail: (
             <button
               onClick={() => handleOpenDetail(row.document_number)}
@@ -751,6 +758,10 @@ export default function CollectPointsList() {
           <div>
             <span className="font-medium text-gray-600">Dealer: </span>
             <span>{detailData.dealer_name || "-"}</span>
+          </div>
+          <div>
+            <span className="font-medium text-gray-600">Sub Dealer: </span>
+            <span>{detailData.sub_dealer_name || "-"}</span>
           </div>
         </div>
 

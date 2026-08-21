@@ -428,11 +428,18 @@ export default function FarmerPointCollection() {
           dealer: row.dealer_name,
           sub_dealer: row.sub_dealer_name,
           farmer: row.farmer_name || "-",
-          value: row.net_amount_display,
+          value:
+            row.net_amount_display ||
+            (row.net_amount
+              ? parseFloat(String(row.net_amount).replace(/,/g, "") || 0).toLocaleString("en-US", { minimumFractionDigits: 2 })
+              : "-"),
           orderDate: row.document_date,
           pointRaw: row.point,
           statusText: row.status_transaction_name,
-          point: row.point,
+          point:
+            row.point !== undefined && row.point !== null && row.point !== ""
+              ? parseFloat(String(row.point).replace(/,/g, "") || 0).toLocaleString("en-US")
+              : "-",
           pointDetail: (
             <button
               onClick={() => handleOpenDetail(row.document_number)}
@@ -759,10 +766,10 @@ export default function FarmerPointCollection() {
             <span className="font-medium text-gray-600">Sub Dealer: </span>
             <span>{detailData.sub_dealer_name || "-"}</span>
           </div>
-          <div>
+          {/* <div>
             <span className="font-medium text-gray-600">Farmer: </span>
             <span>{detailData.farmer_name || "-"}</span>
-          </div>
+          </div> */}
         </div>
 
         {/* Campaigns table */}
@@ -810,8 +817,8 @@ export default function FarmerPointCollection() {
                 <th style={thStyle}>No</th>
                 <th style={{ ...thStyle, textAlign: "left" }}>Product Name</th>
                 <th style={thStyle}>Unit</th>
-                <th style={thStyle}>QTY (ctn)</th>
-                <th style={thStyle}>PointPack</th>
+                <th style={thStyle}>Total Pack</th>
+                <th style={thStyle}>Point/Pack</th>
                 <th style={thStyle}>Original Point</th>
                 <th style={thStyle}>xPoint</th>
                 <th style={thStyle}>Total Point</th>
