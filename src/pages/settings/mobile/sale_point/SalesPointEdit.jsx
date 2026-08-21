@@ -83,6 +83,7 @@ export default function SalesPointEdit() {
       try {
         const res = await useServiceAPI.get(paths.pathSalePointOrderDetail, {
           document_number,
+          ...(isFarmer ? { mode: "farmer" } : {}),
         });
 
         const d = res?.data;

@@ -66,6 +66,7 @@ export default function SalesPointView() {
       try {
         const res = await useServiceAPI.get(paths.pathSalePointOrderDetail, {
           document_number,
+          ...(isFarmer ? { mode: "farmer" } : {}),
         });
 
         if (res?.status === 200 && res?.data) {
