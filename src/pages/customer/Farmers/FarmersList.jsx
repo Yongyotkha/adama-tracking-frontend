@@ -287,11 +287,18 @@ export default function FarmerList() {
     <MainLayout loading={loading}>
       <div className="flex items-center justify-between">
         <div className="title-page">Farmer</div>
-        <ActionButton
-          text="Create"
-          mode="create"
-          onClick={() => navigate("/customer/farmers/create", { state: { mod: "create" } })}
-        />
+        <div className="flex items-center gap-2">
+          <ActionButton
+            text="Import"
+            mode="import"
+            onClick={() => navigate("/customer/farmers/import")}
+          />
+          <ActionButton
+            text="Create"
+            mode="create"
+            onClick={() => navigate("/customer/farmers/create", { state: { mod: "create" } })}
+          />
+        </div>
       </div>
 
       <Filter onSearch={handleSearch} onClear={handleClear} onChange={handleChange} filters={filtersUI} />

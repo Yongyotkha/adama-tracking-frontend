@@ -149,6 +149,12 @@ export const paths = {
   pathCustomerFarmersUpdate: "sale-customer-farmer/update",
   pathCustomerFarmersDetail: "sale-customer-farmer/detail",
   pathCustomerFarmersDelete: "sale-customer-farmer/delete",
+  pathCustomerFarmersImportUploadList: "sale-customer-farmer/import/upload/list",
+  pathCustomerFarmersImportList: "sale-customer-farmer/import/list",
+  pathCustomerFarmersImportUpload: "sale-customer-farmer/import/upload",
+  pathCustomerFarmersImport: "sale-customer-farmer/import/import",
+  pathCustomerFarmersImportSync: "sale-customer-farmer/import/sync",
+  pathCustomerFarmersImportDelete: "sale-customer-farmer/import/upload",
   //SubDealer
   pathCreateSubDealer: "sale-customer-subdealer/create",
   pathDeleteSubDealer: "sale-customer-subdealer/delete",

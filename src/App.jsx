@@ -46,6 +46,9 @@ import CreateSubDealer from "./pages/customer/sub_dealer/CreateSubDealer";
 import EditSubDealer from "./pages/customer/sub_dealer/EditSubDealer";
 import Farmer from "./pages/customer/Farmers/FarmersList";
 import FarmerCreate from "./pages/customer/Farmers/FarmersCreate";
+import FarmersImportList from "./pages/customer/Farmers/FarmersImportList";
+import FarmersImportUpload from "./pages/customer/Farmers/FarmersImportUpload";
+import FarmersImportDetail from "./pages/customer/Farmers/FarmersImportDetail";
 import CustomerMapping from "./pages/customer/mapping/CustomerMapping";
 import CameraView from "./pages/mobile/collect_points/CameraView";
 import CustomerContactList from "./pages/customer/contact/List";
@@ -459,6 +462,15 @@ const App = () => {
             {/* <Route path="/customer/sub-dealer/view" element={<EditSubDealer />} /> */}
 
             <Route path="/customer/farmers" element={<Farmer />} />
+            <Route path="/customer/farmers/import" element={<FarmersImportList />} />
+            <Route
+              path="/customer/farmers/import/upload"
+              element={<FarmersImportUpload />}
+            />
+            <Route
+              path="/customer/farmers/import/:uploadId"
+              element={<FarmersImportDetail />}
+            />
             <Route path="/customer/farmers/create" element={<FarmerCreate />} />
             <Route path="/customer/mapping" element={<CustomerMapping />} />
 
