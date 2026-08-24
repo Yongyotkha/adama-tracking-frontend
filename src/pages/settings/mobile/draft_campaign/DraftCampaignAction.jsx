@@ -790,7 +790,7 @@ export default function DraftCampaignAction() {
     },
 
     {
-      title: "Sub Total (THB)",
+      title: "Value (THB)	",
       dataIndex: "unit_convert_order_value",
       width: 150,
       align: "right",
@@ -827,7 +827,7 @@ export default function DraftCampaignAction() {
     <tr className="bg-[#978B87]">
       <td colSpan={11} className="text-right pr-4 py-3 text-white">
         Item : {rows.length} | QTY (ctn): {formatNumber(totals.qty)} | Total
-        Point : {formatNumber(totals.point)} | Total:{" "}
+        Point : {formatNumber(totals.point)} | Total THB:{" "}
         {formatNumber(totals.value, 2)}
         {isDealerOnly && (
           <> | Your Reward (Bath) : {formatNumber(pointYourGet, 2)}</>

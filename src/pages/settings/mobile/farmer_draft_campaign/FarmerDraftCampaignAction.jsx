@@ -796,7 +796,7 @@ export default function FarmerDraftCampaignAction() {
     },
 
     {
-      title: "Value (BTH)",
+      title: "Value (THB)",
       dataIndex: "net_amount",
       width: 140,
       align: "right",
