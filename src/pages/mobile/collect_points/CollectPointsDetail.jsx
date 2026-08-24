@@ -40,6 +40,8 @@ export default function CollectPointsDetail() {
           ...(shopType === "farmer" ? { mode: "farmer" } : {}),
         });
 
+        console.log('shopType :', shopType);
+
         if (response?.status === 200) {
           setHistorydetail(response.data ?? null);
         } else {
