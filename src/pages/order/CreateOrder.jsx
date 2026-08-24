@@ -54,6 +54,7 @@ export default function CreateOrder() {
           no: index + 1,
           quantity: parseInt(item.quantity || 0),
           foc: parseInt(item.foc || 0),
+          point: item.point || 0,
         }))
       );
 
@@ -573,11 +574,17 @@ export default function CreateOrder() {
       0
     );
 
+    const totalPoint = dataSource.reduce(
+      (total, item) => total + parseFloat(item.point || 0),
+      0
+    );
+
     return (
       <tr className="bg-[#978B87]">
         <td colSpan={9} className="text-right pr-2 text-white">
           Item: {dataSource.length} &nbsp; QTY (ctn): {totalQuantity}+{totalFOC}
           &nbsp; Total: {totalAmount.toLocaleString("en-US", { minimumFractionDigits: 2 })}
+          &nbsp; Total Point: {totalPoint.toLocaleString("en-US")}
         </td>
       </tr>
     );
@@ -655,6 +662,7 @@ export default function CreateOrder() {
           quantity: 1,
           foc: minFoc > 0 ? parseInt(1 / minFoc) : 0,
           net_amount: price.toFixed(2),
+          point: data.point || 0,
         };
 
         setDataSource((prev) =>

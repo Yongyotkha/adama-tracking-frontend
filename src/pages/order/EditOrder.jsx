@@ -60,6 +60,7 @@ export default function EditOrder() {
               no: prev.length + index + 1,
               key: prev.length + index + 1,
               quantity: parseInt(item.quantity),
+              point: item.point || 0,
               action: Array.isArray(item.action) ? item.action : [], // ✅ เพิ่มบรรทัดนี้
             }))
           ];
@@ -452,15 +453,22 @@ export default function EditOrder() {
   ];
 
   const footerOrderList = () => {
-    const totalQuantity = dataSource.reduce((total, item) => total + item.quantity, 0);
-    const totalFOC = dataSource.reduce((total, item) => total + item.foc, 0);
+    const totalQuantity = dataSource.reduce((total, item) => total + (item.quantity || 0), 0);
+    const totalFOC = dataSource.reduce((total, item) => total + (item.foc || 0), 0);
     const totalAmount = dataSource.reduce((total, item) => total + parseFloat(item.net_amount || 0), 0);
+    const totalPoint =
+      dataOrderDetail?.total_point !== undefined &&
+      dataOrderDetail?.total_point !== null &&
+      dataOrderDetail?.total_point !== ""
+        ? parseFloat(dataOrderDetail.total_point || 0)
+        : dataSource.reduce((total, item) => total + parseFloat(item.point || 0), 0);
 
     return (
       <tr className="bg-[#978B87]">
         <td colSpan={9} className="text-right pr-2 text-white">
           Item: {dataSource.length} &nbsp; QTY (ctn): {parseInt(totalQuantity)}+{parseInt(totalFOC)} &nbsp;
-          Total: {totalAmount.toLocaleString("en-US", { minimumFractionDigits: 2 })}
+          Total: {totalAmount.toLocaleString("en-US", { minimumFractionDigits: 2 })} &nbsp; Total Point:{" "}
+          {totalPoint.toLocaleString("en-US")}
         </td>
       </tr>
     );
@@ -515,6 +523,7 @@ export default function EditOrder() {
           // foc: data.product_campaign_foc,
           foc: parseInt(1 / data.product_campaign_order_min_foc),
           net_amount: 0.00,
+          point: data.point || 0,
         };
 
         setDataSource([...dataSource, newProductDataDetail]);

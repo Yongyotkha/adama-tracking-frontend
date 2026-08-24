@@ -1625,9 +1625,9 @@ export default function CreateActivity() {
             <TableComponent
               header={header}
               dataSource={activityDetail?.expense_product_data_list}
-              pageSize={10}
+              pageSize={15}
               footer={activityDetail?.expense_product_data_list?.length > 0 ? footerOrderList : null}
-              pagination={10}
+              pagination={{ pageSize: 15 }}
             />
           </BoxPrimary>
 

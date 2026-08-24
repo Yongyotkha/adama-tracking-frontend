@@ -100,7 +100,7 @@ const ActionButton = ({
 
       {(mode === "back" || mode === "close") && (
         <button
-          className={`flex text-[#FFFFFF] text-sm rounded-[4px] bg-[#B6AEAB] gap-2 p-1 px-2 items-center justify-center ${className}`}
+          className={`flex text-[#FFFFFF] text-sm rounded-sm bg-[#B6AEAB] gap-2 p-2 items-center min-w-[96px] justify-center ${className}`}
           onClick={onClick}
           disabled={disabled}
           style={style}
