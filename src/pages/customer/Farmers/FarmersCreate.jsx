@@ -1635,14 +1635,14 @@ export default function FarmersCreate() {
                 children: profileTab,
               },
               {
-                key: "gallery",
-                label: <span className="tab-title">Gallery</span>,
-                children: galleryTab,
-              },
-              {
                 key: "farm",
                 label: <span className="tab-title">Crop Calendar</span>,
                 children: farmSizeCalendarTab,
+              },
+              {
+                key: "gallery",
+                label: <span className="tab-title">Gallery</span>,
+                children: galleryTab,
               },
             ]}
           />
