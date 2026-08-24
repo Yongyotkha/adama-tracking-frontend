@@ -104,14 +104,17 @@ export default function FarmerDraftCampaignAction() {
 
   const setCurrentPointValue = (value) => {
     const currentPoint = toNumber(value);
+    const targetPoint = toNumber(form.getFieldValue("target_point"));
 
     form.setFieldsValue({
       current_point: currentPoint,
+      diff_form_target: currentPoint - targetPoint,
     });
 
     setDetail((prev) => ({
       ...prev,
       current_point: currentPoint,
+      diff_form_target: currentPoint - targetPoint,
     }));
   };
 
@@ -189,7 +192,9 @@ export default function FarmerDraftCampaignAction() {
 
       const balancePoint = getBalancePointFromResponse(res);
       setCurrentPointValue(balancePoint);
-      setCurrentValue(res?.data?.data?.value_of_year ?? res?.data?.value_of_year ?? 0);
+      setCurrentValue(
+        res?.data?.data?.value_of_year ?? res?.data?.value_of_year ?? 0,
+      );
 
       return res;
     } catch (_) {
@@ -238,7 +243,7 @@ export default function FarmerDraftCampaignAction() {
         normalizeOption(item, {
           valueKey: "id",
           labelKey: "name",
-        })
+        }),
       );
 
       setDealerOptions(normalized);
@@ -248,7 +253,9 @@ export default function FarmerDraftCampaignAction() {
         !normalized.some((item) => String(item.id) === String(selectedDealerId))
       ) {
         const fallback = normalized.find(
-          (item) => item.name === selectedDealerName || item.name === detail.dealer_name
+          (item) =>
+            item.name === selectedDealerName ||
+            item.name === detail.dealer_name,
         );
 
         if (fallback) {
@@ -264,7 +271,7 @@ export default function FarmerDraftCampaignAction() {
     saleId,
     dealerId,
     selectedSubDealerId,
-    selectedSubDealerName
+    selectedSubDealerName,
   ) => {
     if (!dealerId) {
       setSubDealerOptions([]);
@@ -283,19 +290,21 @@ export default function FarmerDraftCampaignAction() {
         normalizeOption(item, {
           valueKey: "sub_dealer_id",
           labelKey: "sub_dealer_name",
-        })
+        }),
       );
 
       setSubDealerOptions(normalized);
 
       if (
         selectedSubDealerId &&
-        !normalized.some((item) => String(item.id) === String(selectedSubDealerId))
+        !normalized.some(
+          (item) => String(item.id) === String(selectedSubDealerId),
+        )
       ) {
         const fallback = normalized.find(
           (item) =>
             item.name === selectedSubDealerName ||
-            item.name === detail.sub_dealer_name
+            item.name === detail.sub_dealer_name,
         );
 
         if (fallback) {
@@ -310,7 +319,7 @@ export default function FarmerDraftCampaignAction() {
   const loadFarmerMaster = async (
     subDealerId,
     selectedFarmerId,
-    selectedFarmerName
+    selectedFarmerName,
   ) => {
     const requestId = farmerRequestRef.current + 1;
     farmerRequestRef.current = requestId;
@@ -347,13 +356,13 @@ export default function FarmerDraftCampaignAction() {
       const finalOptions =
         selectedFarmerId && !hasSelectedFarmer
           ? [
-            {
-              id: String(selectedFarmerId),
-              name: selectedFarmerName || String(selectedFarmerId),
-              raw: {},
-            },
-            ...normalized,
-          ]
+              {
+                id: String(selectedFarmerId),
+                name: selectedFarmerName || String(selectedFarmerId),
+                raw: {},
+              },
+              ...normalized,
+            ]
           : normalized;
 
       if (requestId === farmerRequestRef.current) {
@@ -405,19 +414,19 @@ export default function FarmerDraftCampaignAction() {
 
     const currentPointPayload = draft?.farmer_id
       ? {
-        shop_type: "farmer",
-        id: draft.farmer_id,
-      }
+          shop_type: "farmer",
+          id: draft.farmer_id,
+        }
       : draft?.sub_dealer_id
         ? {
-          shop_type: "sub_dealer",
-          id: draft.sub_dealer_id,
-        }
+            shop_type: "sub_dealer",
+            id: draft.sub_dealer_id,
+          }
         : draft?.dealer_id
           ? {
-            shop_type: "dealer",
-            id: draft.dealer_id,
-          }
+              shop_type: "dealer",
+              id: draft.dealer_id,
+            }
           : null;
 
     const currentPointRes = currentPointPayload
@@ -427,7 +436,7 @@ export default function FarmerDraftCampaignAction() {
     const mapped = mapDraftCampaignDetail(
       draft,
       getBalancePointFromResponse(currentPointRes),
-      { isFarmer: true }
+      { isFarmer: true },
     );
 
     setDetail(mapped);
@@ -450,18 +459,18 @@ export default function FarmerDraftCampaignAction() {
           master_price:
             item.farmer || item.master_price || item.unit_convert_order_value,
 
-          master_point:
-            item.point_farmer || item.master_point || item.point,
+          master_point: item.point_farmer || item.master_point || item.point,
 
-          point:
-            item.point_farmer || item.master_point || item.point,
-        })
-      )
+          point: item.point_farmer || item.master_point || item.point,
+        }),
+      ),
     );
 
     form.setFieldsValue({
       document_number: mapped.document_number,
-      document_date: mapped.document_date ? dayjs(mapped.document_date) : dayjs(),
+      document_date: mapped.document_date
+        ? dayjs(mapped.document_date)
+        : dayjs(),
       user_id: mapped.user_id || undefined,
       dealer_id: mapped.dealer_id || undefined,
       sub_dealer_id: mapped.sub_dealer_id || undefined,
@@ -473,7 +482,8 @@ export default function FarmerDraftCampaignAction() {
       target_value: mapped.target_value,
       diff_value_form_target: mapped.diff_value_form_target,
       value_to_point: mapped.value_to_point,
-      point_your_get: toNumber(mapped.value_to_point) * toNumber(mapped.net_amount),
+      point_your_get:
+        toNumber(mapped.value_to_point) * toNumber(mapped.net_amount),
     });
 
     await loadDealers(mapped.user_id, mapped.dealer_id, mapped.dealer_name);
@@ -482,13 +492,13 @@ export default function FarmerDraftCampaignAction() {
       mapped.user_id,
       mapped.dealer_id,
       mapped.sub_dealer_id,
-      mapped.sub_dealer_name
+      mapped.sub_dealer_name,
     );
 
     await loadFarmerMaster(
       mapped.sub_dealer_id,
       mapped.farmer_id,
-      mapped.farmer_name
+      mapped.farmer_name,
     );
   };
 
@@ -497,7 +507,9 @@ export default function FarmerDraftCampaignAction() {
       setLoading(true);
 
       try {
-        const salesRes = await useServiceAPI.get(paths.pathMasterSaleSingle, { mode: "farmer" });
+        const salesRes = await useServiceAPI.get(paths.pathMasterSaleSingle, {
+          mode: "farmer",
+        });
         const sales = Array.isArray(salesRes?.data) ? salesRes.data : [];
 
         setSalesOptions(
@@ -505,8 +517,8 @@ export default function FarmerDraftCampaignAction() {
             normalizeOption(item, {
               valueKey: "id",
               labelKey: "name",
-            })
-          )
+            }),
+          ),
         );
 
         await loadDetail();
@@ -514,7 +526,7 @@ export default function FarmerDraftCampaignAction() {
         showNotification?.(
           "error",
           error?.response?.data?.message || "Load failed",
-          [error?.message || "Unable to load draft campaign"]
+          [error?.message || "Unable to load draft campaign"],
         );
       } finally {
         setLoading(false);
@@ -547,7 +559,7 @@ export default function FarmerDraftCampaignAction() {
     loadSubDealers(
       watchSaleId,
       watchDealerId,
-      form.getFieldValue("sub_dealer_id")
+      form.getFieldValue("sub_dealer_id"),
     );
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [watchDealerId]);
@@ -567,11 +579,11 @@ export default function FarmerDraftCampaignAction() {
       prev.map((row, rowIndex) =>
         rowIndex === index
           ? calculateCampaignRow({
-            ...row,
-            [key]: Math.max(0, toNumber(value)),
-          })
-          : row
-      )
+              ...row,
+              [key]: Math.max(0, toNumber(value)),
+            })
+          : row,
+      ),
     );
   };
 
@@ -579,7 +591,7 @@ export default function FarmerDraftCampaignAction() {
     if (!selectedProductId) return;
 
     const duplicateProduct = rows.find(
-      (item) => String(item.product_id) === String(selectedProductId)
+      (item) => String(item.product_id) === String(selectedProductId),
     );
 
     if (duplicateProduct) {
@@ -605,12 +617,15 @@ export default function FarmerDraftCampaignAction() {
         ...mapDraftCampaignProduct(productDetail, { isFarmer: true }),
         unit_convert_order_value:
           productDetail.farmer || productDetail.unit_convert_order_value,
-        bath_unit:
-          productDetail.farmer || productDetail.bath_unit,
+        bath_unit: productDetail.farmer || productDetail.bath_unit,
         master_price:
-          productDetail.farmer || productDetail.master_price || productDetail.unit_convert_order_value,
+          productDetail.farmer ||
+          productDetail.master_price ||
+          productDetail.unit_convert_order_value,
         master_point:
-          productDetail.point_farmer || productDetail.master_point || productDetail.point,
+          productDetail.point_farmer ||
+          productDetail.master_point ||
+          productDetail.point,
       };
 
       setRows((prev) => [
@@ -630,7 +645,7 @@ export default function FarmerDraftCampaignAction() {
       showNotification?.(
         "error",
         error?.response?.data?.message || "Product not found",
-        [error?.message || "Unable to load product detail"]
+        [error?.message || "Unable to load product detail"],
       );
       setProductSelection(undefined);
     } finally {
@@ -711,14 +726,14 @@ export default function FarmerDraftCampaignAction() {
             value: sum.value + qty * unitPrice,
           };
         },
-        { qty: 0, point: 0, value: 0 }
+        { qty: 0, point: 0, value: 0 },
       ),
-    [rows]
+    [rows],
   );
 
   const pointYourGet = useMemo(
     () => toNumber(watchValueToPoint) * toNumber(totals.value),
-    [watchValueToPoint, totals.value]
+    [watchValueToPoint, totals.value],
   );
 
   useEffect(() => {
@@ -765,8 +780,7 @@ export default function FarmerDraftCampaignAction() {
       dataIndex: "master_point",
       width: 130,
       align: "right",
-      render: (value, row) =>
-        formatNumber(toNumber(value || row.point)),
+      render: (value, row) => formatNumber(toNumber(value || row.point)),
     },
 
     {
@@ -774,8 +788,7 @@ export default function FarmerDraftCampaignAction() {
       dataIndex: "quantity",
       width: 170,
       align: "center",
-      render: (value, _, index) =>
-        renderStepperInput(index, "quantity", value),
+      render: (value, _, index) => renderStepperInput(index, "quantity", value),
     },
 
     {
@@ -783,8 +796,7 @@ export default function FarmerDraftCampaignAction() {
       dataIndex: "xpoint",
       width: 170,
       align: "center",
-      render: (value, _, index) =>
-        renderStepperInput(index, "xpoint", value),
+      render: (value, _, index) => renderStepperInput(index, "xpoint", value),
     },
 
     {
@@ -801,10 +813,7 @@ export default function FarmerDraftCampaignAction() {
       width: 140,
       align: "right",
       render: (_, row) =>
-        formatNumber(
-          toNumber(row.quantity) * getOrderUnitPrice(row),
-          2
-        ),
+        formatNumber(toNumber(row.quantity) * getOrderUnitPrice(row), 2),
     },
 
     {
@@ -819,7 +828,7 @@ export default function FarmerDraftCampaignAction() {
             className="text-[#978B87] transition duration-150 ease-out hover:scale-110 hover:text-[#D4380D] active:scale-95"
             onClick={() =>
               setRows((prev) =>
-                prev.filter((_, rowIndex) => rowIndex !== index)
+                prev.filter((_, rowIndex) => rowIndex !== index),
               )
             }
           >
@@ -849,15 +858,20 @@ export default function FarmerDraftCampaignAction() {
       centered: true,
       onOk: async () => {
         try {
-          const res = await useServiceAPI.delete(paths.pathDraftCampaignDelete, {
-            document_number: detail.document_number,
-            mode: "farmer",
-          });
+          const res = await useServiceAPI.delete(
+            paths.pathDraftCampaignDelete,
+            {
+              document_number: detail.document_number,
+              mode: "farmer",
+            },
+          );
 
           await showNotification?.(
             res?.status === 200 ? "success" : "warning",
             res?.message || "Notification",
-            res?.data?.message_line || [res?.data?.message || "Delete finished"]
+            res?.data?.message_line || [
+              res?.data?.message || "Delete finished",
+            ],
           );
 
           navigate("/setting/line/farmer-draft-campaign");
@@ -867,7 +881,7 @@ export default function FarmerDraftCampaignAction() {
             error?.response?.data?.message || "Delete failed",
             error?.response?.data?.data?.message_line || [
               error?.message || "Unable to delete draft campaign",
-            ]
+            ],
           );
         }
       },
@@ -910,7 +924,7 @@ export default function FarmerDraftCampaignAction() {
       await showNotification?.(
         res?.status === 200 ? "success" : "warning",
         res?.message || "Notification",
-        lines
+        lines,
       );
 
       navigate("/setting/line/farmer-draft-campaign");
@@ -922,7 +936,7 @@ export default function FarmerDraftCampaignAction() {
         error?.response?.data?.message || "Save failed",
         error?.response?.data?.data?.message_line || [
           error?.message || "Unable to save draft campaign",
-        ]
+        ],
       );
     } finally {
       setLoading(false);
@@ -1095,24 +1109,13 @@ export default function FarmerDraftCampaignAction() {
                 min={0}
                 formatter={numberInputFormatter}
                 parser={numberInputParser}
-              />
-            </Form.Item>
-
-            <Form.Item label="Sale Plan Point" name="total_point">
-              <InputNumber
-                className="w-full"
-                disabled
-                formatter={numberInputFormatter}
-                parser={numberInputParser}
-              />
-            </Form.Item>
-
-            <Form.Item label="Diff Form Plan" name="diff_form_plan">
-              <InputNumber
-                className="w-full"
-                disabled
-                formatter={numberInputFormatter}
-                parser={numberInputParser}
+                onChange={(value) => {
+                  form.setFieldsValue({
+                    diff_form_target:
+                      toNumber(form.getFieldValue("current_point")) -
+                      toNumber(value),
+                  });
+                }}
               />
             </Form.Item>
 
@@ -1152,7 +1155,10 @@ export default function FarmerDraftCampaignAction() {
                   />
                 </Form.Item>
 
-                <Form.Item label="Diff Value Form Target" name="diff_value_form_target">
+                <Form.Item
+                  label="Diff Value Form Target"
+                  name="diff_value_form_target"
+                >
                   <InputNumber
                     className="w-full"
                     disabled
@@ -1246,9 +1252,9 @@ export default function FarmerDraftCampaignAction() {
               onClick={() =>
                 window.open(
                   `/setting/line/farmer-draft-campaign/pdf?document_number=${encodeURIComponent(
-                    detail.document_number
+                    detail.document_number,
                   )}`,
-                  "_blank"
+                  "_blank",
                 )
               }
             />

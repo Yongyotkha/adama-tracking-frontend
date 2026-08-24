@@ -143,7 +143,7 @@ export const mapDraftCampaignDetail = (item, currentPoint = 0, options = {}) => 
     farmer_name: item?.farm_name || item?.farmer_name || "-",
     current_point: toNumber(currentPoint),
     target_point: toNumber(item?.target_point),
-    diff_form_target: toNumber(item?.diff_form_target),
+    diff_form_target: toNumber(currentPoint) - toNumber(item?.target_point),
     current_value: toNumber(item?.value_of_year ?? item?.current_value),
     target_value: toNumber(item?.target_value),
     diff_value_form_target: toNumber(item?.diff_value_form_target),
@@ -162,7 +162,8 @@ export const buildDraftCampaignPayload = ({ values, rows, documentNumber }) => {
     user_id: toNumber(values.user_id),
     dealer_id: toNumber(values.dealer_id),
     target_point: toNumber(values.target_point),
-    diff_form_target: toNumber(values.diff_form_target),
+    diff_form_target:
+      toNumber(values.current_point) - toNumber(values.target_point),
     products: rows.map((row) => ({
       product_id: toNumber(row.product_id),
       quantity: toNumber(row.quantity),
