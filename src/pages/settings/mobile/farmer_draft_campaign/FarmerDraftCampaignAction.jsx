@@ -761,7 +761,7 @@ export default function FarmerDraftCampaignAction() {
     },
 
     {
-      title: "Point / ctn",
+      title: "Point / Pack",
       dataIndex: "master_point",
       width: 130,
       align: "right",
@@ -770,7 +770,7 @@ export default function FarmerDraftCampaignAction() {
     },
 
     {
-      title: "QTY (ctn)",
+      title: "QTY (Pack)",
       dataIndex: "quantity",
       width: 170,
       align: "center",
@@ -796,7 +796,7 @@ export default function FarmerDraftCampaignAction() {
     },
 
     {
-      title: "Sub Total",
+      title: "Value (BTH)",
       dataIndex: "net_amount",
       width: 140,
       align: "right",
@@ -832,8 +832,8 @@ export default function FarmerDraftCampaignAction() {
   const productFooter = () => (
     <tr className="bg-[#978B87]">
       <td colSpan={11} className="text-right pr-4 py-3 text-white">
-        Item : {rows.length} | QTY (ctn): {formatNumber(totals.qty)} | Total
-        Point : {formatNumber(totals.point)} | Total:{" "}
+        Item : {rows.length} | QTY (Pack): {formatNumber(totals.qty)} | Total
+        Point : {formatNumber(totals.point)} | Total THB:{" "}
         {formatNumber(totals.value, 2)}
         {isDealerOnly && (
           <> | Your Reward (Bath) : {formatNumber(pointYourGet, 2)}</>
