@@ -1481,7 +1481,7 @@ export default function FarmersCreate() {
 
         {canUpdate && (
           <Button className="mt-3" icon={<PlusOutlined />} onClick={addFarmSizeRow}>
-            Add Farm Size
+            Add Crop
           </Button>
         )}
 
@@ -1495,7 +1495,7 @@ export default function FarmersCreate() {
             />
           </div>
           <div>
-            <div className="text-[13px] font-semibold text-[#2f2522] mb-1.5">Average (Total Size / Est. Pesticide)</div>
+            <div className="text-[13px] font-semibold text-[#2f2522] mb-1.5">Average Input (บาทต่อไร่ต่อปี)</div>
             <Input
               disabled
               value={Number(averageEstPerSize).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
