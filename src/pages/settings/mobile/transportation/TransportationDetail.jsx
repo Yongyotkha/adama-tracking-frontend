@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef, useContext } from "react";
-import { Form, Input, DatePicker, Select, notification } from "antd";
+import { Form, Input, DatePicker, Select, notification, Modal } from "antd";
 import dayjs from "dayjs";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 
@@ -119,7 +119,7 @@ export default function TransportationDetail() {
       user_number: data.user_number || "-",
       created_at: data.created_at.split(" ")[0] || "-",
       user_address: data.user_address || "-",
-      status_name: data.status_tran_namsse || "-",
+      status_name: data.status_tran_name || "-",
       remark: data.remark || "-",
     });
 
@@ -131,12 +131,20 @@ export default function TransportationDetail() {
     });
   };
 
+  const isFarmer =
+    location.pathname.includes("farmer-transpotation") ||
+    location.pathname.includes("farmer-transportation") ||
+    Boolean(location.state?.is_farmer);
+
   const fetchDetail = async () => {
     setLoading(true);
     const id = location?.state?.id;
 
     try {
-      const res = await useServiceAPI.get(`${paths.pathTransportDetail}/${id}`);
+      const res = await useServiceAPI.get(
+        `${paths.pathTransportDetail}/${id}`,
+        isFarmer ? { mode: "farmer" } : {}
+      );
       if (res.status === 200) {
         const data = res.data || {};
         data.reward_value = 1
@@ -156,7 +164,7 @@ export default function TransportationDetail() {
         fillForm(data);
       }
     } catch (error) {
-      console.error(e);
+      console.error(error);
       showNotification("error", "Load failed", ["ไม่สามารถโหลดรายละเอียดได้"]);
     } finally {
       setLoading(false);
@@ -186,12 +194,13 @@ export default function TransportationDetail() {
     setUploadedFiles((prev) => prev.filter((item) => item.uid !== file.uid));
   };
 
-  const handleSaveDelivery = async () => {
+  const handleSaveDeliveryConfirm = async () => {
     if (!detail?.id) return;
     try {
       const payload = {
         id: detail.id,
         picture: uploadedFiles.map((file) => file.url), // Extract URLs from uploaded files
+        ...(isFarmer ? { mode: "farmer" } : {}),
       };
 
       const res = await useServiceAPI.post(paths.pathTransportReceive, payload);
@@ -208,6 +217,45 @@ export default function TransportationDetail() {
         message: "Error",
         description: "Failed to update transportation details.",
       });
+    }
+  };
+
+  const handleSaveDelivery = async () => {
+    if (!detail?.id) return;
+
+    const pictures = uploadedFiles.map((file) => file.url).filter(Boolean);
+    if (pictures.length === 0) {
+      notification.error({
+        message: "Error",
+        description: "Please upload at least one document.",
+      });
+      return;
+    }
+
+    try {
+      setLoading(true);
+      const payload = {
+        id: detail.id,
+        picture: pictures,
+        ...(isFarmer ? { mode: "farmer" } : {}),
+      };
+
+      const res = await useServiceAPI.post(paths.pathTransportSaveDraft, payload);
+      if (res.status === 200) {
+        notification.success({
+          message: "Success",
+          description: "Documents saved successfully.",
+        });
+        // อยู่หน้าเดิม เพื่อให้บันทึกเอกสารซ้ำได้
+      }
+    } catch (error) {
+      console.error("Failed to save draft documents:", error);
+      notification.error({
+        message: "Error",
+        description: "Failed to save documents.",
+      });
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -228,6 +276,7 @@ export default function TransportationDetail() {
         send_by: toApiSendBy(values.send_by),
         send_date: values.send_date ? dayjs(values.send_date).format("YYYY-MM-DD") : null,
         remark: values.send_remark || "",
+        ...(isFarmer ? { mode: "farmer" } : {}),
       };
 
       const res = await useServiceAPI.post(paths.pathTransportSend, payload);
@@ -255,6 +304,35 @@ export default function TransportationDetail() {
   const handlePDFDeliverySlip = () => {
     const id = location?.state?.id;
     window.open(`/points/line/pdf/delivery-slip?id=${id}`, "_blank", "noopener,noreferrer");
+  };
+
+  const confirmSaveDelivery = () => {
+    const pictures = uploadedFiles.map((file) => file.url).filter(Boolean);
+    if (pictures.length === 0) {
+      notification.warning({
+        message: "Warning",
+        description: "Please attach at least one document before saving.",
+      });
+      return;
+    }
+
+    Modal.confirm({
+      title: "Confirm Save",
+      content: "Do you want to save delivery and complete this transaction?",
+      okText: "OK",
+      cancelText: "Cancel",
+      onOk: () => handleSaveDeliveryConfirm(),
+    });
+  };
+
+  const confirmSavePrepare = () => {
+    Modal.confirm({
+      title: "Confirm Save",
+      content: "Do you want to save shipping details?",
+      okText: "OK",
+      cancelText: "Cancel",
+      onOk: () => handleSavePrepare(),
+    });
   };
 
   useEffect(() => {
@@ -376,10 +454,15 @@ export default function TransportationDetail() {
         <ActionButton mode="saveDraft" text="PDF Delivery Slip" onClick={handlePDFDeliverySlip} />
 
         {isDelivery && (
-          <ActionButton mode="save" text="Save" onClick={handleSaveDelivery} />
+          <ActionButton mode="sync" text="Save Draft" onClick={handleSaveDelivery} />
         )}
+        
+        {isDelivery && (
+          <ActionButton mode="save" text="Save" onClick={confirmSaveDelivery} />
+        )}
+        
         {isPrepare && (
-          <ActionButton mode="save" text="Save" onClick={handleSavePrepare} />
+          <ActionButton mode="save" text="Save" onClick={confirmSavePrepare} />
         )}
       </div>
     </MainLayout>

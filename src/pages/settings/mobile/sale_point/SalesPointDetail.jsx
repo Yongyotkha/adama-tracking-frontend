@@ -20,6 +20,8 @@ export default function SalesPointDetail() {
   const { showMsg, showNotification } = useContext(AuthContext);
 
   const [loading, setLoading] = useState(false);
+  const isFarmerMode = location.pathname.includes("farmer-points-list") || location?.state?.data?.is_farmer;
+  const isFarmer = isFarmerMode;
   const [dataSource, setDataSource] = useState([]);
   const [dataSourceOther, setDataSourceOther] = useState([]);
 
@@ -92,9 +94,11 @@ export default function SalesPointDetail() {
       try {
         const [sale, dealer, sub_dealer, farmer] = await Promise.all([
           useServiceAPI.get(paths.pathMasterSaleDropdown, { status: "" }),
-          useServiceAPI.get(paths.pathMasterDealerDropdown, { user_id: getUserId }),
-          useServiceAPI.get(paths.pathUserLineSubDealer, { dealer_id: getDealerId }),
-          getSubDealerId ? useServiceAPI.get(paths.pathUserLineFarmer, { sub_dealer_id: getSubDealerId }) : Promise.resolve({ data: [] }),
+          getUserId ? useServiceAPI.get(paths.pathMasterDealerDropdown, { user_id: getUserId }) : Promise.resolve({ data: [] }),
+          getDealerId ? useServiceAPI.get(paths.pathUserLineSubDealer, { dealer_id: getDealerId }) : Promise.resolve({ data: [] }),
+          getSubDealerId
+            ? useServiceAPI.get(paths.pathUserLineFarmer, { sub_dealer_id: getSubDealerId, platform: "web" })
+            : useServiceAPI.get(paths.pathUserLineFarmer, { platform: "web" }),
         ]);
 
         setDataSale(sale.data || []);
@@ -102,10 +106,16 @@ export default function SalesPointDetail() {
         setSubDataDealer(sub_dealer.data || []);
 
         const list = Array.isArray(farmer?.data?.data) ? farmer.data.data : Array.isArray(farmer?.data) ? farmer.data : [];
-        const normalized = list.map(item => ({
-          id: String(item.farmer_id || item.id),
-          name: item.farmer_name || item.name || String(item.farmer_id || item.id)
-        }));
+        const normalized = list.map((item) => {
+          const id = item.id || item.farmer_id;
+          const name = item.name || item.farmer_name || String(id || "");
+          return {
+            id,
+            name,
+            value: id,
+            label: name,
+          };
+        });
         setDataFarmer(normalized);
       } catch (error) {
         showMsg("error", error.message || "เกิดข้อผิดพลาด");
@@ -114,17 +124,22 @@ export default function SalesPointDetail() {
       }
     };
 
-    if (getUserId && getDealerId) getMaster();
-  }, [getUserId, getDealerId]);
+    if ((getUserId && getDealerId) || isFarmerMode) getMaster();
+  }, [getUserId, getDealerId, getSubDealerId]);
 
   const header = [
     { title: "No", dataIndex: "no", key: "no", width: 10 },
     { title: "SKU", dataIndex: "product_code", key: "product_code" },
     { title: "Product Name", dataIndex: "product_name", key: "product_name" },
-    { title: "Unit", dataIndex: "product_unit", key: "product_unit" },
-    { title: "THB/Unit", dataIndex: "product_unit_thb", key: "product_unit_thb" },
+    { title: isFarmerMode ? "Pack Size" : "Unit", dataIndex: "product_unit", key: "product_unit" },
     {
-      title: <div className="text-center">QTY (ctn)</div>,
+      title: isFarmerMode ? "THB/Pack Size" : "THB/Unit",
+      dataIndex: "product_unit_thb",
+      key: "product_unit_thb",
+      render: (text) => parseFloat(String(text || 0).replace(/,/g, "")).toLocaleString("en-US", { minimumFractionDigits: 2 }),
+    },
+    {
+      title: <div className="text-center">{isFarmerMode ? "No of Pack" : "QTY (ctn)"}</div>,
       dataIndex: "quantity",
       key: "quantity",
       render: (text) => (
@@ -201,7 +216,7 @@ export default function SalesPointDetail() {
     return (
       <tr className="bg-[#978B87]">
         <td colSpan={9} className="text-right pr-2 text-white">
-          Item: {dataSource.length} &nbsp;| QTY (ctn): {totalQuantity} &nbsp; | Total: 
+          Item: {dataSource.length} &nbsp;| {isFarmerMode ? "Total Pack" : "QTY (ctn)"}: {totalQuantity} &nbsp; | {isFarmerMode ? "Total Value" : "Total"}: 
           {totalAmount.toLocaleString("en-US", { minimumFractionDigits: 2 })} |
           Total Point: {dataSource.reduce((total, item) => total + (parseFloat(item.point || 0) * parseFloat(item.quantity || 0)), 0).toLocaleString("en-US")}
         </td>
@@ -252,7 +267,7 @@ export default function SalesPointDetail() {
       placeholder: "",
       value: getSubDealerId,
     },
-    {
+    isFarmer && {
       key: "farmer",
       label: "Farmer",
       name: "farmer",
@@ -280,7 +295,7 @@ export default function SalesPointDetail() {
       placeholder: dayjs().format("YYYY-MM-DD"),
       value: "",
     },
-  ];
+  ].filter(Boolean);
 
   const formatDate = (date) => {
     if (!date || !date.$d) return "";
@@ -292,7 +307,10 @@ export default function SalesPointDetail() {
   };
 
   const handleSaveOrder = () => {
-    const formattedDate = formatDate(getDocumentDate);
+    const formattedDate = formatDate(getDocumentDate) || getDocumentDate;
+    const isFarmer = location.state?.data?.is_farmer;
+    const backPath = location.state?.data?.back_path || "/points/line/sales-points-list";
+
     const body = {
       document_date: formattedDate,
       user_id: getUserId,
@@ -306,6 +324,7 @@ export default function SalesPointDetail() {
       request_id,
       bill: fileList.map((f) => f.url), // ✅ URL รูปที่เลือก/อัปโหลด
       product: fileListReceive.map((f) => f.url), // ✅ URL รูปที่เลือก/อัปโหลด
+      ...(isFarmer ? { mode: "farmer", type: "farmer" } : {}),
     };
 
     if (dataSource.length > 0) {
@@ -317,7 +336,7 @@ export default function SalesPointDetail() {
           ]);
 
           showNotification("success", response.data.message, response.data.message_line).then(() => {
-            navigate("/points/line/sales-points-list");
+            navigate(backPath);
           });
         } catch (error) {
           showMsg("error", error.message || "เกิดข้อผิดพลาด");
@@ -335,6 +354,8 @@ export default function SalesPointDetail() {
 
   const handleSaveOrderComplete = () => {
     const formattedDate = formatDate(getDocumentDate);
+    const isFarmer = location.state?.data?.is_farmer;
+    const backPath = location.state?.data?.back_path || "/points/line/sales-points-list";
 
     const body = {
       document_date: formattedDate,
@@ -350,6 +371,7 @@ export default function SalesPointDetail() {
       bill: fileList.map((f) => f.url),
       product: fileListReceive.map((f) => f.url),
       platform: "web",
+      ...(isFarmer ? { mode: "farmer", type: "farmer" } : {}),
     };
 
     if (dataSource.length > 0) {
@@ -366,7 +388,7 @@ export default function SalesPointDetail() {
             response.data.message,
             response.data.message_line
           ).then(() => {
-            navigate("/points/line/sales-points-list");
+            navigate(backPath);
           });
         } catch (error) {
           showMsg("error", error.message || "เกิดข้อผิดพลาด");
@@ -382,9 +404,13 @@ export default function SalesPointDetail() {
     }
   };
 
+  const backCreatePath = isFarmer ? "/points/line/farmer-points-list/create" : "/points/line/sales-points-list/create";
+
   return (
     <MainLayout loading={loading}>
-      <div className="title-page">Sales Point Order Detail</div>
+      <div className="title-page">
+        {isFarmer ? "Sales Point Order Detail (Farmer)" : "Sales Point Order Detail"}
+      </div>
 
       <FormCustom fields={formFields} form={formCustom} onChange="" />
 
@@ -429,7 +455,7 @@ export default function SalesPointDetail() {
           mode="back"
           text="Back"
           onClick={() =>
-            navigate("/points/line/sales-points-list/create", {
+            navigate(backCreatePath, {
               state: {
                 data: location?.state?.data,
               },

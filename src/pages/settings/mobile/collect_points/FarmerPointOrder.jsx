@@ -156,7 +156,7 @@ export default function FarmerPointOrder() {
       status_code: filters.status_code || " ",
       page: "all",
       use_flag: 1,
-      orderby_column: sortField || "document_number",
+      orderby_column: sortField || "document_date",
       orderby: "desc",
       platform: "web",
       page_length: current,

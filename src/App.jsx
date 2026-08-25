@@ -16,6 +16,7 @@ import WorkPlan from "./pages/sale_plan/workplan/WorkPlan";
 import WorkPlanCreate from "./pages/sale_plan/workplan/WorkPlanCreate";
 import WorkPlanCreateStepTwo from "./pages/sale_plan/workplan/WorkPlanCreateStepTwo";
 import SettingRole from "./pages/settings/role/SettingRole";
+import SettingMenu from "./pages/settings/menu/SettingMenu";
 import SettingUser from "./pages/settings/user/SettingUser";
 import LogUser from "./pages/settings/user/LogUser";
 import ProfileUser from "./pages/settings/user/ProfileUser";
@@ -45,6 +46,9 @@ import CreateSubDealer from "./pages/customer/sub_dealer/CreateSubDealer";
 import EditSubDealer from "./pages/customer/sub_dealer/EditSubDealer";
 import Farmer from "./pages/customer/Farmers/FarmersList";
 import FarmerCreate from "./pages/customer/Farmers/FarmersCreate";
+import FarmersImportList from "./pages/customer/Farmers/FarmersImportList";
+import FarmersImportUpload from "./pages/customer/Farmers/FarmersImportUpload";
+import FarmersImportDetail from "./pages/customer/Farmers/FarmersImportDetail";
 import CustomerMapping from "./pages/customer/mapping/CustomerMapping";
 import CameraView from "./pages/mobile/collect_points/CameraView";
 import CustomerContactList from "./pages/customer/contact/List";
@@ -77,6 +81,7 @@ import WorkPlanSaleBySubDealer from "./pages/sale_plan/workplan/WorkPlanSaleBySu
 import RollingForecastQuarter from "./pages/sale_plan/rolling_forecast/RollingForecastQuarter";
 import RollingForecastTempUpload from "./pages/sale_plan/rolling_forecast/RollingForecastTempUpload";
 import RollingForecastTempList from "./pages/sale_plan/rolling_forecast/RollingForecastTempList";
+import RollingForecastTempDetail from "./pages/sale_plan/rolling_forecast/RollingForecastTempDetail";
 import RollingForecastMonth from "./pages/sale_plan/rolling_forecast/RollingForecastMonth";
 import ActivityPlanDealer from "./pages/activity/activity_plan/ActivityPlanDealer";
 import ActivityPlanSubDealer from "./pages/activity/activity_plan/ActivityPlanSubDealer";
@@ -126,10 +131,12 @@ import FaqOA from "./pages/mobile/user/settings/faq/Faq";
 import PrivacyPolicy from "./pages/mobile/user/settings/privacy_policy/PrivacyPolicy";
 import TermsConditions from "./pages/mobile/user/settings/terms_conditions/TermsConditions";
 import CheckLogin from "./pages/mobile/auth/CheckLogin";
+import LoginBypassOA from "./pages/mobile/auth/LoginBypassOA";
 import { LineOARoute, LinePrivateRoute } from "./components/auth/LineOARoute";
 import CustomerLineList from "./pages/settings/mobile/customer/CustomerLineList";
 import CreateCustomerLine from "./pages/settings/mobile/customer/CreateCustomerLine";
 import ExpirePointList from "./pages/settings/mobile/expire_point/ExpirePointList";
+import FarmerExpirePointList from "./pages/settings/mobile/expire_point/FarmerExpirePointList";
 // import ManagePromotionList from "./pages/settings/mobile/manage-promotion/ManagePromotionList";
 // import CreateManagePromotion from "./pages/settings/mobile/manage-promotion/CreateManagePromotion";
 import ApprovalAdvanceExpense from "./pages/expenses/advance/ApprovalAdvanceExpense";
@@ -175,8 +182,13 @@ import DraftCampaignAction from "./pages/settings/mobile/draft_campaign/DraftCam
 import ViewOrEditTargetGroup from "./pages/settings/mobile/target_group/ViewOrEditTargetGroup";
 import CollectPointsDetail from "./pages/mobile/collect_points/CollectPointsDetail";
 import CollectPointsList from "./pages/settings/mobile/collect_points/CollectPointsList";
+import FarmerPointCollection from "./pages/settings/mobile/collect_points/FarmerPointCollection";
+import FarmerPointOrder from "./pages/settings/mobile/collect_points/FarmerPointOrder";
+import FarmerPointRedeem from "./pages/settings/mobile/redeem_list/FarmerPointRedeem";
+import FarmerPointCampaignList from "./pages/settings/mobile/point_campaign/FarmerPointCampaignList";
 import RedeemDetail from "./pages/settings/mobile/redeem_list/RedeemDetail";
 import Transportation from "./pages/settings/mobile/transportation/Transportation";
+import FarmerTransportation from "./pages/settings/mobile/transportation/FarmerTransportation";
 import RewardProductUpdateStock from "./pages/settings/mobile/request_purchase/RewardProductUpdateStock";
 import RequestPurchaseList from "./pages/settings/mobile/request_purchase/RequestPurchaseList";
 import TransportationDetail from "./pages/settings/mobile/transportation/TransportationDetail";
@@ -200,6 +212,9 @@ import ReportSellInByFarmer from "./pages/report/ReportSellInByFarmer";
 import PDFMaterialExpense from "./pages/pdf/PDFMaterialExpense";
 import PDFSampleExpense from "./pages/pdf/PDFSampleExpense";
 import ViewDraftCampaignPDF from "./pages/pdf/DraftCampaignPDF";
+import FarmerDraftCampaignList from "./pages/settings/mobile/farmer_draft_campaign/FarmerDraftCampaignList";
+import FarmerDraftCampaignAction from "./pages/settings/mobile/farmer_draft_campaign/FarmerDraftCampaignAction";
+import FarmerDraftCampaignPDF from "./pages/settings/mobile/farmer_draft_campaign/FarmerDraftCampaignPDF";
 
 const App = () => {
   return (
@@ -291,6 +306,10 @@ const App = () => {
             <Route
               path="/sale-plan/rolling-forecast/temp-list"
               element={<RollingForecastTempList />}
+            />
+            <Route
+              path="/sale-plan/rolling-forecast/temp-list/:uploadId"
+              element={<RollingForecastTempDetail />}
             />
 
             {/* Activity Route */}
@@ -411,14 +430,6 @@ const App = () => {
               element={<ApprovalClearingExpense />}
             />
 
-            {/* <Route path="/expenses/advance/approval/area" element={<AdvanceExpenseArea />} />
-            <Route path="/expenses/advance/approval/head-of-sales" element={<AdvanceExpenseHead />} />
-            <Route path="/expenses/advance/approval/accounting" element={<AdvanceExpenseAcct />} />
-            <Route path="/expenses/clearing/approval/area" element={<ClearingExpenseArea />} />
-            <Route path="/expenses/clearing/approval/head-of-sales" element={<ClearingExpenseHead />} />
-            <Route path="/expenses/clearing/approval/accounting" element={<ClearingExpenseAcct />} /> */}
-
-            {/* Customer Route */}
             <Route path="/customer/dealer" element={<Dealer />} />
             <Route
               path="/customer/dealer/create"
@@ -451,6 +462,15 @@ const App = () => {
             {/* <Route path="/customer/sub-dealer/view" element={<EditSubDealer />} /> */}
 
             <Route path="/customer/farmers" element={<Farmer />} />
+            <Route path="/customer/farmers/import" element={<FarmersImportList />} />
+            <Route
+              path="/customer/farmers/import/upload"
+              element={<FarmersImportUpload />}
+            />
+            <Route
+              path="/customer/farmers/import/:uploadId"
+              element={<FarmersImportDetail />}
+            />
             <Route path="/customer/farmers/create" element={<FarmerCreate />} />
             <Route path="/customer/mapping" element={<CustomerMapping />} />
 
@@ -469,6 +489,7 @@ const App = () => {
             <Route path="/setting/info/view" element={<ActionInfo />} />
 
             <Route path="/setting/role" element={<SettingRole />} />
+            <Route path="/setting/menu" element={<SettingMenu />} />
             <Route path="/setting/profile" element={<ProfileUser />} />
             <Route path="/setting/user" element={<SettingUser />} />
             <Route path="/setting/user/create" element={<CreateUser />} />
@@ -573,6 +594,70 @@ const App = () => {
               element={<CollectPointsList />}
             />
             <Route
+              path="/points/line/farmer-points-list"
+              element={<FarmerPointOrder />}
+            />
+            <Route
+              path="/points/line/farmer-points-list/create"
+              element={<SalesPointCreate />}
+            />
+            <Route
+              path="/points/line/farmer-points-list/edit"
+              element={<SalesPointEdit />}
+            />
+            <Route
+              path="/points/line/farmer-points-list/view"
+              element={<SalesPointView />}
+            />
+            <Route
+              path="/points/line/farmer-points-list/detail"
+              element={<SalesPointDetail />}
+            />
+            <Route
+              path="/points/line/farmer-collect-points-list"
+              element={<FarmerPointCollection />}
+            />
+            <Route
+              path="/points/line/farmer-redeem-reward-list"
+              element={<FarmerPointRedeem />}
+            />
+            <Route
+              path="/points/line/farmer-redeem-reward/:mode"
+              element={<RedeemDetail />}
+            />
+            <Route
+              path="/points/line/farmer-expire-point"
+              element={<FarmerExpirePointList />}
+            />
+            <Route
+              path="/points/line/farmer-transportation"
+              element={<FarmerTransportation />}
+            />
+            <Route
+              path="/points/line/farmer-transpotation"
+              element={<FarmerTransportation />}
+            />
+            <Route
+              path="/points/line/farmer-transportation/:mode"
+              element={<TransportationDetail />}
+            />
+            <Route
+              path="/points/line/farmer-transpotation/:mode"
+              element={<TransportationDetail />}
+            />
+            <Route
+              path="/setting/line/farmer-point-campaign"
+              element={<FarmerPointCampaignList />}
+            />
+            <Route
+              path="/setting/line/farmer-point-campaign/create"
+              element={<CreatePointCampaign />}
+            />
+            <Route
+              path="/setting/line/farmer-point-campaign/:mode"
+              element={<CreatePointCampaign />}
+            />
+            <Route
               path="/points/line/collect-points-list/view"
               element={<CollectPointsView />}
             />
@@ -619,6 +704,23 @@ const App = () => {
             <Route
               path="/setting/line/draft-campaign/pdf"
               element={<ViewDraftCampaignPDF />}
+            />
+
+            <Route
+              path="/setting/line/farmer-draft-campaign"
+              element={<FarmerDraftCampaignList />}
+            />
+            <Route
+              path="/setting/line/farmer-draft-campaign/create"
+              element={<FarmerDraftCampaignAction />}
+            />
+            <Route
+              path="/setting/line/farmer-draft-campaign/:mode"
+              element={<FarmerDraftCampaignAction />}
+            />
+            <Route
+              path="/setting/line/farmer-draft-campaign/pdf"
+              element={<FarmerDraftCampaignPDF />}
             />
 
             <Route
@@ -749,6 +851,8 @@ const App = () => {
               element={<SaleHistoryReport />}
             />
           </Route>
+
+          <Route path="/mobile/bypass" element={<LoginBypassOA />} />
 
           <Route element={<LineOARoute />}>
             <Route path="/mobile/login" element={<CheckLogin />} />

@@ -55,6 +55,7 @@ export default function SalesPointRequestMode() {
     }
   };
 
+  const isFarmer = location.pathname.includes("farmer") || Boolean(location.state?.is_farmer);
   // 1) ดึงรายละเอียดใบคำขอจาก pathSalePointOrderRequestEdit
   useEffect(() => {
     const fetchDetail = async () => {
@@ -64,6 +65,7 @@ export default function SalesPointRequestMode() {
       try {
         const res = await useServiceAPI.get(paths.pathSalePointOrderRequestEdit, {
           id: request_id,
+          ...(isFarmer ? { mode: "farmer" } : {}),
         });
 
         // โครงสร้างมาตรฐานของ service: { status, data: { result, status, message, data } }

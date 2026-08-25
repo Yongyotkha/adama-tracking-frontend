@@ -3,7 +3,7 @@ import { useContext, useEffect, useState } from "react";
 import liff from "@line/liff";
 import MessageLayout from "../../layouts/MessageLayout";
 import { AuthContext } from "../../contexts/AuthContext";
-import { liffId as LIFF_ID } from "../../services/CorsPath";
+import { liffId as LIFF_ID, isMobileBypassAuth } from "../../services/CorsPath";
 const LineOARoute = () => {
   const location = useLocation();
   const [isLineLoggedIn, setIsLineLoggedIn] = useState(false);
@@ -45,6 +45,19 @@ const LineOARoute = () => {
 
     if (queryParams.get("richMenu")) {
       localStorage.setItem("redirectPath", location.pathname);
+    }
+
+    if (isMobileBypassAuth()) {
+      const lineUserId = localStorage.getItem("lineUserId") || "";
+      const storedUsers = localStorage.getItem("users");
+      const users = storedUsers ? JSON.parse(storedUsers) : null;
+      setLineProfile({
+        userId: lineUserId,
+        displayName:
+          users?.name || localStorage.getItem("lineDisplayName") || "",
+      });
+      setIsLineLoggedIn(false);
+      return;
     }
 
     initLIFF();
@@ -96,6 +109,21 @@ const LinePrivateRoute = () => {
       }
     };
 
+    if (isMobileBypassAuth()) {
+      const hasSession = !!localStorage.getItem("users");
+      const lineUserId = localStorage.getItem("lineUserId") || "";
+      const storedUsers = localStorage.getItem("users");
+      const users = storedUsers ? JSON.parse(storedUsers) : null;
+      setProfile({
+        userId: lineUserId,
+        displayName:
+          users?.name || localStorage.getItem("lineDisplayName") || "",
+      });
+      setIsLoggedIn(hasSession);
+      setLoading(false);
+      return;
+    }
+
     checkLineLogin();
   }, []);
 
@@ -104,6 +132,14 @@ const LinePrivateRoute = () => {
   }
   console.log("profile : ", profile);
   console.log("isLoggedIn : ", isLoggedIn);
+
+  if (isMobileBypassAuth()) {
+    if (isLoggedIn) {
+      return <Outlet context={{ lineProfile: profile }} />;
+    }
+    return <Navigate to="/mobile/bypass" />;
+  }
+
   if (isLoggedIn && profile) {
     return <Outlet context={{ lineProfile: profile }} />;
   } else {

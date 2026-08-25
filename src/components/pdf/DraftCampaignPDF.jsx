@@ -403,10 +403,6 @@ export default function DraftCampaignPDF() {
                 <Text style={styles.lowerLabel}>Sub Dealer Name :</Text>
                 <Text>{data.sub_dealer_name || "-"}</Text>
               </View>
-              <View style={styles.labelRow}>
-                <Text style={styles.lowerLabel}>Farmer Name :</Text>
-                <Text>{data.farmer_name || "-"}</Text>
-              </View>
             </View>
             {isDealerOnly ? (
               <View style={styles.lowerRight}>

@@ -17,7 +17,7 @@ import MainButton from "../../../components/mobile/button/MainButton";
 import LogOutPopUp from "../../../components/mobile/popup/LogOutPopUp";
 import liff from "@line/liff";
 import useServiceAPI from "../../../services/CorsService";
-import { paths } from "../../../services/CorsPath";
+import { paths, isMobileBypassAuth } from "../../../services/CorsPath";
 import { AuthContext } from "../../../contexts/AuthContext";
 
 export default function MyAccount() {
@@ -74,6 +74,11 @@ export default function MyAccount() {
   const confirmLogout = async () => {
     setIsLogoutModalOpen(false);
     try {
+      if (isMobileBypassAuth()) {
+        logout("bypass");
+        return;
+      }
+
       if (liff.isLoggedIn()) {
         clearUserSession();
         // logout("line");

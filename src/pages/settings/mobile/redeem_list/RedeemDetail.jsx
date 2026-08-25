@@ -17,7 +17,7 @@ export default function RedeemDetail() {
   const navigate = useNavigate();
   const { mode: urlMode } = useParams(); // (ยังไม่ใช้)
   const location = useLocation();
-  const { showNotification } = useContext(AuthContext);
+  const { showNotification, userInfo } = useContext(AuthContext);
 
   const [loading, setLoading] = useState(false);
   const [detail, setDetail] = useState(null);
@@ -96,8 +96,12 @@ export default function RedeemDetail() {
         return;
       }
 
+      const isFarmer = Boolean(location?.state?.is_farmer) || location.pathname.includes("farmer-redeem");
       // GET /redeem/detail/{id}
-      const res = await useServiceAPI.get(`${paths.pathRedeemDetail}/${id}`);
+      const res = await useServiceAPI.get(
+        `${paths.pathRedeemDetail}/${id}`,
+        isFarmer ? { mode: "farmer" } : {}
+      );
 
       if (res?.status === 200) {
         // ✅ payload จริงอยู่ใต้ data.data
@@ -195,8 +199,11 @@ export default function RedeemDetail() {
         showNotification("success", "Success", [`อัปเดตสถานะเป็น ${status} เรียบร้อย`]);
         // โหลดใหม่เพื่อให้ข้อมูลล่าสุด (หรือจะย้อนกลับ list ก็ได้)
         // await loadDetail();
-        // ✅ อัปเดตเสร็จแล้ว redirect กลับหน้า List
-        navigate("/points/line/redeem-reward-list");
+        // ✅ อัปเดตเสร็จแล้ว redirect กลับหน้า List (คง tab เดิม)
+        const backPath = location?.state?.back_path || "/points/line/redeem-reward-list";
+        navigate(backPath, {
+          state: { tab: location?.state?.fromTab || "list" },
+        });
 
       } else {
         showNotification("error", "Update failed", [res?.data?.message || "ไม่สามารถอัปเดตสถานะได้"]);
@@ -253,10 +260,22 @@ export default function RedeemDetail() {
           if (res?.status === 200) {
             showNotification("success", "Transaction completed", ["ส่งไป Purchase เรียบร้อย"]);
 
-            console.log('res : ', res)
-            navigate("/setting/line/request-purchase/update-stock", {
-              state: { id: res.data.promotion_purchase },
-            })
+            // อัปเดตสถานะท้องถิ่นเป็น RFP เพื่อซ่อนปุ่มทันที (ตาม API purchase)
+            setDetail((prev) =>
+              prev
+                ? {
+                    ...prev,
+                    status_code: "RFP",
+                    status_name: "Waiting for Purchase",
+                    permission: {
+                      ...prev.permission,
+                      can_approve: false,
+                      can_send_purchase: false,
+                    },
+                  }
+                : prev
+            );
+            form.setFieldsValue({ status: "Waiting for Purchase" });
           } else {
             showNotification("error", "Send failed", [res?.data?.message || "ไม่สามารถส่งไป Purchase ได้"]);
           }
@@ -274,11 +293,10 @@ export default function RedeemDetail() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // โหมดจาก list (RFA/RFR/RFW) เพื่อคุมปุ่ม
-  const currentMode = (location?.state?.mode || detail?.status_code || "").toUpperCase();
-  const isRFA = currentMode === "RFA";
-  const isRFR = currentMode === "RFR";
+  // โหมดจาก API / list (RFA/RFR/RFW) เพื่อคุมปุ่ม
+  const currentMode = (detail?.status_code || location?.state?.mode || "").toUpperCase();
   const isRFW = currentMode === "RFW";
+  const canSendToPurchase = [1, 2].includes(Number(userInfo?.role_id));
 
   return (
     <MainLayout loading={loading}>
@@ -306,28 +324,22 @@ export default function RedeemDetail() {
       </BoxPrimary>
 
       <div className="flex justify-end gap-3 mt-4">
-        <ActionButton mode="back" text="Back" onClick={() => navigate(-1)} />
+        <ActionButton
+          mode="back"
+          text="Back"
+          onClick={() =>
+            navigate(location?.state?.back_path || "/points/line/redeem-reward-list", {
+              state: { tab: location?.state?.fromTab || "list" },
+            })
+          }
+        />
 
-        {isRFW && (
-          <>
-            {/* <ActionButton
-              mode="reject"
-              text="Reject"
-              className="bg-[#752157]"
-              onClick={handleReject} // ⬅️ Modal + post RFR
-            /> */}
-            <ActionButton
-              mode="reject"
-              text="Send to Purchase"
-              onClick={handleSendToPurchase} // ⬅️ มี remark ผ่าน Modal แต่ยังไม่ยิง API
-            />
-            {/* <ActionButton
-              mode="custom"
-              text="Approve"
-              className="bg-[#00783F]"
-              onClick={handleApprove} // ⬅️ Modal + post RFA
-            /> */}
-          </>
+        {isRFW && canSendToPurchase && (
+          <ActionButton
+            mode="reject"
+            text="Send to Purchase"
+            onClick={handleSendToPurchase}
+          />
         )}
       </div>
     </MainLayout>

@@ -19,6 +19,8 @@ export default function SalesPointEdit() {
   const { showMsg } = useContext(AuthContext);
 
   const [loading, setLoading] = useState(false);
+  const isFarmer = location.pathname.includes("farmer-points-list") || location.state?.is_farmer;
+  const backPath = location.state?.back_path || (isFarmer ? "/points/line/farmer-points-list" : "/points/line/sales-points-list");
 
   const [dataSource, setDataSource] = useState([]);
   const [dataSourceOther, setDataSourceOther] = useState([]);
@@ -81,6 +83,7 @@ export default function SalesPointEdit() {
       try {
         const res = await useServiceAPI.get(paths.pathSalePointOrderDetail, {
           document_number,
+          ...(isFarmer ? { mode: "farmer" } : {}),
         });
 
         const d = res?.data;
@@ -248,7 +251,7 @@ export default function SalesPointEdit() {
         setDataSource(next);
       } else {
         const quantity = 1;
-        const unitTHB = toNumber(d.bath_unit);
+        const unitTHB = toNumber(isFarmer ? d.farmer : d.bath_unit);
         const net = quantity * unitTHB;
         const foc = d.product_campaign_order_min_foc
           ? Math.floor(quantity / toNumber(d.product_campaign_order_min_foc))
@@ -261,8 +264,8 @@ export default function SalesPointEdit() {
           product_code: d.product_code,
           product_name: d.product_name,
           product_unit: d.packing_list,
-          product_unit_thb: d.bath_unit,
-          point: d.point,
+          product_unit_thb: isFarmer ? d.farmer : d.bath_unit,
+          point: isFarmer ? (d.point_farmer ?? d.point) : d.point,
           product_campaign_order_min_foc: toNumber(d.product_campaign_order_min_foc),
           product_campaign_foc: toNumber(d.product_campaign_foc),
           quantity,
@@ -290,16 +293,16 @@ export default function SalesPointEdit() {
       { title: "No", dataIndex: "no", key: "no", width: 50 },
       { title: "SKU", dataIndex: "product_code", key: "product_code" },
       { title: "Product Name", dataIndex: "product_name", key: "product_name" },
-      { title: "Unit", dataIndex: "product_unit", key: "product_unit" },
+      { title: isFarmer ? "Pack Size" : "Unit", dataIndex: "product_unit", key: "product_unit" },
       {
-        title: "THB/Unit",
+        title: isFarmer ? "THB/Pack Size" : "THB/Unit",
         dataIndex: "product_unit_thb",
         key: "product_unit_thb",
         render: (t) =>
           toNumber(t).toLocaleString("en-US", { minimumFractionDigits: 2 }),
       },
       {
-        title: <div className="text-center">QTY (ctn)</div>,
+        title: <div className="text-center">{isFarmer ? "No of Pack" : "QTY (ctn)"}</div>,
         dataIndex: "quantity",
         key: "quantity",
         render: (_, r) => (
@@ -398,7 +401,7 @@ export default function SalesPointEdit() {
     return (
       <tr className="bg-[#978B87]">
         <td colSpan={canDeleteProducts ? 10 : 9} className="text-right pr-2 text-white">
-          Item: {dataSource.length} | QTY (ctn): {totalQty}&nbsp;| Total:{" "}
+          Item: {dataSource.length} | {isFarmer ? "Total Pack" : "QTY (ctn)"}: {totalQty}&nbsp;| {isFarmer ? "Total Value" : "Total"}:{" "}
           {totalAmount.toLocaleString("en-US", { minimumFractionDigits: 2 })}&nbsp;|
           Total Point: {totalPoint.toLocaleString("en-US")}
         </td>
@@ -555,10 +558,12 @@ export default function SalesPointEdit() {
             dealer_id: Number(dealerId) || 0,
             sub_dealer_id: Number(subDealerId) || 0,
             farmer_id: 1,
+            platform: "web",
             remark: remark || "",
             picture: fileListPicture.map((f) => f.url).filter(Boolean),
             bill: fileListBill.map((f) => f.url).filter(Boolean),
             products: buildProductsPayload(),
+            ...(isFarmer ? { mode: "farmer", type: "farmer" } : {}),
           };
 
           const res = await useServiceAPI.put(paths.pathSalePointOrderUpdate, payload);
@@ -568,7 +573,7 @@ export default function SalesPointEdit() {
               "success",
               res.data?.data?.message_line?.join("\n") || "Update successful"
             );
-            navigate("/points/line/sales-points-list");
+            navigate(backPath);
           } else {
             showMsg("warning", res?.data?.message || "อัปเดตไม่สำเร็จ");
           }
@@ -599,16 +604,8 @@ export default function SalesPointEdit() {
 
       const payload = {
         document_number: docNo,
-        // document_date: docDate || dayjs().format("YYYY-MM-DD"),
-        // user_id: Number(userId) || 0,
-        // status_code: "ODW",
-        // dealer_id: Number(dealerId) || 0,
-        // sub_dealer_id: String(subDealerId || ""),
-        // remark: remark || "",
-        // products: buildProductsPayload(),
-        // others: dataSourceOther,
-        // bill: fileListBill.map((f) => f.url).filter(Boolean),
-        // product: fileListPicture.map((f) => f.url).filter(Boolean),
+        platform: "web",
+        ...(isFarmer ? { mode: "farmer" } : {}),
       };
 
       const res = await useServiceAPI.post(paths.pathSalePointOrderUpdateAdmin, payload);
@@ -620,7 +617,7 @@ export default function SalesPointEdit() {
           "Receive successful"
       );
 
-      navigate("/points/line/sales-points-list");
+      navigate(backPath);
     } catch (e) {
       showMsg("error", e?.message || "Receive ไม่สำเร็จ");
     } finally {
@@ -630,7 +627,9 @@ export default function SalesPointEdit() {
 
   return (
     <MainLayout loading={loading}>
-      <div className="title-page">Edit Sales Point Order</div>
+      <div className="title-page">
+        {isFarmer ? "Edit Sales Point Order (Farmer)" : "Edit Sales Point Order"}
+      </div>
 
       <FormCustom fields={formFields} form={formCustom} onChange="" />
 
@@ -708,7 +707,7 @@ export default function SalesPointEdit() {
         <ActionButton
           mode="back"
           text="Back"
-          onClick={() => navigate("/points/line/sales-points-list")}
+          onClick={() => navigate(backPath)}
         />
 
         {permission?.btn_receive && (

@@ -466,6 +466,7 @@ export default function FarmersCreate() {
       est: data.est || "",
       address: data.address || "",
       date_of_birth: normalizeDate(data.date_of_birth),
+      age: data.date_of_birth ? Math.max(0, dayjs().diff(dayjs(data.date_of_birth), "year")) : "",
       mobile_phone: data.mobile_phone || "",
       line_id: data.line_id || "",
       t_shirt_size: data.t_shirt_size || "",
@@ -891,7 +892,11 @@ export default function FarmersCreate() {
 
           {/* Personal Info fields */}
           <Col xs={24} md={8}>
-            <Form.Item label="Farm Name" name="farm_name">
+            <Form.Item
+              label="Farm Name"
+              name="farm_name"
+              rules={[{ required: true, message: "Please enter Farm Name" }]}
+            >
               <Input disabled={isViewMode} placeholder="Enter Farm Name" />
             </Form.Item>
           </Col>
@@ -913,14 +918,18 @@ export default function FarmersCreate() {
           </Col>
 
           <Col xs={24} md={6}>
-            <Form.Item label="Nickname" name="nickname">
+            <Form.Item
+              label="Nickname"
+              name="nickname"
+              rules={[{ required: true, message: "Please enter Nickname" }]}
+            >
               <Input disabled={isViewMode} placeholder="Enter Nickname" />
             </Form.Item>
           </Col>
 
           <Col xs={24} md={8}>
-            <Form.Item label="Est Input (Baht / Year)" name="est">
-              <Input disabled={isViewMode} placeholder="Enter Estimated Input (Baht / Year)" />
+            <Form.Item label="Est Pesticide Input (Baht / Year)" name="est">
+              <Input disabled={isViewMode} placeholder="Enter Estimated Pesticide Input (Baht / Year)" />
             </Form.Item>
           </Col>
 
@@ -930,14 +939,36 @@ export default function FarmersCreate() {
             </Form.Item>
           </Col>
 
-          <Col xs={24} md={8}>
+          <Col xs={24} md={5}>
             <Form.Item label="Date of Birth" name="date_of_birth">
-              <DatePicker className="w-full" disabled={isViewMode} placeholder="Select Date of Birth" />
+              <DatePicker
+                className="w-full"
+                disabled={isViewMode}
+                placeholder="Select Date of Birth"
+                onChange={(date) => {
+                  if (date) {
+                    const calculatedAge = dayjs().diff(dayjs(date), "year");
+                    form.setFieldValue("age", calculatedAge >= 0 ? calculatedAge : 0);
+                  } else {
+                    form.setFieldValue("age", "");
+                  }
+                }}
+              />
+            </Form.Item>
+          </Col>
+
+          <Col xs={24} md={3}>
+            <Form.Item label="Age" name="age">
+              <Input disabled placeholder="Age" />
             </Form.Item>
           </Col>
 
           <Col xs={24} md={8}>
-            <Form.Item label="Mobile Phone" name="mobile_phone">
+            <Form.Item
+              label="Mobile Phone"
+              name="mobile_phone"
+              rules={[{ required: true, message: "Please enter Mobile Phone" }]}
+            >
               <Input disabled={isViewMode} placeholder="Enter Mobile Phone" />
             </Form.Item>
           </Col>
@@ -999,15 +1030,15 @@ export default function FarmersCreate() {
                           {item.label}
                         </Checkbox>
 
-                        {isOther && (
+                        {isOther && showOtherEquipment && (
                           <Form.Item
                             name="equ_other"
                             noStyle
                           >
                             <Input
-                              placeholder="Text"
-                              disabled={!showOtherEquipment || isViewMode}
-                              className="w-[260px]"
+                              disabled={isViewMode}
+                              placeholder="specify other equipment"
+                              className="w-48"
                             />
                           </Form.Item>
                         )}
@@ -1018,7 +1049,11 @@ export default function FarmersCreate() {
               </Checkbox.Group>
             </Form.Item>
           </Col>
+        </Row>
+      </BoxPrimary>
 
+      <BoxPrimary>
+        <Row gutter={[24, 16]}>
           <Col xs={24} md={12}>
             <div className="mb-2 font-semibold text-[#00783F]">Home Location</div>
             <Input
@@ -1303,28 +1338,26 @@ export default function FarmersCreate() {
     <BoxPrimary title="Gallery">
       <Collapse
         defaultActiveKey={[latestGalleryYear]}
+        className="farmer-gallery-collapse"
         items={galleryYears.map((year) => ({
           key: year,
-          label: `Year ${year}`,
+          label: (
+            <div className="flex justify-between items-center pr-2">
+              <span className="font-semibold text-base">{`Year ${year}`}</span>
+              <span className="text-gray-400 text-sm">{`${
+                (galleryByYear[year] || []).length
+              }/${GALLERY_MAX_IMAGES_PER_YEAR}`}</span>
+            </div>
+          ),
           children: (
-            <div className="space-y-3">
-              <div className="flex items-center justify-between gap-3">
-                <span className="text-sm font-semibold text-[#00783F]">
-                  {`${(galleryByYear[year] || []).length} / ${GALLERY_MAX_IMAGES_PER_YEAR} images`}
-                </span>
-              </div>
-
+            <div className="flex flex-wrap gap-4 items-center">
               <Upload
-                accept="image/*"
                 listType="picture-card"
                 fileList={galleryByYear[year] || []}
                 customRequest={(options) => handleUploadGallery(options, year)}
+                onRemove={(file) => removeGalleryItem(year, file.uid)}
                 onPreview={handleGalleryPreview}
-                onRemove={(file) => {
-                  removeGalleryItem(year, file.uid);
-                  return true;
-                }}
-                maxCount={GALLERY_MAX_IMAGES_PER_YEAR}
+                disabled={isViewMode}
                 showUploadList={{
                   showPreviewIcon: true,
                   showRemoveIcon: canUpdate,
@@ -1369,6 +1402,23 @@ export default function FarmersCreate() {
       />
     </BoxPrimary>
   );
+
+  const totalFarmSize = useMemo(() => {
+    return farmSizeRows.reduce((acc, item) => {
+      const val = Number(String(item.size || "").replace(/,/g, "").trim());
+      return acc + (Number.isFinite(val) ? val : 0);
+    }, 0);
+  }, [farmSizeRows]);
+
+  const watchEst = Form.useWatch("est", form);
+  const averageEstPerSize = useMemo(() => {
+    const rawEst = watchEst !== undefined && watchEst !== null ? watchEst : form.getFieldValue("est");
+    const estVal = Number(String(rawEst || "").replace(/,/g, "").trim());
+    if (Number.isFinite(estVal) && estVal > 0 && totalFarmSize > 0) {
+      return (estVal / totalFarmSize).toFixed(2);
+    }
+    return "0.00";
+  }, [totalFarmSize, watchEst, form]);
 
   const farmSizeCalendarTab = (
     <>
@@ -1431,9 +1481,28 @@ export default function FarmersCreate() {
 
         {canUpdate && (
           <Button className="mt-3" icon={<PlusOutlined />} onClick={addFarmSizeRow}>
-            Add Farm Size
+            Add Crop
           </Button>
         )}
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6 pt-4 border-t border-gray-200">
+          <div>
+            <div className="text-[13px] font-semibold text-[#2f2522] mb-1.5">Total Size</div>
+            <Input
+              disabled
+              value={totalFarmSize.toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: 2 })}
+              className="w-full bg-[#f5f5f5]"
+            />
+          </div>
+          <div>
+            <div className="text-[13px] font-semibold text-[#2f2522] mb-1.5">Average Input (บาทต่อไร่ต่อปี)</div>
+            <Input
+              disabled
+              value={Number(averageEstPerSize).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              className="w-full bg-[#f5f5f5]"
+            />
+          </div>
+        </div>
       </BoxPrimary>
 
       <BoxPrimary title="Crop Calendar">
@@ -1566,14 +1635,14 @@ export default function FarmersCreate() {
                 children: profileTab,
               },
               {
+                key: "farm",
+                label: <span className="tab-title">Crop Calendar</span>,
+                children: farmSizeCalendarTab,
+              },
+              {
                 key: "gallery",
                 label: <span className="tab-title">Gallery</span>,
                 children: galleryTab,
-              },
-              {
-                key: "farm",
-                label: <span className="tab-title">Farm Size & Crop Calendar</span>,
-                children: farmSizeCalendarTab,
               },
             ]}
           />

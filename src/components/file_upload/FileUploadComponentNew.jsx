@@ -1,5 +1,5 @@
 import React, { useState, useRef, forwardRef, useImperativeHandle, useEffect } from "react";
-import { Image, Upload, message, App } from "antd";
+import { Image, Upload, message } from "antd";
 import useServiceAPI from "../../services/CorsService";
 import { paths } from "../../services/CorsPath";
 
@@ -55,7 +55,7 @@ const FileUploadComponentNew = forwardRef((props, ref) => {
   }));
 
   return (
-    <App>
+    <>
       <Upload
         listType="picture-card"
         fileList={fileList}
@@ -124,7 +124,7 @@ const FileUploadComponentNew = forwardRef((props, ref) => {
           src={previewImage}
         />
       )}
-    </App>
+    </>
   );
 });
 

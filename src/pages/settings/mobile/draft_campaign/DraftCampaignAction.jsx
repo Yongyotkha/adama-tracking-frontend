@@ -188,7 +188,9 @@ export default function DraftCampaignAction() {
 
       const balancePoint = getBalancePointFromResponse(res);
       setCurrentPointValue(balancePoint);
-      setCurrentValue(res?.data?.data?.value_of_year ?? res?.data?.value_of_year ?? 0);
+      setCurrentValue(
+        res?.data?.data?.value_of_year ?? res?.data?.value_of_year ?? 0,
+      );
 
       return res;
     } catch (_) {
@@ -235,7 +237,7 @@ export default function DraftCampaignAction() {
         normalizeOption(item, {
           valueKey: "id",
           labelKey: "name",
-        })
+        }),
       );
 
       setDealerOptions(normalized);
@@ -245,7 +247,9 @@ export default function DraftCampaignAction() {
         !normalized.some((item) => String(item.id) === String(selectedDealerId))
       ) {
         const fallback = normalized.find(
-          (item) => item.name === selectedDealerName || item.name === detail.dealer_name
+          (item) =>
+            item.name === selectedDealerName ||
+            item.name === detail.dealer_name,
         );
 
         if (fallback) {
@@ -261,7 +265,7 @@ export default function DraftCampaignAction() {
     saleId,
     dealerId,
     selectedSubDealerId,
-    selectedSubDealerName
+    selectedSubDealerName,
   ) => {
     if (!dealerId) {
       setSubDealerOptions([]);
@@ -280,19 +284,21 @@ export default function DraftCampaignAction() {
         normalizeOption(item, {
           valueKey: "sub_dealer_id",
           labelKey: "sub_dealer_name",
-        })
+        }),
       );
 
       setSubDealerOptions(normalized);
 
       if (
         selectedSubDealerId &&
-        !normalized.some((item) => String(item.id) === String(selectedSubDealerId))
+        !normalized.some(
+          (item) => String(item.id) === String(selectedSubDealerId),
+        )
       ) {
         const fallback = normalized.find(
           (item) =>
             item.name === selectedSubDealerName ||
-            item.name === detail.sub_dealer_name
+            item.name === detail.sub_dealer_name,
         );
 
         if (fallback) {
@@ -307,7 +313,7 @@ export default function DraftCampaignAction() {
   const loadFarmerMaster = async (
     subDealerId,
     selectedFarmerId,
-    selectedFarmerName
+    selectedFarmerName,
   ) => {
     const requestId = farmerRequestRef.current + 1;
     farmerRequestRef.current = requestId;
@@ -343,13 +349,13 @@ export default function DraftCampaignAction() {
       const finalOptions =
         selectedFarmerId && !hasSelectedFarmer
           ? [
-            {
-              id: String(selectedFarmerId),
-              name: selectedFarmerName || String(selectedFarmerId),
-              raw: {},
-            },
-            ...normalized,
-          ]
+              {
+                id: String(selectedFarmerId),
+                name: selectedFarmerName || String(selectedFarmerId),
+                raw: {},
+              },
+              ...normalized,
+            ]
           : normalized;
 
       if (requestId === farmerRequestRef.current) {
@@ -400,19 +406,19 @@ export default function DraftCampaignAction() {
 
     const currentPointPayload = draft?.farmer_id
       ? {
-        shop_type: "farmer",
-        id: draft.farmer_id,
-      }
+          shop_type: "farmer",
+          id: draft.farmer_id,
+        }
       : draft?.sub_dealer_id
         ? {
-          shop_type: "sub_dealer",
-          id: draft.sub_dealer_id,
-        }
+            shop_type: "sub_dealer",
+            id: draft.sub_dealer_id,
+          }
         : draft?.dealer_id
           ? {
-            shop_type: "dealer",
-            id: draft.dealer_id,
-          }
+              shop_type: "dealer",
+              id: draft.dealer_id,
+            }
           : null;
 
     const currentPointRes = currentPointPayload
@@ -421,7 +427,7 @@ export default function DraftCampaignAction() {
 
     const mapped = mapDraftCampaignDetail(
       draft,
-      getBalancePointFromResponse(currentPointRes)
+      getBalancePointFromResponse(currentPointRes),
     );
 
     setDetail(mapped);
@@ -439,26 +445,24 @@ export default function DraftCampaignAction() {
           unit_convert_order_value:
             item.unit_convert_order_value || item.master_price,
 
-          bath_unit:
-            item.unit_convert_order_value || item.master_price,
+          bath_unit: item.unit_convert_order_value || item.master_price,
 
-          master_price:
-            item.master_price || item.unit_convert_order_value,
+          master_price: item.master_price || item.unit_convert_order_value,
 
           // point ??? ctn
-          master_point:
-            item.master_point || item.point,
+          master_point: item.master_point || item.point,
 
           // ??? recalculate ????? point ?????????? qty
-          point:
-            item.master_point || item.point,
-        })
-      )
+          point: item.master_point || item.point,
+        }),
+      ),
     );
 
     form.setFieldsValue({
       document_number: mapped.document_number,
-      document_date: mapped.document_date ? dayjs(mapped.document_date) : dayjs(),
+      document_date: mapped.document_date
+        ? dayjs(mapped.document_date)
+        : dayjs(),
       user_id: mapped.user_id || undefined,
       dealer_id: mapped.dealer_id || undefined,
       sub_dealer_id: mapped.sub_dealer_id || undefined,
@@ -470,7 +474,8 @@ export default function DraftCampaignAction() {
       target_value: mapped.target_value,
       diff_value_form_target: mapped.diff_value_form_target,
       value_to_point: mapped.value_to_point,
-      point_your_get: toNumber(mapped.value_to_point) * toNumber(mapped.net_amount),
+      point_your_get:
+        toNumber(mapped.value_to_point) * toNumber(mapped.net_amount),
     });
 
     await loadDealers(mapped.user_id, mapped.dealer_id, mapped.dealer_name);
@@ -479,13 +484,13 @@ export default function DraftCampaignAction() {
       mapped.user_id,
       mapped.dealer_id,
       mapped.sub_dealer_id,
-      mapped.sub_dealer_name
+      mapped.sub_dealer_name,
     );
 
     await loadFarmerMaster(
       mapped.sub_dealer_id,
       mapped.farmer_id,
-      mapped.farmer_name
+      mapped.farmer_name,
     );
   };
 
@@ -494,7 +499,10 @@ export default function DraftCampaignAction() {
       setLoading(true);
 
       try {
-        const salesRes = await useServiceAPI.get(paths.pathMasterSaleSingle, {});
+        const salesRes = await useServiceAPI.get(
+          paths.pathMasterSaleSingle,
+          {},
+        );
         const sales = Array.isArray(salesRes?.data) ? salesRes.data : [];
 
         setSalesOptions(
@@ -502,8 +510,8 @@ export default function DraftCampaignAction() {
             normalizeOption(item, {
               valueKey: "id",
               labelKey: "name",
-            })
-          )
+            }),
+          ),
         );
 
         await loadDetail();
@@ -511,7 +519,7 @@ export default function DraftCampaignAction() {
         showNotification?.(
           "error",
           error?.response?.data?.message || "Load failed",
-          [error?.message || "Unable to load draft campaign"]
+          [error?.message || "Unable to load draft campaign"],
         );
       } finally {
         setLoading(false);
@@ -544,7 +552,7 @@ export default function DraftCampaignAction() {
     loadSubDealers(
       watchSaleId,
       watchDealerId,
-      form.getFieldValue("sub_dealer_id")
+      form.getFieldValue("sub_dealer_id"),
     );
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [watchDealerId]);
@@ -564,11 +572,11 @@ export default function DraftCampaignAction() {
       prev.map((row, rowIndex) =>
         rowIndex === index
           ? calculateCampaignRow({
-            ...row,
-            [key]: Math.max(0, toNumber(value)),
-          })
-          : row
-      )
+              ...row,
+              [key]: Math.max(0, toNumber(value)),
+            })
+          : row,
+      ),
     );
   };
 
@@ -576,7 +584,7 @@ export default function DraftCampaignAction() {
     if (!selectedProductId) return;
 
     const duplicateProduct = rows.find(
-      (item) => String(item.product_id) === String(selectedProductId)
+      (item) => String(item.product_id) === String(selectedProductId),
     );
 
     if (duplicateProduct) {
@@ -601,11 +609,9 @@ export default function DraftCampaignAction() {
         ...mapDraftCampaignProduct(productDetail),
 
         // ??????????????????
-        unit_convert_order_value:
-          productDetail.unit_convert_order_value,
+        unit_convert_order_value: productDetail.unit_convert_order_value,
 
-        bath_unit:
-          productDetail.bath_unit,
+        bath_unit: productDetail.bath_unit,
       };
 
       setRows((prev) => [
@@ -625,7 +631,7 @@ export default function DraftCampaignAction() {
       showNotification?.(
         "error",
         error?.response?.data?.message || "Product not found",
-        [error?.message || "Unable to load product detail"]
+        [error?.message || "Unable to load product detail"],
       );
       setProductSelection(undefined);
     } finally {
@@ -707,22 +713,24 @@ export default function DraftCampaignAction() {
             value: sum.value + qty * unitPrice,
           };
         },
-        { qty: 0, point: 0, value: 0 }
+        { qty: 0, point: 0, value: 0 },
       ),
-    [rows]
+    [rows],
   );
 
   const pointYourGet = useMemo(
     () => toNumber(watchValueToPoint) * toNumber(totals.value),
-    [watchValueToPoint, totals.value]
+    [watchValueToPoint, totals.value],
   );
 
   useEffect(() => {
     form.setFieldsValue({
+      total_point: totals.point,
+      diff_form_plan: toNumber(watchTargetPoint) - toNumber(totals.point),
       diff_form_target:
         toNumber(watchCurrentPoint) - toNumber(watchTargetPoint),
     });
-  }, [form, watchCurrentPoint, watchTargetPoint]);
+  }, [form, watchCurrentPoint, watchTargetPoint, totals.point]);
 
   useEffect(() => {
     if (!isDealerOnly) return;
@@ -766,8 +774,7 @@ export default function DraftCampaignAction() {
       dataIndex: "quantity",
       width: 180,
       align: "center",
-      render: (value, _, index) =>
-        renderStepperInput(index, "quantity", value),
+      render: (value, _, index) => renderStepperInput(index, "quantity", value),
     },
 
     {
@@ -775,8 +782,7 @@ export default function DraftCampaignAction() {
       dataIndex: "xpoint",
       width: 180,
       align: "center",
-      render: (value, _, index) =>
-        renderStepperInput(index, "xpoint", value),
+      render: (value, _, index) => renderStepperInput(index, "xpoint", value),
     },
 
     {
@@ -788,15 +794,12 @@ export default function DraftCampaignAction() {
     },
 
     {
-      title: "Sub Total (THB)",
+      title: "Value (THB)	",
       dataIndex: "unit_convert_order_value",
       width: 150,
       align: "right",
       render: (_, row) =>
-        formatNumber(
-          toNumber(row.quantity) * getOrderUnitPrice(row),
-          2
-        ),
+        formatNumber(toNumber(row.quantity) * getOrderUnitPrice(row), 2),
     },
 
     {
@@ -811,7 +814,7 @@ export default function DraftCampaignAction() {
             className="text-[#978B87] transition duration-150 ease-out hover:scale-110 hover:text-[#D4380D] active:scale-95"
             onClick={() =>
               setRows((prev) =>
-                prev.filter((_, rowIndex) => rowIndex !== index)
+                prev.filter((_, rowIndex) => rowIndex !== index),
               )
             }
           >
@@ -825,7 +828,7 @@ export default function DraftCampaignAction() {
     <tr className="bg-[#978B87]">
       <td colSpan={11} className="text-right pr-4 py-3 text-white">
         Item : {rows.length} | QTY (ctn): {formatNumber(totals.qty)} | Total
-        Point : {formatNumber(totals.point)} | Total:{" "}
+        Point : {formatNumber(totals.point)} | Total THB:{" "}
         {formatNumber(totals.value, 2)}
         {isDealerOnly && (
           <> | Your Reward (Bath) : {formatNumber(pointYourGet, 2)}</>
@@ -841,14 +844,19 @@ export default function DraftCampaignAction() {
       centered: true,
       onOk: async () => {
         try {
-          const res = await useServiceAPI.delete(paths.pathDraftCampaignDelete, {
-            document_number: detail.document_number,
-          });
+          const res = await useServiceAPI.delete(
+            paths.pathDraftCampaignDelete,
+            {
+              document_number: detail.document_number,
+            },
+          );
 
           await showNotification?.(
             res?.status === 200 ? "success" : "warning",
             res?.message || "Notification",
-            res?.data?.message_line || [res?.data?.message || "Delete finished"]
+            res?.data?.message_line || [
+              res?.data?.message || "Delete finished",
+            ],
           );
 
           navigate("/setting/line/draft-campaign");
@@ -858,7 +866,7 @@ export default function DraftCampaignAction() {
             error?.response?.data?.message || "Delete failed",
             error?.response?.data?.data?.message_line || [
               error?.message || "Unable to delete draft campaign",
-            ]
+            ],
           );
         }
       },
@@ -898,7 +906,7 @@ export default function DraftCampaignAction() {
       await showNotification?.(
         res?.status === 200 ? "success" : "warning",
         res?.message || "Notification",
-        lines
+        lines,
       );
 
       navigate("/setting/line/draft-campaign");
@@ -910,7 +918,7 @@ export default function DraftCampaignAction() {
         error?.response?.data?.message || "Save failed",
         error?.response?.data?.data?.message_line || [
           error?.message || "Unable to save draft campaign",
-        ]
+        ],
       );
     } finally {
       setLoading(false);
@@ -948,11 +956,9 @@ export default function DraftCampaignAction() {
                 onChange={() => {
                   form.setFieldValue("dealer_id", undefined);
                   form.setFieldValue("sub_dealer_id", undefined);
-                  form.setFieldValue("farmer_id", undefined);
 
                   setDealerOptions([]);
                   setSubDealerOptions([]);
-                  setFarmerOptions([]);
 
                   resetCurrentPoint();
                 }}
@@ -976,10 +982,8 @@ export default function DraftCampaignAction() {
                 optionFilterProp="label"
                 onChange={(value) => {
                   form.setFieldValue("sub_dealer_id", undefined);
-                  form.setFieldValue("farmer_id", undefined);
 
                   setSubDealerOptions([]);
-                  setFarmerOptions([]);
 
                   loadCurrentPoint({
                     shop_type: "dealer",
@@ -989,10 +993,7 @@ export default function DraftCampaignAction() {
               />
             </Form.Item>
 
-            <Form.Item
-              label="Sub Dealer"
-              name="sub_dealer_id"
-            >
+            <Form.Item label="Sub Dealer" name="sub_dealer_id">
               <Select
                 options={subDealerOptions.map((item) => ({
                   label: item.name,
@@ -1004,41 +1005,8 @@ export default function DraftCampaignAction() {
                 showSearch
                 optionFilterProp="label"
                 onChange={(value) => {
-                  form.setFieldValue("farmer_id", undefined);
-                  setFarmerOptions([]);
-
-                  loadFarmerMaster(value);
-
                   loadCurrentPoint({
                     shop_type: "sub_dealer",
-                    id: value,
-                  });
-                }}
-              />
-            </Form.Item>
-
-            <Form.Item
-              label="Farmer"
-              name="farmer_id"
-            >
-              <Select
-                options={farmerOptions.map((item) => ({
-                  label: item.name,
-                  value: item.id,
-                }))}
-                disabled={readOnly || !watchSubDealerId}
-                placeholder="Select"
-                allowClear
-                showSearch
-                optionFilterProp="label"
-                filterOption={(input, option) =>
-                  String(option?.label || "")
-                    .toLowerCase()
-                    .includes(String(input || "").toLowerCase())
-                }
-                onChange={(value) => {
-                  loadCurrentPoint({
-                    shop_type: "farmer",
                     id: value,
                   });
                 }}
@@ -1120,7 +1088,10 @@ export default function DraftCampaignAction() {
                   />
                 </Form.Item>
 
-                <Form.Item label="Diff Value Form Target" name="diff_value_form_target">
+                <Form.Item
+                  label="Diff Value Form Target"
+                  name="diff_value_form_target"
+                >
                   <InputNumber
                     className="w-full"
                     disabled
@@ -1214,9 +1185,9 @@ export default function DraftCampaignAction() {
               onClick={() =>
                 window.open(
                   `/setting/line/draft-campaign/pdf?document_number=${encodeURIComponent(
-                    detail.document_number
+                    detail.document_number,
                   )}`,
-                  "_blank"
+                  "_blank",
                 )
               }
             />
@@ -1238,6 +1209,3 @@ export default function DraftCampaignAction() {
     </MainLayout>
   );
 }
-
-
-

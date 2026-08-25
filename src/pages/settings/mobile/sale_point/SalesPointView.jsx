@@ -19,6 +19,7 @@ export default function SalesPointView() {
   const { showMsg } = useContext(AuthContext);
 
   const [loading, setLoading] = useState(false);
+  const isFarmer = location.pathname.includes("farmer-points-list") || location.state?.is_farmer;
 
   // ตาราง
   const [dataSource, setDataSource] = useState([]);
@@ -65,6 +66,7 @@ export default function SalesPointView() {
       try {
         const res = await useServiceAPI.get(paths.pathSalePointOrderDetail, {
           document_number,
+          ...(isFarmer ? { mode: "farmer" } : {}),
         });
 
         if (res?.status === 200 && res?.data) {
@@ -146,10 +148,15 @@ export default function SalesPointView() {
     { title: "No", dataIndex: "no", key: "no", width: 10 },
     { title: "SKU", dataIndex: "product_code", key: "product_code" },
     { title: "Product Name", dataIndex: "product_name", key: "product_name" },
-    { title: "Unit", dataIndex: "product_unit", key: "product_unit" },
-    { title: "THB/Unit", dataIndex: "product_unit_thb", key: "product_unit_thb" },
+    { title: isFarmer ? "Pack Size" : "Unit", dataIndex: "product_unit", key: "product_unit" },
     {
-      title: <div className="text-center">QTY (ctn)</div>,
+      title: isFarmer ? "THB/Pack Size" : "THB/Unit",
+      dataIndex: "product_unit_thb",
+      key: "product_unit_thb",
+      render: (text) => parseFloat(String(text || 0).replace(/,/g, "")).toLocaleString("en-US", { minimumFractionDigits: 2 }),
+    },
+    {
+      title: <div className="text-center">{isFarmer ? "No of Pack" : "QTY (ctn)"}</div>,
       dataIndex: "quantity",
       key: "quantity",
       render: (text) => (
@@ -216,8 +223,8 @@ export default function SalesPointView() {
       <tr className="bg-[#978B87]">
         <td colSpan={9} className="text-right pr-2 text-white">
           Item: {dataSource.length}
-          &nbsp;&nbsp; QTY (ctn): {totalQuantity.toLocaleString("en-US")}
-          &nbsp;&nbsp; Total: {totalAmount.toLocaleString("en-US", { minimumFractionDigits: 2 })}
+          &nbsp;&nbsp; {isFarmer ? "Total Pack" : "QTY (ctn)"}: {totalQuantity.toLocaleString("en-US")}
+          &nbsp;&nbsp; {isFarmer ? "Total Value" : "Total"}: {totalAmount.toLocaleString("en-US", { minimumFractionDigits: 2 })}
           &nbsp;&nbsp; <strong>Total Point: {totalPoint.toLocaleString("en-US")}</strong>
         </td>
       </tr>
@@ -285,9 +292,13 @@ export default function SalesPointView() {
     },
   ];
 
+  const backPath = location.state?.back_path || "/points/line/sales-points-list";
+
   return (
     <MainLayout loading={loading}>
-      <div className="title-page">View Sales Point Order</div>
+      <div className="title-page">
+        {isFarmer ? "View Sales Point Order (Farmer)" : "View Sales Point Order"}
+      </div>
 
       <FormCustom fields={formFields} form={formCustom} onChange="" />
 
@@ -344,7 +355,7 @@ export default function SalesPointView() {
           mode="back"
           text="Back"
           onClick={() =>
-            navigate("/points/line/sales-points-list", {
+            navigate(backPath, {
               state: {},
             })
           }

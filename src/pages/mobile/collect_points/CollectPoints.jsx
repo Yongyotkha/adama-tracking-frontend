@@ -34,8 +34,8 @@ export default function CollectPoints() {
   });
 
   const tabs = [
-    { id: "in_progress", label: "สินค้ารอยืนยันรับ", color: "border-orange-500" },
-    { id: "pre_receive", label: "รับสินค้าล่วงหน้า", color: "border-green-500" },
+    { id: "in_progress", label: "รอยืนยันจากสมาชิก", color: "border-orange-500" },
+    { id: "pre_receive", label: "รอยืนยันจากพนักงาน", color: "border-green-500" },
   ];
   const mapStatusText = (statusText) => {
     if (statusText === "Waiting for Receive") {
@@ -249,26 +249,11 @@ export default function CollectPoints() {
         <UserPointsSection />
 
         <DynamicButton
-          text="ถ่ายรูปสินค้ากรณีได้รับสินค้าล่วงหน้า"
+          text="ถ่ายรูปการรับสินค้า"
           iconSrc="/img/icons/camera.png"
           className="text-white px-4 py-3 rounded-[4px] bg-[#752157] w-full max-w-md mt-6 sarabun-font"
           onClick={() => navigate("/mobile/collect-points/advance-notice")}
         />
-
-        {/* 
-        <DynamicButton
-          text="getUserMedia + fallback input capture"
-          iconSrc="/img/icons/camera.png"
-          className="text-white px-4 py-3 rounded-[4px] bg-[#752157] w-full max-w-md mt-6 sarabun-font"
-          onClick={() => navigate("/mobile/collect-points/advance-notice1")}
-        /> */}
-
-        {/* <DynamicButton
-          text="Dual-path: getUserMedia"
-          iconSrc="/img/icons/camera.png"
-          className="text-white px-4 py-3 rounded-[4px] bg-[#752157] w-full max-w-md mt-6 sarabun-font"
-          onClick={() => navigate("/mobile/collect-points/advance-notice2")}
-        /> */}
 
         <SectionHeader title="รายการรับสินค้า" icon="/img/icons/bill.png" />
 

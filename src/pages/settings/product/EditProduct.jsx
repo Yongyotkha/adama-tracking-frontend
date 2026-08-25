@@ -350,6 +350,15 @@ export default function EditProduct() {
         value: productInfo.point,
       },
       {
+        label: "Point Farmer",
+        name: "point_farmer",
+        type: "text",
+        required: false,
+        col: 6,
+        disabled: isFieldDisabled,
+        value: productInfo.point_farmer,
+      },
+      {
         label: "Order By",
         name: "order_by",
         type: "text",

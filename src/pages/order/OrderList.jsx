@@ -140,6 +140,7 @@ export default function OrderList() {
     { title: "Sales", width: 200, dataIndex: "sale", align: "left" },
     { title: "Dealer", width: 200, dataIndex: "dealer", align: "left" },
     { title: "Value (THB)", width: 100, dataIndex: "value", align: "right" },
+    { title: "Total Point", width: 120, dataIndex: "totalPoint", align: "right" },
     { title: "Order Date", width: 150, dataIndex: "orderDate", align: "center" },
     { title: "Pay Overdue", width: 150, dataIndex: "payOverdue", align: "center" },
     { title: "Status", width: 150, dataIndex: "status", align: "center" },
@@ -191,6 +192,10 @@ export default function OrderList() {
           sale: order.user_name,
           dealer: order.dealer_name,
           value: order.net_amount_display,
+          totalPoint:
+            order.total_point !== undefined && order.total_point !== null && order.total_point !== ""
+              ? parseFloat(order.total_point || 0).toLocaleString("en-US")
+              : "-",
           orderDate: order.document_date,
           payOverdue: (
             <BadgeStatus

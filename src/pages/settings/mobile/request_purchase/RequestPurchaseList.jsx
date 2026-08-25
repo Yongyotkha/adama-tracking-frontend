@@ -64,7 +64,11 @@ export default function RequestPurchaseList() {
                   text={"Update Stock"}
                   onClick={() =>
                     navigate(`/setting/line/request-purchase/update-stock`, {
-                      state: { id: item.id, value: item.reward_value },
+                      state: {
+                        reward_code: item.reward_code,
+                        status_code: item.status_code,
+                        value: item.reward_value,
+                      },
                     })
                   }
                 />

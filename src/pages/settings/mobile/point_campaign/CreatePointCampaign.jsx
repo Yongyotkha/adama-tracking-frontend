@@ -55,15 +55,17 @@ export default function CreatePointCampaign() {
   const [detailProductKeys, setDetailProductKeys] = useState([]);
   const preselectProductDoneRef = useRef(false);
 
+  const isFarmer = location.pathname.includes("farmer-point-campaign") || Boolean(location.state?.is_farmer);
+
   const isCreate = mode === "create";
   const isEdit = mode === "edit";
   const isView = mode === "view";
 
   const pageTitle = isCreate
-    ? "Create Point Campaign"
+    ? isFarmer ? "Create Point Campaign (Farmer)" : "Create Point Campaign"
     : isEdit
-      ? "Edit Point Campaign"
-      : "View Point Campaign";
+      ? isFarmer ? "Edit Point Campaign (Farmer)" : "Edit Point Campaign"
+      : isFarmer ? "View Point Campaign (Farmer)" : "View Point Campaign";
   const formDisabled = isView;
   const fileUploadRefReceive = useRef(null);
   const [fileListReceive, setFileListReceive] = useState([]); // picture
@@ -311,11 +313,13 @@ export default function CreatePointCampaign() {
   const [searchKeyword, setSearchKeyword] = useState("");
   const [selectedRowKeys, setSelectedRowKeys] = useState([]); // target_group_customer_id[]
 
-  // ====== Filter (Sales / Dealer) for Select Customer ======
+  // ====== Filter (Sales / Dealer / Sub Dealer) for Select Customer ======
   const [salesOptions, setSalesOptions] = useState([]);   // [{label,value}]
   const [dealerFilterOptions, setDealerFilterOptions] = useState([]); // [{label,value}]
+  const [subDealerFilterOptions, setSubDealerFilterOptions] = useState([]); // [{label,value}]
   const [filterSale, setFilterSale] = useState(undefined);
   const [filterDealer, setFilterDealer] = useState(undefined);
+  const [filterSubDealer, setFilterSubDealer] = useState(undefined);
 
   const targetKey = useMemo(() => {
     const targetIds = [...watchDealer, ...watchSub, ...watchFarmer]
@@ -396,8 +400,10 @@ export default function CreatePointCampaign() {
         const data = res?.data?.data || res?.data || [];
         const rows = data.map((it) => ({
           key: Number(it?.customer_id),
-          name: it?.customer_name || "-",
-          target_group: it?.target_name || "-",
+          name: it?.customer_name || it?.farmer_name || "-",
+          name_th: it?.customer_name_th || it?.farmer_name_th || "",
+          name_en: it?.customer_name_en || it?.farmer_name_en || "",
+          target_group: it?.target_name || it?.customer_group || "-",
           type: it?.type || "-",
           address: it?.address || "-",
 
@@ -406,6 +412,14 @@ export default function CreatePointCampaign() {
           sale_name: String(it?.sale_name ?? it?.sale ?? it?.user_name ?? ""),
           dealer_id: String(it?.dealer_id ?? ""),
           dealer_name: String(it?.dealer_name ?? ""),
+          sub_dealer_id: String(it?.sub_dealer_id ?? it?.subdealer_id ?? ""),
+          sub_dealer_name: String(it?.sub_dealer_name ?? it?.subdealer_name ?? ""),
+
+          // ข้อมูล farmer เพิ่มเติม
+          farmer_id: String(it?.farmer_id ?? ""),
+          farmer_name: String(it?.farmer_name ?? ""),
+          farmer_code: String(it?.farmer_code ?? it?.code ?? ""),
+          phone: String(it?.phone ?? it?.telephone ?? it?.mobile ?? ""),
         }));
 
 
@@ -441,6 +455,53 @@ export default function CreatePointCampaign() {
     };
   }, [targetKey, showNotification, isEdit, detailCustomers]);
 
+  // ====== Populate Dropdown Filters (Sales / Dealer / Sub Dealer) จาก targetRows ======
+  useEffect(() => {
+    // 1) Sales Options
+    const saleMap = new Map();
+    targetRows.forEach((r) => {
+      if (r.sale_id && r.sale_id !== "" && !saleMap.has(r.sale_id)) {
+        saleMap.set(r.sale_id, r.sale_name || `Sales ${r.sale_id}`);
+      }
+    });
+    setSalesOptions(
+      Array.from(saleMap.entries()).map(([value, label]) => ({ label, value }))
+    );
+
+    // 2) Dealer Options (กรองตาม Sales ถ้าเลือก filterSale)
+    const dealerMap = new Map();
+    targetRows
+      .filter((r) => !filterSale || String(r.sale_id || "") === String(filterSale))
+      .forEach((r) => {
+        if (r.dealer_id && r.dealer_id !== "" && !dealerMap.has(r.dealer_id)) {
+          dealerMap.set(r.dealer_id, r.dealer_name || `Dealer ${r.dealer_id}`);
+        }
+      });
+    setDealerFilterOptions(
+      Array.from(dealerMap.entries()).map(([value, label]) => ({ label, value }))
+    );
+
+    // 3) Sub Dealer Options (กรองตาม Sales และ Dealer ถ้าเลือก)
+    const subDealerMap = new Map();
+    targetRows
+      .filter(
+        (r) =>
+          (!filterSale || String(r.sale_id || "") === String(filterSale)) &&
+          (!filterDealer || String(r.dealer_id || "") === String(filterDealer))
+      )
+      .forEach((r) => {
+        if (r.sub_dealer_id && r.sub_dealer_id !== "" && !subDealerMap.has(r.sub_dealer_id)) {
+          subDealerMap.set(
+            r.sub_dealer_id,
+            r.sub_dealer_name || `Sub Dealer ${r.sub_dealer_id}`
+          );
+        }
+      });
+    setSubDealerFilterOptions(
+      Array.from(subDealerMap.entries()).map(([value, label]) => ({ label, value }))
+    );
+  }, [targetRows, filterSale, filterDealer]);
+
   const filteredTargetRows = useMemo(() => {
     let rows = [...targetRows];
 
@@ -452,18 +513,26 @@ export default function CreatePointCampaign() {
       rows = rows.filter((r) => String(r.dealer_id || "") === String(filterDealer));
     }
 
+    if (filterSubDealer) {
+      rows = rows.filter((r) => String(r.sub_dealer_id || "") === String(filterSubDealer));
+    }
+
     if (searchKeyword) {
-      const q = searchKeyword.toLowerCase();
+      const q = searchKeyword.toLowerCase().trim();
       rows = rows.filter(
         (r) =>
           (r.name || "").toLowerCase().includes(q) ||
           (r.name_th || "").toLowerCase().includes(q) ||
           (r.name_en || "").toLowerCase().includes(q) ||
+          (r.farmer_name || "").toLowerCase().includes(q) ||
+          (r.farmer_code || "").toLowerCase().includes(q) ||
           (r.address || "").toLowerCase().includes(q) ||
+          (r.phone || "").toLowerCase().includes(q) ||
           (r.type || "").toLowerCase().includes(q) ||
           (r.target_group || "").toLowerCase().includes(q) ||
           (r.sale_name || "").toLowerCase().includes(q) ||
-          (r.dealer_name || "").toLowerCase().includes(q)
+          (r.dealer_name || "").toLowerCase().includes(q) ||
+          (r.sub_dealer_name || "").toLowerCase().includes(q)
       );
     }
 
@@ -486,7 +555,7 @@ export default function CreatePointCampaign() {
     });
 
     return rows;
-  }, [targetRows, searchKeyword, filterSale, filterDealer]);
+  }, [targetRows, searchKeyword, filterSale, filterDealer, filterSubDealer]);
 
   const selectTargetColumns = [
     { title: "No", render: (_, __, index) => index + 1, width: 70 },
@@ -625,6 +694,7 @@ export default function CreatePointCampaign() {
         setLoading(true);
         const res = await useServiceAPI.post(paths.pathPointCampaignDetail, {
           id: recordId,
+          ...(isFarmer ? { mode: "farmer" } : {}),
         });
         const d = res?.data || {};
         const c = d?.campaign || {};
@@ -842,6 +912,7 @@ export default function CreatePointCampaign() {
         crops,
         date_start: start ? dayjs(start).format("YYYY-MM-DD HH:mm:ss") : null,
         date_end: end ? dayjs(end).format("YYYY-MM-DD HH:mm:ss") : null,
+        ...(isFarmer ? { mode: "farmer" } : {}),
       };
 
       if (productModeNum === 2) payload.categorys = categoryIds;
@@ -1007,24 +1078,30 @@ export default function CreatePointCampaign() {
             Customer Group <span className="text-[#ff4d4f]">*</span>
           </div>
           <Row gutter={[24, 16]}>
-            <Col xs={24} md={6}>
-              <div className="text-[#666] mb-2">Dealer</div>
-              <Form.Item name="target_dealer" noStyle>
-                <Checkbox.Group options={dealerOptions} />
-              </Form.Item>
-            </Col>
-            <Col xs={24} md={6}>
-              <div className="text-[#666] mb-2">Sub Dealer</div>
-              <Form.Item name="target_subdealer" noStyle>
-                <Checkbox.Group options={subDealerOptions} />
-              </Form.Item>
-            </Col>
-            <Col xs={24} md={6}>
-              <div className="text-[#666] mb-2">Farmer</div>
-              <Form.Item name="target_farmer" noStyle>
-                <Checkbox.Group options={farmerOptions} />
-              </Form.Item>
-            </Col>
+            {!isFarmer && (
+              <>
+                <Col xs={24} md={6}>
+                  <div className="text-[#666] mb-2">Dealer</div>
+                  <Form.Item name="target_dealer" noStyle>
+                    <Checkbox.Group options={dealerOptions} />
+                  </Form.Item>
+                </Col>
+                <Col xs={24} md={6}>
+                  <div className="text-[#666] mb-2">Sub Dealer</div>
+                  <Form.Item name="target_subdealer" noStyle>
+                    <Checkbox.Group options={subDealerOptions} />
+                  </Form.Item>
+                </Col>
+              </>
+            )}
+            {isFarmer && (
+              <Col xs={24} md={6}>
+                <div className="text-[#666] mb-2">Farmer</div>
+                <Form.Item name="target_farmer" noStyle>
+                  <Checkbox.Group options={farmerOptions} />
+                </Form.Item>
+              </Col>
+            )}
             <Col xs={24} md={6}>
               <div className="text-[#666] mb-2">Crop</div>
               <Form.Item name="target_crop" noStyle>
@@ -1111,16 +1188,17 @@ export default function CreatePointCampaign() {
               <span className="text-[#00783F]">({selectedCustomerCount})</span>
             </div>
 
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 flex-wrap">
               {/* ✅ 1) Sales */}
               <Select
                 allowClear
                 placeholder="Sales"
-                style={{ width: 200 }}
+                style={{ width: 180 }}
                 value={filterSale}
                 onChange={(val) => {
                   setFilterSale(val);
                   setFilterDealer(undefined);
+                  setFilterSubDealer(undefined);
                 }}
                 options={salesOptions}
                 disabled={isView}
@@ -1130,15 +1208,31 @@ export default function CreatePointCampaign() {
               <Select
                 allowClear
                 placeholder="Dealer"
-                style={{ width: 220 }}
+                style={{ width: 200 }}
                 value={filterDealer}
-                onChange={setFilterDealer}
+                onChange={(val) => {
+                  setFilterDealer(val);
+                  setFilterSubDealer(undefined);
+                }}
                 options={dealerFilterOptions}
                 disabled={isView}
               />
 
+              {/* ✅ 3) Sub Dealer (แสดงเฉพาะโหมด Farmer) */}
+              {isFarmer && (
+                <Select
+                  allowClear
+                  placeholder="Sub Dealer"
+                  style={{ width: 200 }}
+                  value={filterSubDealer}
+                  onChange={setFilterSubDealer}
+                  options={subDealerFilterOptions}
+                  disabled={isView}
+                />
+              )}
+
               {/* Search */}
-              <div style={{ width: 280 }}>
+              <div style={{ width: 260 }}>
                 <Search
                   placeholder="Search"
                   allowClear

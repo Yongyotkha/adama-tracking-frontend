@@ -119,6 +119,27 @@ const AdvanceExpensePDF = () => {
     loadDataAdvance();
   }, [getDocumentNumber, getPageCode]);
 
+  const getUnitPrice = (item) => {
+    const parseVal = (v) => {
+      if (v === null || v === undefined || v === "") return NaN;
+      const num = typeof v === "string" ? parseFloat(v.replace(/,/g, "")) : Number(v);
+      return Number.isFinite(num) && num > 0 ? num : NaN;
+    };
+    const masterBathUnit = parseVal(item?.master_price?.bath_unit);
+    if (!isNaN(masterBathUnit)) return masterBathUnit;
+
+    const bathUnit = parseVal(item?.bath_unit);
+    if (!isNaN(bathUnit)) return bathUnit;
+
+    const masterBathLtkg = parseVal(item?.master_price?.bath_ltkg);
+    if (!isNaN(masterBathLtkg)) return masterBathLtkg;
+
+    const bathLtkg = parseVal(item?.bath_ltkg);
+    if (!isNaN(bathLtkg)) return bathLtkg;
+
+    return 1;
+  };
+
   const formatNumber2 = (val) => {
     const n = Number(val);
     if (!Number.isFinite(n)) return "0.00";
@@ -178,6 +199,16 @@ const AdvanceExpensePDF = () => {
       Number(item.acutal_sale_qty || 0) !== 0
   );
 
+  const totalEstimateValue = visibleItems.reduce(
+    (sum, item) => sum + getUnitPrice(item) * Number(item.estimate_sale_qty || 0),
+    0
+  );
+
+  const totalActualValue = visibleItems.reduce(
+    (sum, item) => sum + getUnitPrice(item) * Number(item.acutal_sale_qty || 0),
+    0
+  );
+
   const stripHtml = (html) => {
     if (!html) return "-";
     return String(html)
@@ -230,7 +261,7 @@ const AdvanceExpensePDF = () => {
               {getPageCode === "expense_clearing" && (
                 <Text style={{ fontWeight: 'bold' }}>
                   &nbsp; | Advance Reference No <Text style={{ fontWeight: 'light' }}> : {dataHeader.advance_reference_no}</Text>
-              </Text>
+                </Text>
               )}
             </Text>
 
@@ -256,7 +287,7 @@ const AdvanceExpensePDF = () => {
               <View style={{ flexDirection: "row", justifyContent: "space-between", width: "100%", margin: 'auto' }}>
                 <Text style={{ textAlign: "center" }}>Exp :</Text>
                 <Text style={{ flex: 7, textAlign: "start", paddingLeft: 7 }}>
-                  {calculatePercentage(Number(dataHeader.expense_advance), Number(dataHeader.product_total_estimate_sale))}
+                  {calculatePercentage(Number(dataHeader.expense_advance), totalEstimateValue > 0 ? totalEstimateValue : Number(dataHeader.product_total_estimate_sale))}
                 </Text>
               </View>
             </View>
@@ -267,7 +298,7 @@ const AdvanceExpensePDF = () => {
               <View style={{ flexDirection: "row", justifyContent: "space-between", width: "100%", margin: 'auto' }}>
                 <Text style={{ textAlign: "center" }}>Exp :</Text>
                 <Text style={{ flex: 7, textAlign: "start", paddingLeft: 7 }}>
-                  {calculateActualPercentage(Number(dataHeader.expense_actual), Number(dataHeader.product_total_acutal_sale))}
+                  {calculateActualPercentage(Number(dataHeader.expense_actual), totalActualValue > 0 ? totalActualValue : Number(dataHeader.product_total_acutal_sale))}
                 </Text>
               </View>
             </View>
@@ -394,13 +425,13 @@ const AdvanceExpensePDF = () => {
                     {formatNumber2(item.estimate_sale_qty)}
                   </Text>
                   <Text style={styles.tableCell}>
-                    {formatNumber2(Number(item.bath_ltkg || 1) * Number(item.estimate_sale_qty || 0))}
+                    {formatNumber2(getUnitPrice(item) * Number(item.estimate_sale_qty || 0))}
                   </Text>
                   <Text style={styles.tableCell}>
-                    {formatNumber(item.acutal_sale_qty)}
+                    {formatNumber2(item.acutal_sale_qty)}
                   </Text>
                   <Text style={[styles.tableCell, styles.tableCellLast]}>
-                    {formatNumber(Number(item.bath_ltkg || 1) * Number(item.acutal_sale_qty || 0))}
+                    {formatNumber2(getUnitPrice(item) * Number(item.acutal_sale_qty || 0))}
                   </Text>
                 </View>
               ))
@@ -420,9 +451,9 @@ const AdvanceExpensePDF = () => {
             <View style={[styles.tableRow, { borderTopWidth: 1 }]}>
               <Text style={[styles.tableCell, { flex: 4, minWidth: 42, borderRightWidth: 1, textAlign: 'start', fontWeight: 'bold' }]}>Total (THB) </Text>
               <Text style={[styles.tableCell]}>-</Text>
-              <Text style={[styles.tableCell]}> {formatNumber2(dataHeader.expense_expense_actual_exp || 0)}</Text>
+              <Text style={[styles.tableCell]}> {formatNumber2(totalEstimateValue > 0 ? totalEstimateValue : (dataHeader.expense_expense_actual_exp || 0))}</Text>
               <Text style={[styles.tableCell]}>-</Text>
-              <Text style={[styles.tableCell, styles.tableCellLast]}> {formatNumber2(dataHeader.expense_actual_sale || 0)} </Text>
+              <Text style={[styles.tableCell, styles.tableCellLast]}> {formatNumber2(totalActualValue > 0 ? totalActualValue : (dataHeader.expense_actual_sale || 0))}</Text>
             </View>
           </View>
 
@@ -458,7 +489,7 @@ const AdvanceExpensePDF = () => {
           {/* Description (ต่อจาก Products ก่อน Footer) */}
           <View style={styles.descriptionBox}>
             <Text style={styles.descriptionTitle}>Description :</Text>
-            <Text style={styles.descriptionText}>{descriptionText}</Text>
+            <Text style={styles.descriptionText}>{descriptionText} </Text>
           </View>
 
           {/* Footer */}

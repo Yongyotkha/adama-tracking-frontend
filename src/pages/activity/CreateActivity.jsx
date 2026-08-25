@@ -110,6 +110,27 @@ export default function CreateActivity() {
 
   const isAutoSelectMySale = [5, 6].includes(Number(userInfo?.role_id));
 
+  const getUnitPrice = (item) => {
+    const parseVal = (v) => {
+      if (v === null || v === undefined || v === "") return NaN;
+      const num = typeof v === "string" ? parseFloat(v.replace(/,/g, "")) : Number(v);
+      return Number.isFinite(num) && num > 0 ? num : NaN;
+    };
+    const masterBathUnit = parseVal(item?.master_price?.bath_unit);
+    if (!isNaN(masterBathUnit)) return masterBathUnit;
+
+    const bathUnit = parseVal(item?.bath_unit);
+    if (!isNaN(bathUnit)) return bathUnit;
+
+    const masterBathLtkg = parseVal(item?.master_price?.bath_ltkg);
+    if (!isNaN(masterBathLtkg)) return masterBathLtkg;
+
+    const bathLtkg = parseVal(item?.bath_ltkg);
+    if (!isNaN(bathLtkg)) return bathLtkg;
+
+    return 1;
+  };
+
   const [actualParticipantCount, setActualParticipantCount] = useState("0");
   const [participants, setParticipants] = useState([]);
   const [participantUsers, setParticipantUsers] = useState([]);
@@ -502,6 +523,31 @@ export default function CreateActivity() {
         const clearingFreeKeyRows =
           d?.expense_clearing_freekey ?? d?.freekey ?? [];
 
+        const normalizedProductList = (d.expense_product_data_list || []).map((el, idx) => ({
+          key: idx + 1,
+          product_name: el.product_name,
+          packing_list: el.packing_list,
+          estimate_sale_qty: toNumber(el.estimate_sale_qty, 0),
+          acutal_sale_qty: toNumber(el.acutal_sale_qty, 0),
+          bath_ltkg: toNumber(el.bath_ltkg, 0),
+          net_price: el.net_price,
+          bath_unit: el.bath_unit,
+          master_price: el.master_price,
+          product_code: el.product_code,
+          product_id: el.product_id,
+          id: el.id ?? el.product_id,
+        }));
+
+        const calculatedEstimateTotal = normalizedProductList.reduce(
+          (sum, item) => sum + (item.estimate_sale_qty || 0) * getUnitPrice(item),
+          0
+        );
+
+        const calculatedActualTotal = normalizedProductList.reduce(
+          (sum, item) => sum + (item.acutal_sale_qty || 0) * getUnitPrice(item),
+          0
+        );
+
         const normalized = {
           ...d,
           expense_advance: toNumber(d.expense_advance, 0),
@@ -509,27 +555,17 @@ export default function CreateActivity() {
           expense_participant_estimate: toNumber(d.expense_participant_estimate, 0),
           expense_particapant_actual: toNumber(d.expense_particapant_actual, 0),
 
-          expense_product_total_estimate_sale: toNumber(d.expense_product_total_estimate_sale, 0),
-          expense_product_total_acutal_sale: toNumber(d.expense_product_total_acutal_sale, 0),
+          expense_product_total_estimate_sale: calculatedEstimateTotal,
+          expense_product_total_acutal_sale: calculatedActualTotal,
 
           // ที่คุณเอามา map ใส่ expense_actual_exp/expense_actual_sale
-          expense_expense_actual_exp: toNumber(d.expense_expense_actual_exp, 0),
-          expense_expense_actual_sale: toNumber(d.expense_expense_actual_sale, 0),
-          expense_actual_exp: toNumber(d.expense_actual_exp ?? d.expense_expense_actual_exp, 0),
-          expense_actual_sale: toNumber(d.expense_actual_sale ?? d.expense_expense_actual_sale, 0),
+          expense_expense_actual_exp: calculatedEstimateTotal,
+          expense_expense_actual_sale: calculatedActualTotal,
+          expense_actual_exp: calculatedEstimateTotal,
+          expense_actual_sale: calculatedActualTotal,
 
           // ✅ normalize list rows (สำคัญมากสำหรับ InputNumber ใน table)
-          expense_product_data_list: (d.expense_product_data_list || []).map((el, idx) => ({
-            key: idx + 1,
-            product_name: el.product_name,
-            packing_list: el.packing_list,
-            estimate_sale_qty: toNumber(el.estimate_sale_qty, 0),
-            acutal_sale_qty: toNumber(el.acutal_sale_qty, 0),
-            bath_ltkg: toNumber(el.bath_ltkg, 0),
-            product_code: el.product_code,
-            product_id: el.product_id,
-            id: el.id ?? el.product_id,
-          })),
+          expense_product_data_list: normalizedProductList,
           freekey: ensureFreeKeyRows(clearingFreeKeyRows),
         };
 
@@ -1059,17 +1095,36 @@ export default function CreateActivity() {
     if (documentNumber && firstCallData) {
       setFirstCallData(false);
     } else {
-      const productCropListNew = productCrop.data.map((el, key) => ({
-        key: key + 1,
-        product_name: el.product_name,
-        packing_list: el.packing_list,
-        estimate_sale_qty: "0",
-        acutal_sale_qty: "0",
-        bath_ltkg: el.bath_ltkg,
-        product_code: el.product_code,
-        product_id: el.id,
-        id: el.id,
-      }));
+      const productCropListNew = productCrop.data.map((el, key) => {
+        const parseVal = (v) => {
+          if (v === null || v === undefined || v === "") return NaN;
+          const num = typeof v === "string" ? parseFloat(v.replace(/,/g, "")) : Number(v);
+          return Number.isFinite(num) && num > 0 ? num : NaN;
+        };
+
+        const bathUnit = parseVal(el.bath_unit);
+        const bathLtkg = parseVal(el.bath_ltkg);
+        const finalUnitPrice = !isNaN(bathUnit) ? bathUnit : (!isNaN(bathLtkg) ? bathLtkg : 1);
+
+        return {
+          key: key + 1,
+          product_name: el.product_name,
+          packing_list: el.packing_list,
+          estimate_sale_qty: "0",
+          acutal_sale_qty: "0",
+          bath_unit: el.bath_unit ?? finalUnitPrice,
+          bath_ltkg: el.bath_ltkg,
+          net_price: el.net_price,
+          sub_dealer: el.sub_dealer,
+          farmer: el.farmer,
+          unit_convert_value: el.unit_convert_value,
+          unit_convert_order_value: el.unit_convert_order_value,
+          unit_convert_sales_order: el.unit_convert_sales_order,
+          product_code: el.product_code,
+          product_id: el.id,
+          id: el.id,
+        };
+      });
       setActivityDetail((prev) => ({
         ...prev,
         expense_product_data_list: productCropListNew,
@@ -1135,18 +1190,21 @@ export default function CreateActivity() {
     },
   ];
 
-  const handleInputChange = (value, key, field, bath_ltkg) => {
+
+
+  const handleInputChange = (value, key, field) => {
     setActivityDetail((prev) => {
       const updatedData = prev.expense_product_data_list.map((item) => {
         if (item.key === key) {
           const numericValue = parseFloat(value) || 0;
-          return { ...item, [field]: numericValue, total: numericValue * bath_ltkg };
+          const unitPrice = getUnitPrice(item);
+          return { ...item, [field]: numericValue, total: numericValue * unitPrice };
         }
         return item;
       });
 
-      const sumEstimateTotal = updatedData.reduce((acc, item) => acc + (item.estimate_sale_qty || 0) * item.bath_ltkg, 0);
-      const sumActualTotal = updatedData.reduce((acc, item) => acc + (item.acutal_sale_qty || 0) * item.bath_ltkg, 0);
+      const sumEstimateTotal = updatedData.reduce((acc, item) => acc + (item.estimate_sale_qty || 0) * getUnitPrice(item), 0);
+      const sumActualTotal = updatedData.reduce((acc, item) => acc + (item.acutal_sale_qty || 0) * getUnitPrice(item), 0);
 
       return {
         ...prev,
@@ -1567,9 +1625,9 @@ export default function CreateActivity() {
             <TableComponent
               header={header}
               dataSource={activityDetail?.expense_product_data_list}
-              pageSize={10}
+              pageSize={15}
               footer={activityDetail?.expense_product_data_list?.length > 0 ? footerOrderList : null}
-              pagination={10}
+              pagination={{ pageSize: 15 }}
             />
           </BoxPrimary>
 

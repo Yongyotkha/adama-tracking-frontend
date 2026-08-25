@@ -314,7 +314,10 @@ export default function PointCampaignList() {
         document_number: item.document_number,
         code: item.document_number,
         created_at: `${formatDate(item.created_at)}`,
-        period: `${formatDate(item.date_start)} - ${formatDate(item.date_end)}`,
+        period:
+          item.date_start && item.date_end
+            ? `${formatDate(item.date_start)} - ${formatDate(item.date_end)}`
+            : (item.period || "-").replace(/\.\d+/g, ""),
         status: (
           <BadgeStatus
             text={item.status_mapping_name}

@@ -14,14 +14,15 @@ import dayjs from "dayjs";
 export default function OrderDetail() {
   const navigate = useNavigate();
   const location = useLocation();
+  const dataOrderDetail = location.state?.data || {};
   const [loading, setLoading] = useState(false);
   const { showMsg, showNotification } = useContext(AuthContext);
   const [getDocumentDate, setGetDocumentDate] = useState(
-    location.state.data.document_date
+    dataOrderDetail.document_date
   );
-  const [getUserId, setGetUserId] = useState(location.state.data.user_id);
-  const [getDealerId, setGetDealerId] = useState(location.state.data.dealer_id);
-  const [getRemark, setGetRemark] = useState(location.state.data.remark);
+  const [getUserId, setGetUserId] = useState(dataOrderDetail.user_id);
+  const [getDealerId, setGetDealerId] = useState(dataOrderDetail.dealer_id);
+  const [getRemark, setGetRemark] = useState(dataOrderDetail.remark);
   
   const [dataSource, setDataSource] = useState([]);
   const [dataSourceOther, setDataSourceOther] = useState([]);
@@ -32,9 +33,9 @@ export default function OrderDetail() {
 
   // Set Data
   useEffect(() => {
-    setDataSource(location.state.data.products);
-    setDataSourceOther(location.state.data.others);
-  }, [dataSource, dataSourceOther])
+    setDataSource(dataOrderDetail.products || []);
+    setDataSourceOther(dataOrderDetail.others || []);
+  }, []);
 
   // Get Master
   useEffect(() => {
@@ -126,15 +127,22 @@ export default function OrderDetail() {
   ];
 
   const footerOrderList = () => {
-    const totalQuantity = dataSource.reduce((total, item) => total + parseFloat(item.quantity), 0);
-    const totalFOC = dataSource.reduce((total, item) => total + parseFloat(item.foc), 0);
+    const totalQuantity = dataSource.reduce((total, item) => total + parseFloat(item.quantity || 0), 0);
+    const totalFOC = dataSource.reduce((total, item) => total + parseFloat(item.foc || 0), 0);
     const totalAmount = dataSource.reduce((total, item) => total + parseFloat(item.net_amount || 0), 0);
+    const totalPoint =
+      dataOrderDetail?.total_point !== undefined &&
+      dataOrderDetail?.total_point !== null &&
+      dataOrderDetail?.total_point !== ""
+        ? parseFloat(dataOrderDetail.total_point || 0)
+        : dataSource.reduce((total, item) => total + parseFloat(item.point || 0), 0);
 
     return (
       <tr className="bg-[#978B87]">
         <td colSpan={9} className="text-right pr-2 text-white">
-          Item: {dataSource.length} &nbsp; QTY (ctn): {totalQuantity}+{totalFOC} &nbsp;
-          Total: {totalAmount.toLocaleString("en-US", { minimumFractionDigits: 2 })}
+          Item: {dataSource.length} &nbsp; QTY (ctn): {totalQuantity}+{totalFOC} &nbsp; Total:{" "}
+          {totalAmount.toLocaleString("en-US", { minimumFractionDigits: 2 })} &nbsp; Total Point:{" "}
+          {totalPoint.toLocaleString("en-US")}
         </td>
       </tr>
     );

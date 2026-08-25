@@ -13,6 +13,7 @@ const TableComponent = ({
   loading,
   onChange,
   rowSelection,
+  rowKey = "key",
 
   // ✅ เพิ่มใหม่ (optional) — ถ้าไม่ส่งมา จะทำงานเหมือนเดิม
   scrollX = true,
@@ -34,6 +35,10 @@ const TableComponent = ({
     const size =
       typeof pagination === "object" && pagination?.pageSize
         ? Number(pagination.pageSize)
+        : typeof pagination === "number"
+        ? Number(pagination)
+        : pageSize
+        ? Number(pageSize)
         : 0;
     const offset = size > 0 ? (current - 1) * size : 0;
 
@@ -42,6 +47,17 @@ const TableComponent = ({
       render: (_, __, index) => offset + index + 1,
     };
   });
+
+  const resolvedPagination =
+    pagination === false
+      ? false
+      : typeof pagination === "object"
+      ? { pageSize: pageSize || pagination.pageSize || 10, ...pagination }
+      : typeof pagination === "number"
+      ? { pageSize: pagination }
+      : pageSize
+      ? { pageSize: pageSize }
+      : pagination;
 
   // ✅ ทำให้พฤติกรรมเดิมไม่เปลี่ยน:
   // - ถ้า scroll เป็น true/false แบบเดิม -> ทำงานเหมือนเดิม
@@ -80,11 +96,12 @@ const TableComponent = ({
         columns={resolvedColumns}
         dataSource={dataSource}
         loading={loading}
-        pagination={pagination}
+        pagination={resolvedPagination}
         scroll={finalScroll}
         summary={footer}
         onChange={onChange}
         rowSelection={rowSelection}
+        rowKey={rowKey}
       />
     </ConfigProvider>
   );
