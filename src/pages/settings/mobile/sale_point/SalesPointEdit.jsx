@@ -692,7 +692,7 @@ export default function SalesPointEdit() {
         handleUploadSuccess={handleUploadSuccessPicture}
         handleFileRemove={handleFileRemovePicture}
         modeUpload="receive"
-        disabled={true}
+        disabled={location.pathname !== "/points/line/sales-points-list/edit"}
       />
 
       <BoxPrimary title="Remark">
