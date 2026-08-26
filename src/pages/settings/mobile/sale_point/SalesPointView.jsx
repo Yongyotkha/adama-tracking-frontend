@@ -31,6 +31,9 @@ export default function SalesPointView() {
   const [dealerName, setDealerName] = useState("");          // ✅ ชื่อ Dealer (จาก detail)
   const [subDealerName, setSubDealerName] = useState("");    // ✅ ชื่อ Sub Dealer (จาก detail)
   const [getRemark, setGetRemark] = useState("");
+  const [statusTransactionName, setStatusTransactionName] = useState(
+    location.state?.status_transaction_name || ""
+  );
 
   // สำหรับโหลด master เดิมไม่จำเป็นแล้ว จึงตัดทิ้ง (เหลือไว้หากจะนำกลับมาใช้)
   // const [dataSale, setDataSale] = useState([]);
@@ -78,6 +81,7 @@ export default function SalesPointView() {
           setDealerName(d.dealer_name || "");
           setSubDealerName(d.sub_dealer_name || "");
           setGetRemark(d.ref_remark || "");
+          setStatusTransactionName(d.status_transaction_name || location.state?.status_transaction_name || "");
 
           // products
           const prod = Array.isArray(d.products) ? d.products : [];
@@ -289,6 +293,15 @@ export default function SalesPointView() {
       disabled: true,
       placeholder: getDocumentDate || dayjs().format("YYYY-MM-DD"),
       value: "",
+    },
+    {
+      key: "status_transaction_name",
+      label: "Status",
+      name: "status_transaction_name",
+      type: "text",
+      disabled: true,
+      placeholder: statusTransactionName || "",
+      value: statusTransactionName || "",
     },
   ];
 

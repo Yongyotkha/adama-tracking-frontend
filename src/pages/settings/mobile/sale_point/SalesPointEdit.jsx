@@ -52,6 +52,9 @@ export default function SalesPointEdit() {
   const document_number = location.state?.document_number;
   const statusFromList = location.state?.status_code;
   const [statusCode, setStatusCode] = useState(statusFromList || "");
+  const [statusTransactionName, setStatusTransactionName] = useState(
+    location.state?.status_transaction_name || ""
+  );
 
   const canDeleteProducts = statusCode !== "ODC";
 
@@ -94,6 +97,7 @@ export default function SalesPointEdit() {
         setDocNo(d.document_number || "");
         setDocDate(d.document_date || "");
         setStatusCode(statusFromList || d.status_code || "");
+        setStatusTransactionName(d.status_transaction_name || location.state?.status_transaction_name || "");
 
         setUserId(String(d.user_id || ""));
         setDealerId(String(d.dealer_id || ""));
@@ -166,6 +170,7 @@ export default function SalesPointEdit() {
           farmer: String(d.farmer_name || ""),
           order_no: d.document_number || "",
           order_date: d.document_date || dayjs().format("YYYY-MM-DD"),
+          status_transaction_name: d.status_transaction_name || "",
         });
       } catch (e) {
         console.error(e);
@@ -180,6 +185,7 @@ export default function SalesPointEdit() {
   }, [document_number]);
 
   const handleQty = (key, nextQtyRaw) => {
+    if (statusCode === "ODC") return;
     setDataSource((prev) =>
       prev.map((item) => {
         if (item.key !== key) return item;
@@ -305,29 +311,34 @@ export default function SalesPointEdit() {
         title: <div className="text-center">{isFarmer ? "No of Pack" : "QTY (ctn)"}</div>,
         dataIndex: "quantity",
         key: "quantity",
-        render: (_, r) => (
-          <div className="quantity-control flex justify-center items-center">
-            <img
-              src="/img/icons/collapse.png"
-              className="w-6 h-6 cursor-pointer"
-              onClick={() => handleQty(r.key, r.quantity - 1)}
-              alt="decrease"
-            />
-            <Input
-              inputMode="numeric"
-              min={0}
-              value={r.quantity}
-              onChange={(e) => handleQty(r.key, parseInt(e.target.value) || 0)}
-              className="border border-solid border-[#00783F] text-[#00783F] text-center mx-2 w-20"
-            />
-            <img
-              src="/img/icons/expand.png"
-              className="w-6 h-6 cursor-pointer"
-              onClick={() => handleQty(r.key, r.quantity + 1)}
-              alt="increase"
-            />
-          </div>
-        ),
+        render: (_, r) =>
+          statusCode === "ODC" ? (
+            <div className="text-center">
+              {toNumber(r.quantity).toLocaleString("en-US")}
+            </div>
+          ) : (
+            <div className="quantity-control flex justify-center items-center">
+              <img
+                src="/img/icons/collapse.png"
+                className="w-6 h-6 cursor-pointer"
+                onClick={() => handleQty(r.key, r.quantity - 1)}
+                alt="decrease"
+              />
+              <Input
+                inputMode="numeric"
+                min={0}
+                value={r.quantity}
+                onChange={(e) => handleQty(r.key, parseInt(e.target.value) || 0)}
+                className="border border-solid border-[#00783F] text-[#00783F] text-center mx-2 w-20"
+              />
+              <img
+                src="/img/icons/expand.png"
+                className="w-6 h-6 cursor-pointer"
+                onClick={() => handleQty(r.key, r.quantity + 1)}
+                alt="increase"
+              />
+            </div>
+          ),
       },
       {
         title: "Sub Total (THB)",
@@ -371,7 +382,7 @@ export default function SalesPointEdit() {
         ),
       },
     ];
-  }, [canDeleteProducts, dataSource]);
+  }, [canDeleteProducts, dataSource, statusCode, isFarmer]);
 
   const headerOther = [
     { title: "No", dataIndex: "no", key: "no", width: 50 },
@@ -452,7 +463,7 @@ export default function SalesPointEdit() {
       value: "",
       placeholder: subDealerName || "",
     },
-    {
+    isFarmer && {
       key: "farmer",
       label: "Farmer",
       name: "farmer",
@@ -480,7 +491,16 @@ export default function SalesPointEdit() {
       required: true,
       value: docDate || dayjs().format("YYYY-MM-DD"),
     },
-  ];
+    {
+      key: "status_transaction_name",
+      label: "Status",
+      name: "status_transaction_name",
+      type: "text",
+      disabled: true,
+      required: false,
+      value: statusTransactionName || "",
+    },
+  ].filter(Boolean);
 
   const handleUploadClickBill = () => fileUploadRefBill.current?.triggerUpload();
   const handleUploadClickPicture = () => fileUploadRefPicture.current?.triggerUpload();
