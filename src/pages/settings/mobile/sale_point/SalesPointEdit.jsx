@@ -16,12 +16,15 @@ import UploadSection from "../../../../components/file_upload/UploadSection";
 export default function SalesPointEdit() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { showMsg } = useContext(AuthContext);
+  const { showMsg, userInfo } = useContext(AuthContext);
 
   const [loading, setLoading] = useState(false);
   const isFarmer = location.pathname.includes("farmer-points-list") || location.state?.is_farmer;
   const backPath = location.state?.back_path || (isFarmer ? "/points/line/farmer-points-list" : "/points/line/sales-points-list");
-
+  const isAdmin = Number(userInfo?.role_id) === 1;
+  const isCustomerUploadPage =
+    location.pathname === "/points/line/sales-points-list/edit" ||
+    location.pathname === "/points/line/farmer-points-list/edit";
   const [dataSource, setDataSource] = useState([]);
   const [dataSourceOther, setDataSourceOther] = useState([]);
 
@@ -712,10 +715,7 @@ export default function SalesPointEdit() {
         handleUploadSuccess={handleUploadSuccessPicture}
         handleFileRemove={handleFileRemovePicture}
         modeUpload="receive"
-        disabled={
-          location.pathname !== "/points/line/sales-points-list/edit" &&
-          location.pathname !== "/points/line/farmer-points-list/edit"
-        }
+        disabled={!isAdmin || !isCustomerUploadPage}
       />
 
       <BoxPrimary title="Remark">
