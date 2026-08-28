@@ -148,6 +148,7 @@ const ActionButton = ({
           className={`flex text-[#FFFFFF] text-sm rounded-[4px] bg-[#f11113] gap-2 p-2 py-1 items-center ${className} min-w-[80px] justify-center`}
           onClick={onClick}
           disabled={disabled}
+          style={style}
         >
           {renderDefaultIcon()}
           <div>{text}</div>
@@ -178,9 +179,10 @@ const ActionButton = ({
 
       {mode === "custom" && (
         <button
-          className={`flex text-white text-sm rounded-sm gap-2 p-2 items-center min-w-[96px] justify-center ${className}`}
+          className={`flex text-white text-sm rounded-[4px] gap-2 p-2 py-1 items-center min-w-[96px] justify-center ${className}`}
           onClick={onClick}
           disabled={disabled}
+          style={style}
         >
           {renderDefaultIcon()}
           <div>{text}</div>

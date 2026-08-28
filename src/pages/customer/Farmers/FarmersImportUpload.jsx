@@ -333,17 +333,6 @@ export default function FarmersImportUpload() {
         </div>
       </BoxPrimary>
 
-      <BoxPrimary className="mt-4">
-        <div className="mb-4 font-semibold text-[#333]">ประวัติการอัปโหลดในรอบนี้</div>
-        <Table
-          rowKey="upload_id"
-          columns={historyColumns}
-          dataSource={uploadHistory}
-          pagination={false}
-          size="small"
-          scroll={{ x: 800 }}
-        />
-      </BoxPrimary>
     </MainLayout>
   );
 }

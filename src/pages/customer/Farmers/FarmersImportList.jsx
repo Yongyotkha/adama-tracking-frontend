@@ -190,26 +190,26 @@ export default function FarmersImportList() {
         title: "Action",
         dataIndex: "upload_id",
         key: "action",
-        width: 160,
+        width: 220,
         align: "center",
         fixed: "right",
         render: (uploadId, record) => (
-          <div className="flex flex-col items-center gap-1">
-            <button
-              type="button"
-              className="text-[#009845] underline"
+          <div className="flex items-center justify-center gap-2">
+            <ActionButton
+              mode="custom"
+              text="ดูข้อมูล"
+              className="bg-[#009845] !p-2 !py-1 rounded-[4px] h-8 box-border"
+              style={{ width: 96, height: 32, minWidth: 96, minHeight: 32, boxSizing: "border-box" }}
               onClick={() => navigate(`/customer/farmers/import/${uploadId}`)}
-            >
-              ดูข้อมูล
-            </button>
+            />
             {record.can_delete && (
-              <button
-                type="button"
-                className="text-[#f11113] underline"
+              <ActionButton
+                mode="delete"
+                text="ลบ"
+                className="h-8 box-border"
+                style={{ width: 96, height: 32, minWidth: 96, minHeight: 32, boxSizing: "border-box" }}
                 onClick={() => handleDelete(uploadId)}
-              >
-                ลบ
-              </button>
+              />
             )}
           </div>
         ),
