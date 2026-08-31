@@ -62,6 +62,7 @@ const buildProductPayload = (values, selectedCrops, productImageFallback) => ({
   order_by: parseInteger(values.order_by),
   unit_convert_order_value: parseNumber(values.unit_convert_order_value),
   point: parseInteger(values.point),
+  point_farmer: parseInteger(values.point_farmer),
   unit_convert_sales_order: parseNumber(values.unit_convert_sales_order),
   unit_size: parseNumber(values.unit_size),
   crop_list: selectedCrops,
@@ -197,7 +198,7 @@ export default function EditProduct() {
         type: "text",
         required: false,
         col: 6,
-        disabled: false,
+        disabled: !isCreateMode,
         value: isCreateMode ? "" : productInfo.product_code,
       },
       {
@@ -449,6 +450,13 @@ export default function EditProduct() {
           selectedCrops,
           productInfo.product_image
         );
+
+        if (isCreateMode) {
+          const productCode = String(values.product_code ?? "").trim();
+          if (productCode) {
+            payload.product_code = productCode;
+          }
+        }
 
         const request = isCreateMode
           ? useServiceAPI.post(
