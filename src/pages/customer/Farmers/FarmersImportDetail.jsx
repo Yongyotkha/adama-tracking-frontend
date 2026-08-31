@@ -32,18 +32,7 @@ const TEMP_STATUS = {
   failed: { color: "red", label: "นำเข้าจริงไม่สำเร็จ" },
 };
 
-const isCancellableRow = (row) => {
-  const code = String(row?.status_code || "").trim().toLowerCase();
-  const farmerId = row?.farmer_id;
-
-  return code === "inserted" && farmerId !== null && farmerId !== undefined && farmerId !== "" && farmerId !== "-";
-};
-
 const isLockedRow = (row) => {
-  if (isCancellableRow(row)) {
-    return false;
-  }
-
   const code = String(row?.status_code || "pending").trim().toLowerCase();
   const message = String(row?.status_message || "");
 
@@ -99,21 +88,17 @@ export default function FarmersImportDetail() {
           mobile_phone: displayValue(item.mobile_phone),
           email: displayValue(item.email),
           address: displayValue(item.address),
-          sale_name: displayValue(item.sale_name),
-          dealer_name: displayValue(item.dealer_name),
-          sub_dealer_name: displayValue(item.sub_dealer_name),
           status_code: item.status_code,
           status_message: item.status_message,
           farmer_id: farmerId || "-",
           can_insert: item.can_insert !== false && item.status_code === "pending",
-          can_cancel: item.can_cancel === true || (item.status_code === "inserted" && Boolean(farmerId)),
           created_at: formatDateTime(item.created_at),
           no: index + 1 + (current - 1) * pageSize,
         };
 
         return {
           ...row,
-          locked: isLockedRow(row) || (row.can_insert === false && row.can_cancel === false),
+          locked: isLockedRow(row) || row.can_insert === false,
         };
       });
 
@@ -126,7 +111,6 @@ export default function FarmersImportDetail() {
         mapped.forEach((row) => {
           next[row.id] = {
             can_insert: row.can_insert,
-            can_cancel: row.can_cancel,
           };
         });
         return next;
@@ -186,12 +170,6 @@ export default function FarmersImportDetail() {
     [dataSource]
   );
 
-  const insertedSelectedKeys = useMemo(
-    () =>
-      selectedRowKeys.filter((key) => selectedMeta[Number(key)]?.can_cancel === true),
-    [selectedMeta, selectedRowKeys]
-  );
-
   const pendingImportKeys = useMemo(
     () =>
       selectedRowKeys.filter((key) => selectedMeta[Number(key)]?.can_insert === true),
@@ -238,47 +216,6 @@ export default function FarmersImportDetail() {
     });
   };
 
-  const handleCancelSync = () => {
-    if (insertedSelectedKeys.length === 0) {
-      showNotification("error", "กรุณาเลือกรายการที่นำเข้าจริงแล้ว");
-      return;
-    }
-
-    Modal.confirm({
-      title: "ยกเลิกนำข้อมูลเข้าจริง",
-      content: `ยกเลิกรายการที่เลือก ${insertedSelectedKeys.length} แถว ออกจาก master_farmers และคืนสถานะใน Temp เป็นรอการนำเข้า ?`,
-      okText: "ยกเลิกนำเข้าจริง",
-      okType: "danger",
-      cancelText: "ปิด",
-      onOk: async () => {
-        try {
-          const response = await useServiceAPI.post(
-            paths.pathCustomerFarmersImportUnsync,
-            {
-              upload_id: Number(uploadId),
-              ids: insertedSelectedKeys,
-            },
-            setSyncLoading
-          );
-
-          if (response?.status === 200) {
-            showNotification("success", response.message || "ยกเลิกนำเข้าจริงสำเร็จ", [
-              `ยกเลิก ${response.data?.cancelled ?? 0} แถว`,
-              `ข้าม ${response.data?.skipped ?? 0} แถว`,
-              `ล้มเหลว ${response.data?.failed ?? 0} แถว`,
-            ]);
-            fetchData();
-          }
-        } catch (error) {
-          showNotification(
-            "error",
-            error?.response?.data?.message || error.message || "ยกเลิกนำเข้าจริงไม่สำเร็จ"
-          );
-        }
-      },
-    });
-  };
-
   const rowSelection = useMemo(
     () => ({
       selectedRowKeys,
@@ -294,7 +231,6 @@ export default function FarmersImportDetail() {
           (rows || []).forEach((row) => {
             next[row.id] = {
               can_insert: row.can_insert,
-              can_cancel: row.can_cancel,
             };
           });
           Object.keys(next).forEach((id) => {
@@ -316,9 +252,6 @@ export default function FarmersImportDetail() {
     { title: "No", dataIndex: "no", width: 70, align: "center" },
     { title: "Temp ID", dataIndex: "id", width: 90, align: "center" },
     { title: "Name", dataIndex: "name", width: 220 },
-    { title: "Sale", dataIndex: "sale_name", width: 180 },
-    { title: "Dealer", dataIndex: "dealer_name", width: 200 },
-    { title: "Sub Dealer", dataIndex: "sub_dealer_name", width: 200 },
     { title: "Mobile Phone", dataIndex: "mobile_phone", width: 150, align: "center" },
     { title: "Email", dataIndex: "email", width: 220 },
     { title: "Address", dataIndex: "address", width: 320 },
@@ -345,13 +278,6 @@ export default function FarmersImportDetail() {
             onClick={() => navigate("/customer/farmers/import")}
           />
           <ActionButton
-            mode="delete"
-            text="ยกเลิกนำข้อมูลเข้าจริง"
-            style={{ width: 220, height: 32 }}
-            onClick={handleCancelSync}
-            disabled={syncLoading || insertedSelectedKeys.length === 0}
-          />
-          <ActionButton
             mode="import"
             text="นำข้อมูลเข้าจริง"
             style={{ width: 196, height: 32 }}
@@ -364,9 +290,8 @@ export default function FarmersImportDetail() {
       <BoxPrimary>
         <div className="mb-3 text-sm text-[#666]">
           เลือกแถวที่ยังไม่ได้นำเข้า แล้วกดปุ่มนำข้อมูลเข้าจริง เพื่อ insert ลง{" "}
-          <strong>master_farmers</strong> หรือเลือกแถวที่นำเข้าแล้วเพื่อยกเลิก
+          <strong>master_farmers</strong>
           {pendingImportKeys.length > 0 ? ` (รอเข้า ${pendingImportKeys.length} แถว)` : ""}
-          {insertedSelectedKeys.length > 0 ? ` (ยกเลิกได้ ${insertedSelectedKeys.length} แถว)` : ""}
         </div>
         <TableComponent
           header={header}
