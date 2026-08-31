@@ -288,11 +288,11 @@ export default function FarmerList() {
       <div className="flex items-center justify-between">
         <div className="title-page">Farmer</div>
         <div className="flex items-center gap-2">
-          <ActionButton
+          {/* <ActionButton
             text="Import"
             mode="import"
             onClick={() => navigate("/customer/farmers/import")}
-          />
+          /> */}
           <ActionButton
             text="Create"
             mode="create"
