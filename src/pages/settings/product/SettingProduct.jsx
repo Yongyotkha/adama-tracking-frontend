@@ -1,7 +1,7 @@
 import React, { useContext, useEffect, useState } from "react";
 import MainLayout from "../../../layouts/MainLayout";
 import Filter from "../../../components/filter/Filter";
-import { Dropdown } from "antd";
+import { Dropdown, Modal } from "antd";
 import ActionButton from "../../../components/button/ActionButton";
 import BadgeStatus from "../../../components/badge/BadgeStatus";
 import BoxPrimary from "../../../components/box_primary/BoxPrimary";
@@ -23,9 +23,8 @@ export default function SettingProduct() {
   const [tableLoading, setTableLoading] = useState(false);
   const navigate = useNavigate();
 
-  const { userInfo } = useContext(AuthContext);
+  const { userInfo, showMsg, showNotification } = useContext(AuthContext);
 
-  console.log(userInfo);
   const [modalConfig, setModalConfig] = useState({
     title: "",
     isVisible: false,
@@ -85,6 +84,72 @@ export default function SettingProduct() {
     JSON.stringify(tableParams.filters),
   ]);
 
+  const handleDeleteItem = (id, productName) => {
+    Modal.confirm({
+      title: "ลบสินค้า",
+      content: `ต้องการลบสินค้า${productName ? ` "${productName}"` : ""} ใช่หรือไม่?`,
+      okText: "ลบ",
+      okType: "danger",
+      cancelText: "ยกเลิก",
+      onOk: async () => {
+        try {
+          const response = await useServiceAPI.delete(
+            paths.pathSaleManagementProductsDelete,
+            { id }
+          );
+
+          if (response.status === 200) {
+            showNotification(
+              "success",
+              response.message || "ลบสำเร็จ",
+              response.message_line || response.data?.message_line
+            );
+            fetchData();
+          } else {
+            showNotification(
+              "error",
+              response.message || "ลบไม่สำเร็จ",
+              response.message_line
+            );
+          }
+        } catch (error) {
+          showNotification(
+            "error",
+            error.message || "ลบไม่สำเร็จ",
+            error.message_line
+          );
+        }
+      },
+    });
+  };
+
+  const ACTION_PATHS = {
+    view: "/setting/product/view",
+    edit: "/setting/product/edit",
+  };
+
+  const handleActionClick = (item, actionItem, event) => {
+    event?.preventDefault?.();
+    event?.stopPropagation?.();
+
+    const mode = String(actionItem?.action || "").toLowerCase();
+
+    if (mode === "delete") {
+      handleDeleteItem(item.id, item.product_name);
+      return;
+    }
+
+    if (mode === "edit" || mode === "view") {
+      const path = actionItem?.action_url || ACTION_PATHS[mode];
+      navigate(path, {
+        state: {
+          id: item.id,
+          mode,
+        },
+      });
+    }
+  };
+
   const formatPackingUnitSize = (value) => {
     if (!value) return "-";
     let number = parseFloat(value);
@@ -118,6 +183,7 @@ export default function SettingProduct() {
         const { data, records_filtered } = response.data;
         const newDataSource = data.map((item, index) => ({
           key: index + 1 + (current - 1) * pageSize,
+          id: item.id,
           product_code: item.product_code,
           product_type: item.product_type,
           product_group: item.product_group,
@@ -134,7 +200,17 @@ export default function SettingProduct() {
               text={item.crop_count}
               bgColor={item.status_bg_color}
               textColor={item.status_color}
-              onClick={() => showModal("Crop", cropColumns, cropData)}
+              onClick={() =>
+                showModal(
+                  "Crop",
+                  cropColumns,
+                  (item.crop_list || []).map((crop, cropIndex) => ({
+                    key: cropIndex + 1,
+                    id: crop.id,
+                    name: crop.name,
+                  }))
+                )
+              }
             />
           ),
           status: (
@@ -147,22 +223,17 @@ export default function SettingProduct() {
           action: (
             <Dropdown
               menu={{
-                items: item.action.map((actionItem, actionIndex) => {
-                  const mode = actionItem.action.toLowerCase();
+                items: (item.action || []).map((actionItem, actionIndex) => {
+                  const mode = String(actionItem.action || "").toLowerCase();
+                  const actionPath = actionItem.action_url || ACTION_PATHS[mode];
                   return {
-                    key: actionIndex,
+                    key: `${item.id}-${mode}-${actionIndex}`,
                     label: (
                       <ItemDropDown
                         mode={mode}
-                        onClick={() => {
-                          console.log("Dropdown Mode:", mode);
-                          navigate("/setting/product/edit", {
-                            state: {
-                              id: item.id,
-                              mode: mode, // ✅ pass mode here
-                            },
-                          });
-                        }}
+                        text={actionItem.action}
+                        link={actionPath}
+                        onClick={(event) => handleActionClick(item, actionItem, event)}
                       />
                     ),
                   };
@@ -345,12 +416,6 @@ export default function SettingProduct() {
     { title: "Name", dataIndex: "name", key: "name" },
   ];
 
-  const cropData = [
-    { key: 1, name: "Rice" },
-    { key: 2, name: "Wheat" },
-    { key: 3, name: "Corn" },
-  ];
-
 
   const actionItems = [
     {
@@ -422,13 +487,13 @@ export default function SettingProduct() {
         />
       </BoxPrimary>
 
-      {/* <DynamicModal
+      <DynamicModal
         title={modalConfig.title}
         isVisible={modalConfig.isVisible}
         onClose={handleCloseModal}
         header={modalConfig.header}
         dataSource={modalConfig.dataSource}
-      /> */}
+      />
 
     </MainLayout>
   );
