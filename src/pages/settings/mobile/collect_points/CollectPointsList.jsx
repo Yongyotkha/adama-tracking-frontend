@@ -752,7 +752,7 @@ export default function CollectPointsList() {
             <span>{detailData.document_date || "-"}</span>
           </div>
           <div>
-            <span className="font-medium text-gray-600">Sales: </span>
+            <span className="font-medium text-gray-600">Contact Person: </span>
             <span>{detailData.user_name || detailData.sale_name || "-"}</span>
           </div>
           <div>
