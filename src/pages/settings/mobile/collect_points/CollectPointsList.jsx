@@ -753,7 +753,11 @@ export default function CollectPointsList() {
           </div>
           <div>
             <span className="font-medium text-gray-600">Contact Person: </span>
-            <span>{detailData.user_name || detailData.sale_name || "-"}</span>
+            <span>
+              {detailData.dealer_contact?.name_en ||
+                detailData.dealer_contact?.name_th ||
+                "-"}
+            </span>
           </div>
           <div>
             <span className="font-medium text-gray-600">Dealer: </span>
