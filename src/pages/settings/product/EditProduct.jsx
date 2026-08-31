@@ -197,7 +197,7 @@ export default function EditProduct() {
         type: "text",
         required: false,
         col: 6,
-        disabled: true,
+        disabled: false,
         value: isCreateMode ? "" : productInfo.product_code,
       },
       {
