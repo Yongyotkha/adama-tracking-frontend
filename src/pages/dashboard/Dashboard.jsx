@@ -1068,8 +1068,7 @@ export default function Dashboard() {
               <div>
                 <h3 className="text-lg font-bold text-[#00783F]">Dealer</h3>
                 <div className="text-4xl font-bold text-[#00783F]">
-                  {Number(dashboardData.dealer_count || 0).toLocaleString()}{" "}
-                  <span className="text-base font-normal text-gray-500">Dealer</span>
+                  {Number(dashboardData.dealer_count || 0).toLocaleString()}
                 </div>
               </div>
               <div>
@@ -1091,8 +1090,7 @@ export default function Dashboard() {
               <div>
                 <h3 className="text-lg font-bold text-[#00783F]">Sub Dealer</h3>
                 <div className="text-4xl font-bold text-[#00783F]">
-                  {Number(dashboardData.sub_dealer_count || 0).toLocaleString()}{" "}
-                  <span className="text-base font-normal text-gray-500">Sub Dealer</span>
+                  {Number(dashboardData.sub_dealer_count || 0).toLocaleString()}
                 </div>
               </div>
               <div>
@@ -1451,15 +1449,15 @@ export default function Dashboard() {
 
         {/* Activity Section */}
         <Col xs={24} lg={24} xl={7}>
-          <BoxPrimary className="sticky top-1">
-            <div className="flex flex-wrap justify-between mb-4">
+          <BoxPrimary className="sticky top-4">
+            <div className="flex flex-wrap justify-between items-center mb-4">
               <h3 className="text-[#00783F] text-lg font-semibold">Activity</h3>
 
               <div className="flex flex-wrap gap-2">
                 <Select
                   className="mb-4 w-36"
-                  value={selectedSale}
-                  onChange={(value) => setSelectedSale(value)}
+                  value={selectedSaleActivity}
+                  onChange={(value) => setSelectedSaleActivity(value)}
                   placeholder={loading ? "Loading..." : "Select Sale"}
                   disabled={true}
                   options={salesByArea}
@@ -1469,7 +1467,7 @@ export default function Dashboard() {
                 />
 
                 <Select
-                  className="w-36"
+                  className="mb-4 w-36"
                   value={selectedMonthsActivity}
                   onChange={(value) => setSelectedMonthsActivity(value)}
                   placeholder={loading ? "Loading..." : "Select Month"}
@@ -1481,7 +1479,7 @@ export default function Dashboard() {
                 />
 
                 <Select
-                  className="w-36"
+                  className="mb-4 w-36"
                   value={selectedDealerActivity}
                   onChange={(value) => setSelectedDealerActivity(value)}
                   placeholder={loading ? "Loading..." : "Select Dealer"}
@@ -1494,7 +1492,7 @@ export default function Dashboard() {
               </div>
             </div>
 
-            <table className="w-full table-auto border-collapse">
+            <table className="w-full text-sm text-left border-collapse">
               <thead>
                 <tr className="border-b border-gray-300">
                   <th className="text-left py-2 font-semibold">Type</th>
@@ -1535,16 +1533,16 @@ export default function Dashboard() {
                     </td>
 
                     <td className="text-center py-2 text-gray-700">
-                      {item.plan?.toLocaleString?.() ?? 0} ครั้ง
+                      {item.plan?.toLocaleString?.() ?? 0}
                     </td>
                     <td className="text-center py-2 text-gray-700">
-                      {item.plan_value?.toLocaleString?.() ?? 0} THB
+                      {item.plan_value?.toLocaleString?.() ?? 0}
                     </td>
                     <td className="text-center py-2 text-gray-700">
-                      {item.actual?.toLocaleString?.() ?? 0} ครั้ง
+                      {item.actual?.toLocaleString?.() ?? 0}
                     </td>
                     <td className="text-center py-2 text-gray-700">
-                      {item.actual_value?.toLocaleString?.() ?? 0} THB
+                      {item.actual_value?.toLocaleString?.() ?? 0}
                     </td>
                   </tr>
                 ))}
@@ -1656,7 +1654,7 @@ export default function Dashboard() {
                       categoryGapRatio: Math.max(0.2, 0.9 - (pointUsersData?.length || 0) * 0.1),
                     },
                   ]}
-                  yAxis={[{ label: "Point" }]}
+                  yAxis={[{ label: null }]}
                   series={[
                     {
                       dataKey: "value",
@@ -1740,7 +1738,7 @@ export default function Dashboard() {
                       categoryGapRatio: Math.max(0.2, 0.9 - (sdChartData?.length || 0) * 0.05),
                     },
                   ]}
-                  yAxis={[{ label: "Point" }]}
+                  yAxis={[{ label: null }]}
                   series={[
                     {
                       dataKey: "value",
@@ -1836,7 +1834,7 @@ export default function Dashboard() {
                       categoryGapRatio: Math.max(0.2, 0.9 - (fmChartData?.length || 0) * 0.05),
                     },
                   ]}
-                  yAxis={[{ label: "Point" }]}
+                  yAxis={[{ label: null }]}
                   series={[
                     {
                       dataKey: "value",
