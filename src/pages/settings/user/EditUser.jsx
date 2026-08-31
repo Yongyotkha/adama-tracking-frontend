@@ -128,7 +128,7 @@ export default function EditUser() {
       label: "Car No",
       name: "carno",
       type: "text",
-      required: true, // ถ้าไม่บังคับเปลี่ยนเป็น false ได้
+      required: false,
       col: 6,
       value: userinfo.carno ?? userinfo.car_no ?? "", // เผื่อ backend บางจุดชื่อไม่เหมือนกัน
     },
