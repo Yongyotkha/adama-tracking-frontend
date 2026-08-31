@@ -1,6 +1,6 @@
-import React, { useContext, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Upload, Alert, Steps, Tag, Table, Button, Space } from "antd";
+import { Upload, Alert, Steps, Tag, Table, Button, Space, Select } from "antd";
 import {
   InboxOutlined,
   UploadOutlined,
@@ -27,6 +27,14 @@ const formatDateTime = (value) => {
   return String(value).replace("T", " ").split(".")[0];
 };
 
+const toSelectOptions = (list = []) =>
+  list
+    .map((item) => ({
+      value: item.id ?? item.sub_dealer_id,
+      label: item.name ?? item.sub_dealer_name ?? String(item.id ?? item.sub_dealer_id ?? ""),
+    }))
+    .filter((item) => item.value !== undefined && item.value !== null && item.value !== "");
+
 export default function FarmersImportUpload() {
   const navigate = useNavigate();
   const { showMsg, showNotification } = useContext(AuthContext);
@@ -35,10 +43,91 @@ export default function FarmersImportUpload() {
   const [selectedFile, setSelectedFile] = useState(null);
   const [currentUpload, setCurrentUpload] = useState(null);
   const [uploadHistory, setUploadHistory] = useState([]);
+  const [dataSale, setDataSale] = useState([]);
+  const [dataDealer, setDataDealer] = useState([]);
+  const [dataSubDealer, setDataSubDealer] = useState([]);
+  const [dataSaleId, setDataSaleId] = useState(undefined);
+  const [dealerId, setDealerId] = useState(undefined);
+  const [subDealerId, setSubDealerId] = useState(undefined);
 
   const currentStatus = currentUpload?.status_code || null;
   const statusConfig = STATUS_CONFIG[currentStatus] || null;
   const currentStep = statusConfig?.step ?? 0;
+
+  useEffect(() => {
+    const getMaster = async () => {
+      try {
+        const res = await useServiceAPI.get(paths.pathMasterSaleDropdown, { status: "" });
+        setDataSale(toSelectOptions(res?.data || []));
+      } catch (error) {
+        showMsg("error", error.message || "โหลดรายชื่อ Sales ไม่สำเร็จ");
+      }
+    };
+    getMaster();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
+    const fetchDealer = async () => {
+      if (!dataSaleId) {
+        setDataDealer([]);
+        return;
+      }
+      try {
+        const dealer = await useServiceAPI.get(paths.pathMasterDealerDropdown, {
+          user_id: dataSaleId,
+        });
+        setDataDealer(toSelectOptions(dealer?.data || []));
+      } catch (error) {
+        setDataDealer([]);
+        showMsg("error", error.message || "โหลดรายชื่อ Dealer ไม่สำเร็จ");
+      }
+    };
+    fetchDealer();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [dataSaleId]);
+
+  useEffect(() => {
+    const fetchSubDealer = async () => {
+      if (!dealerId) {
+        setDataSubDealer([]);
+        return;
+      }
+      try {
+        const res = await useServiceAPI.get(paths.pathMasterDealeretSubDealer, {
+          dealer_id: dealerId,
+        });
+        setDataSubDealer(toSelectOptions(res?.data || []));
+      } catch (error) {
+        setDataSubDealer([]);
+        showMsg("error", error.message || "โหลดรายชื่อ Sub Dealer ไม่สำเร็จ");
+      }
+    };
+    fetchSubDealer();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [dealerId]);
+
+  const handleChangeHierarchy = (field, value) => {
+    if (field === "sale") {
+      setDataSaleId(value || undefined);
+      setDealerId(undefined);
+      setSubDealerId(undefined);
+      setDataDealer([]);
+      setDataSubDealer([]);
+      return;
+    }
+
+    if (field === "dealer") {
+      setDealerId(value || undefined);
+      setSubDealerId(undefined);
+      setDataSubDealer([]);
+      return;
+    }
+
+    if (field === "sub_dealer") {
+      setSubDealerId(value || undefined);
+    }
+  };
 
   const handleUpload = async () => {
     if (!selectedFile) {
@@ -46,14 +135,22 @@ export default function FarmersImportUpload() {
       return;
     }
 
+    if (!dataSaleId || !dealerId || !subDealerId) {
+      showMsg("error", "กรุณาเลือก Sales, Dealer และ Sub Dealer");
+      return;
+    }
+
     const formData = new FormData();
     formData.append("file", selectedFile);
+    formData.append("sale_id", dataSaleId);
+    formData.append("dealer_id", dealerId);
+    formData.append("sub_dealer_id", subDealerId);
 
     try {
       const response = await useServiceAPI.post(
         paths.pathCustomerFarmersImportUpload,
         formData,
-        setLoading
+        setLoading,
       );
 
       if (response.status === 200) {
@@ -75,6 +172,11 @@ export default function FarmersImportUpload() {
       return;
     }
 
+    if (!dataSaleId || !dealerId || !subDealerId) {
+      showMsg("error", "กรุณาเลือก Sales, Dealer และ Sub Dealer");
+      return;
+    }
+
     if (currentUpload.status_code === "completed") {
       showMsg("error", "ไฟล์นี้นำเข้าข้อมูลแล้ว");
       return;
@@ -92,14 +194,19 @@ export default function FarmersImportUpload() {
             status_code: "processing",
             status_message: STATUS_CONFIG.processing.label,
           }
-        : prev
+        : prev,
     );
 
     try {
       const response = await useServiceAPI.post(
         paths.pathCustomerFarmersImport,
-        { upload_id: currentUpload.upload_id },
-        setImportLoading
+        {
+          upload_id: currentUpload.upload_id,
+          sale_id: dataSaleId,
+          dealer_id: dealerId,
+          sub_dealer_id: subDealerId,
+        },
+        setImportLoading,
       );
 
       if (response.status === 200) {
@@ -113,7 +220,7 @@ export default function FarmersImportUpload() {
         if (imported.status_code === "completed") {
           setUploadHistory((prev) => {
             const next = prev.filter(
-              (item) => item.upload_id !== imported.upload_id
+              (item) => item.upload_id !== imported.upload_id,
             );
             return [imported, ...next];
           });
@@ -126,7 +233,7 @@ export default function FarmersImportUpload() {
                 `นำเข้า Temp ${response.data.inserted} แถว`,
                 `ล้มเหลว ${response.data.failed_count} แถว`,
               ]
-            : [`นำเข้า Temp ${response.data?.inserted ?? 0} แถว`]
+            : [`นำเข้า Temp ${response.data?.inserted ?? 0} แถว`],
         );
         if (imported.upload_id) {
           navigate(`/customer/farmers/import/${imported.upload_id}`);
@@ -156,7 +263,9 @@ export default function FarmersImportUpload() {
           color: "default",
           label: row.status_message || status,
         };
-        return <Tag color={config.color}>{row.status_message || config.label}</Tag>;
+        return (
+          <Tag color={config.color}>{row.status_message || config.label}</Tag>
+        );
       },
     },
     {
@@ -185,6 +294,7 @@ export default function FarmersImportUpload() {
   const canImport =
     currentUpload?.upload_id &&
     ["uploaded", "failed"].includes(currentUpload.status_code);
+  const hasHierarchy = Boolean(dataSaleId && dealerId && subDealerId);
 
   return (
     <MainLayout loading={loading || importLoading}>
@@ -200,8 +310,64 @@ export default function FarmersImportUpload() {
       </div>
 
       <BoxPrimary>
+        <div className="rounded border border-[#d9d9d9] bg-[#fafafa] p-4 mb-5">
+          <div className="mb-3 text-sm font-medium text-[#333]">
+            ภายใต้
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div>
+              <div className="mb-1 text-sm text-[#333]">
+                Sales <span className="text-red-500">*</span>
+              </div>
+              <Select
+                className="w-full"
+                placeholder="Select sales"
+                allowClear
+                showSearch
+                optionFilterProp="label"
+                options={dataSale}
+                value={dataSaleId}
+                onChange={(value) => handleChangeHierarchy("sale", value)}
+              />
+            </div>
+            <div>
+              <div className="mb-1 text-sm text-[#333]">
+                Dealer <span className="text-red-500">*</span>
+              </div>
+              <Select
+                className="w-full"
+                placeholder="Select dealer"
+                allowClear
+                showSearch
+                optionFilterProp="label"
+                options={dataDealer}
+                value={dealerId}
+                disabled={!dataSaleId}
+                onChange={(value) => handleChangeHierarchy("dealer", value)}
+              />
+            </div>
+            <div>
+              <div className="mb-1 text-sm text-[#333]">
+                Sub Dealer <span className="text-red-500">*</span>
+              </div>
+              <Select
+                className="w-full"
+                placeholder="Select sub dealer"
+                allowClear
+                showSearch
+                optionFilterProp="label"
+                options={dataSubDealer}
+                value={subDealerId}
+                disabled={!dealerId}
+                onChange={(value) => handleChangeHierarchy("sub_dealer", value)}
+              />
+            </div>
+          </div>
+        </div>
         <div className="rounded border border-[#d9d9d9] bg-[#fafafa] p-4">
-          <div className="mb-3 text-sm font-medium text-[#333]">การดำเนินการ</div>
+          <div className="mb-3 text-sm font-medium text-[#333]">
+            การดำเนินการ
+          </div>
           <Space wrap size="middle">
             <Button
               type="primary"
@@ -209,7 +375,7 @@ export default function FarmersImportUpload() {
               icon={<UploadOutlined />}
               onClick={handleUpload}
               loading={loading}
-              disabled={!selectedFile || importLoading}
+              disabled={!selectedFile || !hasHierarchy || importLoading}
             >
               อัปโหลดไฟล์ (Upload File)
             </Button>
@@ -219,10 +385,10 @@ export default function FarmersImportUpload() {
               icon={<ImportOutlined />}
               onClick={handleImport}
               loading={importLoading}
-              disabled={!canImport || loading}
+              disabled={!canImport || !hasHierarchy || loading}
               style={{
-                backgroundColor: canImport ? "#F89E18" : undefined,
-                borderColor: canImport ? "#F89E18" : undefined,
+                backgroundColor: canImport && hasHierarchy ? "#F89E18" : undefined,
+                borderColor: canImport && hasHierarchy ? "#F89E18" : undefined,
               }}
             >
               นำเข้าข้อมูล (Temp)
@@ -230,19 +396,24 @@ export default function FarmersImportUpload() {
           </Space>
           <div className="mt-3 text-xs text-[#888]">
             {selectedFile
-              ? `ไฟล์ที่เลือก: ${selectedFile.name}`
-              : "ขั้นตอนที่ 1: เลือกไฟล์ CSV ด้านล่าง แล้วกดปุ่ม อัปโหลดไฟล์"}
-            {currentUpload?.upload_id && currentUpload.status_code === "uploaded"
-              ? " | ขั้นตอนที่ 2: กดปุ่ม นำเข้าข้อมูล"
+              ? hasHierarchy
+                ? `ไฟล์ที่เลือก: ${selectedFile.name}`
+                : `ไฟล์ที่เลือก: ${selectedFile.name} | กรุณาเลือก Sales, Dealer, Sub Dealer ก่อนอัปโหลด`
+              : "ขั้นตอนที่ 1: เลือก Sales, Dealer, Sub Dealer และไฟล์ CSV แล้วกดปุ่ม อัปโหลดไฟล์"}
+            {currentUpload?.upload_id &&
+            currentUpload.status_code === "uploaded"
+              ? hasHierarchy
+                ? " | ขั้นตอนที่ 2: กดปุ่ม นำเข้าข้อมูล"
+                : " | ขั้นตอนที่ 2: เลือก Sales, Dealer, Sub Dealer แล้วกดปุ่ม นำเข้าข้อมูล"
               : ""}
           </div>
         </div>
 
         <div className="mb-4 mt-4 text-sm text-[#666]">
-          CSV ต้องมี header: <strong>name, mobile_phone, email, address</strong> แล้ว
-          ปุ่มนำเข้าข้อมูลจะ insert ลงตาราง <strong>temp_master_farmers_import</strong>{" "}
-          จากนั้นไปหน้ารายการ Temp เพื่อเลือกแถวแล้วนำเข้าจริงลง{" "}
-          <strong>master_farmers</strong>
+          CSV ต้องมี header: <strong>name, mobile_phone, email, address</strong>{" "}
+          แล้ว ปุ่มนำเข้าข้อมูลจะ insert ลงตาราง{" "}
+          <strong>temp_master_farmers_import</strong> จากนั้นไปหน้ารายการ Temp
+          เพื่อเลือกแถวแล้วนำเข้าจริงลง <strong>master_farmers</strong>
         </div>
 
         <Steps
@@ -277,7 +448,9 @@ export default function FarmersImportUpload() {
                       currentUpload.status_code}
                   </Tag>
                   {currentUpload.file_name && (
-                    <span className="text-[#666]">({currentUpload.file_name})</span>
+                    <span className="text-[#666]">
+                      ({currentUpload.file_name})
+                    </span>
                   )}
                 </span>
               }
@@ -287,15 +460,17 @@ export default function FarmersImportUpload() {
                     นำเข้า Temp สำเร็จ {currentUpload.inserted ?? 0} แถว
                     {currentUpload.failed_count > 0
                       ? `, ล้มเหลว ${currentUpload.failed_count} แถว`
-                      : ""}
-                    {" "}จากนั้นเลือกแถวในหน้ารายการ Temp เพื่อนำเข้าจริงลง master_farmers
+                      : ""}{" "}
+                    จากนั้นเลือกแถวในหน้ารายการ Temp เพื่อนำเข้าจริงลง
+                    master_farmers
                   </div>
                 ) : currentUpload.status_code === "uploaded" ? (
                   "ไฟล์พร้อมนำเข้า กรุณากดปุ่มนำเข้าข้อมูล เพื่อเก็บลง Temp"
                 ) : currentUpload.status_code === "processing" ? (
                   "ระบบกำลังนำเข้าข้อมูล กรุณารอสักครู่"
                 ) : currentUpload.status_code === "failed" ? (
-                  currentUpload.message || "นำเข้าข้อมูลไม่สำเร็จ สามารถลอง Import ใหม่ได้"
+                  currentUpload.message ||
+                  "นำเข้าข้อมูลไม่สำเร็จ สามารถลอง Import ใหม่ได้"
                 ) : null
               }
             />
@@ -332,7 +507,6 @@ export default function FarmersImportUpload() {
           </Dragger>
         </div>
       </BoxPrimary>
-
     </MainLayout>
   );
 }

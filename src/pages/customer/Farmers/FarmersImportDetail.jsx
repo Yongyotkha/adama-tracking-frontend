@@ -32,7 +32,18 @@ const TEMP_STATUS = {
   failed: { color: "red", label: "นำเข้าจริงไม่สำเร็จ" },
 };
 
+const isCancellableRow = (row) => {
+  const code = String(row?.status_code || "").trim().toLowerCase();
+  const farmerId = row?.farmer_id;
+
+  return code === "inserted" && farmerId !== null && farmerId !== undefined && farmerId !== "" && farmerId !== "-";
+};
+
 const isLockedRow = (row) => {
+  if (isCancellableRow(row)) {
+    return false;
+  }
+
   const code = String(row?.status_code || "pending").trim().toLowerCase();
   const message = String(row?.status_message || "");
 
@@ -56,6 +67,7 @@ export default function FarmersImportDetail() {
   const [syncLoading, setSyncLoading] = useState(false);
   const [dataSource, setDataSource] = useState([]);
   const [selectedRowKeys, setSelectedRowKeys] = useState([]);
+  const [selectedMeta, setSelectedMeta] = useState({});
   const [tableParams, setTableParams] = useState({
     pagination: { current: 1, pageSize: 50, total: 0 },
   });
@@ -79,6 +91,7 @@ export default function FarmersImportDetail() {
       );
 
       const mapped = list.map((item, index) => {
+        const farmerId = item.farmer_id || null;
         const row = {
           key: Number(item.id),
           id: Number(item.id),
@@ -88,26 +101,37 @@ export default function FarmersImportDetail() {
           address: displayValue(item.address),
           status_code: item.status_code,
           status_message: item.status_message,
-          farmer_id: item.farmer_id || "-",
+          farmer_id: farmerId || "-",
           can_insert: item.can_insert !== false && item.status_code === "pending",
+          can_cancel: item.can_cancel === true || (item.status_code === "inserted" && Boolean(farmerId)),
           created_at: formatDateTime(item.created_at),
           no: index + 1 + (current - 1) * pageSize,
         };
 
         return {
           ...row,
-          locked: isLockedRow(row) || row.can_insert === false,
+          locked: isLockedRow(row) || (row.can_insert === false && row.can_cancel === false),
         };
       });
 
       setDataSource(mapped);
 
-      const lockedKeys = mapped.filter((row) => row.locked).map((row) => row.key);
+      const lockedKeys = mapped.filter((row) => row.locked).map((row) => Number(row.key));
 
-      setSelectedRowKeys((prev) => {
-        const pendingKeys = prev.filter((key) => !lockedKeys.includes(Number(key)));
-        return [...new Set([...lockedKeys, ...pendingKeys.map(Number)])];
+      setSelectedMeta((prev) => {
+        const next = { ...prev };
+        mapped.forEach((row) => {
+          next[row.id] = {
+            can_insert: row.can_insert,
+            can_cancel: row.can_cancel,
+          };
+        });
+        return next;
       });
+
+      setSelectedRowKeys((prev) =>
+        prev.map(Number).filter((key) => !lockedKeys.includes(key))
+      );
 
       setTableParams((prev) => {
         if (prev.pagination.total === total) {
@@ -159,29 +183,36 @@ export default function FarmersImportDetail() {
     [dataSource]
   );
 
-  const pendingSelectedKeys = useMemo(
-    () => selectedRowKeys.filter((key) => !lockedKeys.includes(Number(key))),
-    [lockedKeys, selectedRowKeys]
+  const insertedSelectedKeys = useMemo(
+    () =>
+      selectedRowKeys.filter((key) => selectedMeta[Number(key)]?.can_cancel === true),
+    [selectedMeta, selectedRowKeys]
+  );
+
+  const pendingImportKeys = useMemo(
+    () =>
+      selectedRowKeys.filter((key) => selectedMeta[Number(key)]?.can_insert === true),
+    [selectedMeta, selectedRowKeys]
   );
 
   const handleSync = () => {
-    if (pendingSelectedKeys.length === 0) {
+    if (pendingImportKeys.length === 0) {
       showNotification("error", "กรุณาเลือกรายการที่ต้องการนำเข้า");
       return;
     }
 
     Modal.confirm({
       title: "นำข้อมูลเข้าจริง",
-      content: `นำรายการที่เลือก ${pendingSelectedKeys.length} แถว จาก temp_master_farmers_import ไป insert ลง master_farmers ?`,
+      content: `นำรายการที่เลือก ${pendingImportKeys.length} แถว จาก temp_master_farmers_import ไป insert ลง master_farmers ?`,
       okText: "นำเข้าจริง",
-      cancelText: "ยกเลิก",
+      cancelText: "ปิด",
       onOk: async () => {
         try {
           const response = await useServiceAPI.post(
             paths.pathCustomerFarmersImportSync,
             {
               upload_id: Number(uploadId),
-              ids: pendingSelectedKeys,
+              ids: pendingImportKeys,
             },
             setSyncLoading
           );
@@ -204,16 +235,72 @@ export default function FarmersImportDetail() {
     });
   };
 
+  const handleCancelSync = () => {
+    if (insertedSelectedKeys.length === 0) {
+      showNotification("error", "กรุณาเลือกรายการที่นำเข้าจริงแล้ว");
+      return;
+    }
+
+    Modal.confirm({
+      title: "ยกเลิกนำข้อมูลเข้าจริง",
+      content: `ยกเลิกรายการที่เลือก ${insertedSelectedKeys.length} แถว ออกจาก master_farmers และคืนสถานะใน Temp เป็นรอการนำเข้า ?`,
+      okText: "ยกเลิกนำเข้าจริง",
+      okType: "danger",
+      cancelText: "ปิด",
+      onOk: async () => {
+        try {
+          const response = await useServiceAPI.post(
+            paths.pathCustomerFarmersImportUnsync,
+            {
+              upload_id: Number(uploadId),
+              ids: insertedSelectedKeys,
+            },
+            setSyncLoading
+          );
+
+          if (response?.status === 200) {
+            showNotification("success", response.message || "ยกเลิกนำเข้าจริงสำเร็จ", [
+              `ยกเลิก ${response.data?.cancelled ?? 0} แถว`,
+              `ข้าม ${response.data?.skipped ?? 0} แถว`,
+              `ล้มเหลว ${response.data?.failed ?? 0} แถว`,
+            ]);
+            fetchData();
+          }
+        } catch (error) {
+          showNotification(
+            "error",
+            error?.response?.data?.message || error.message || "ยกเลิกนำเข้าจริงไม่สำเร็จ"
+          );
+        }
+      },
+    });
+  };
+
   const rowSelection = useMemo(
     () => ({
       selectedRowKeys,
       preserveSelectedRowKeys: true,
       hideSelectAll: false,
-      onChange: (keys) => {
-        const pendingKeys = keys
+      onChange: (keys, rows) => {
+        const nextKeys = keys
           .map(Number)
           .filter((key) => !lockedKeys.includes(key));
-        setSelectedRowKeys([...lockedKeys, ...pendingKeys]);
+        setSelectedRowKeys(nextKeys);
+        setSelectedMeta((prev) => {
+          const next = { ...prev };
+          (rows || []).forEach((row) => {
+            next[row.id] = {
+              can_insert: row.can_insert,
+              can_cancel: row.can_cancel,
+            };
+          });
+          Object.keys(next).forEach((id) => {
+            if (!nextKeys.includes(Number(id))) {
+              delete next[id];
+            }
+          });
+          return next;
+        });
       },
       getCheckboxProps: (record) => ({
         disabled: !!record.locked,
@@ -252,11 +339,18 @@ export default function FarmersImportDetail() {
             onClick={() => navigate("/customer/farmers/import")}
           />
           <ActionButton
+            mode="delete"
+            text="ยกเลิกนำข้อมูลเข้าจริง"
+            style={{ width: 220, height: 32 }}
+            onClick={handleCancelSync}
+            disabled={syncLoading || insertedSelectedKeys.length === 0}
+          />
+          <ActionButton
             mode="import"
             text="นำข้อมูลเข้าจริง"
             style={{ width: 196, height: 32 }}
             onClick={handleSync}
-            disabled={syncLoading || pendingSelectedKeys.length === 0}
+            disabled={syncLoading || pendingImportKeys.length === 0}
           />
         </div>
       </div>
@@ -264,8 +358,9 @@ export default function FarmersImportDetail() {
       <BoxPrimary>
         <div className="mb-3 text-sm text-[#666]">
           เลือกแถวที่ยังไม่ได้นำเข้า แล้วกดปุ่มนำข้อมูลเข้าจริง เพื่อ insert ลง{" "}
-          <strong>master_farmers</strong>
-          {pendingSelectedKeys.length > 0 ? ` (เลือกแล้ว ${pendingSelectedKeys.length} แถว)` : ""}
+          <strong>master_farmers</strong> หรือเลือกแถวที่นำเข้าแล้วเพื่อยกเลิก
+          {pendingImportKeys.length > 0 ? ` (รอเข้า ${pendingImportKeys.length} แถว)` : ""}
+          {insertedSelectedKeys.length > 0 ? ` (ยกเลิกได้ ${insertedSelectedKeys.length} แถว)` : ""}
         </div>
         <TableComponent
           header={header}
