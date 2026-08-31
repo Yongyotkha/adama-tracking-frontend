@@ -65,9 +65,10 @@ const ActionButton = ({
 
       {mode === "sync" && (
         <button
-          className={`flex text-[#FFFFFF] text-sm rounded-[4px] bg-[#F89E18] gap-2 p-1 px-2 items-center ${className}`}
+          className={`flex text-[#FFFFFF] text-sm rounded-[4px] bg-[#F89E18] gap-2 p-1 px-2 items-center justify-center ${className}`}
           onClick={onClick}
           disabled={disabled}
+          style={style}
         >
           {renderDefaultIcon()}
           <div>{text}</div>

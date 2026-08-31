@@ -1,5 +1,6 @@
 import React, { useContext, useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import { Modal, Tag } from "antd";
 import MainLayout from "../../../layouts/MainLayout";
 import Filter from "../../../components/filter/Filter";
 import BoxPrimary from "../../../components/box_primary/BoxPrimary";
@@ -31,6 +32,8 @@ export default function RollingForecastTempDetail() {
   const { showNotification, formatNumber } = useContext(AuthContext);
 
   const [loading, setLoading] = useState(false);
+  const [syncLoading, setSyncLoading] = useState(false);
+  const [uploadStatusCode, setUploadStatusCode] = useState("");
   const [tableLoading, setTableLoading] = useState(false);
   const [dataSource, setDataSource] = useState([]);
   const [years, setYears] = useState([]);
@@ -41,6 +44,9 @@ export default function RollingForecastTempDetail() {
   const [tableParams, setTableParams] = useState({
     pagination: { current: 1, pageSize: 50, total: 0 },
     filters: {},
+    syncStatus: "",
+    sortField: "id",
+    sortOrder: "desc",
   });
 
   const filters = [
@@ -64,6 +70,15 @@ export default function RollingForecastTempDetail() {
       disabled: !filterValues.user_id,
     },
     {
+      key: "sync_status",
+      type: "select",
+      label: "Status",
+      options: [
+        { id: "pending", name: "ยังไม่นำเข้า" },
+        { id: "synced", name: "นำเข้าแล้ว" },
+      ],
+    },
+    {
       key: "value_not_null_group",
       type: "checkboxGroup",
       label: "Qty / Value (Not Null)",
@@ -79,6 +94,32 @@ export default function RollingForecastTempDetail() {
 
   const header = [
     { title: "No", dataIndex: "key", width: 70, align: "center", fixed: "left" },
+    {
+      title: "Status",
+      dataIndex: "sync_status",
+      width: 160,
+      align: "center",
+      fixed: "left",
+      filters: [
+        { text: "ยังไม่นำเข้า", value: "pending" },
+        { text: "นำเข้าแล้ว", value: "synced" },
+      ],
+      filterMultiple: false,
+      filteredValue: tableParams.syncStatus ? [tableParams.syncStatus] : null,
+      sorter: true,
+      sortOrder:
+        tableParams.sortField === "sync_status"
+          ? tableParams.sortOrder === "asc"
+            ? "ascend"
+            : "descend"
+          : null,
+      render: (value, row) =>
+        value === "synced" ? (
+          <Tag color="green">{row.sync_status_label || "นำเข้าแล้ว"}</Tag>
+        ) : (
+          <Tag>{row.sync_status_label || "ยังไม่นำเข้า"}</Tag>
+        ),
+    },
     // { title: "ID", dataIndex: "id", width: 80, align: "center", fixed: "left" },
     { title: "Year", dataIndex: "year_code", width: 80, align: "center" },
     { title: "Type", dataIndex: "type", width: 180 },
@@ -213,8 +254,8 @@ export default function RollingForecastTempDetail() {
     const f = tableParams.filters || {};
 
     const requestData = {
-      orderby_column: "id",
-      orderby: "desc",
+      orderby_column: tableParams.sortField || "id",
+      orderby: tableParams.sortOrder || "desc",
       page_length: pageSize,
       page_size: current,
       upload_id: uploadId,
@@ -225,6 +266,7 @@ export default function RollingForecastTempDetail() {
       has_value: f.has_value ?? "",
       has_qty2: f.has_qty2 ?? "",
       has_value2: f.has_value2 ?? "",
+      sync_status: f.sync_status || tableParams.syncStatus || "",
     };
 
     try {
@@ -240,6 +282,8 @@ export default function RollingForecastTempDetail() {
         const formatted = list.map((item, index) => ({
           key: index + 1 + (current - 1) * pageSize,
           id: displayValue(item.id),
+          sync_status: item.sync_status || (item.is_synced ? "synced" : "pending"),
+          sync_status_label: item.sync_status_label || (item.is_synced ? "นำเข้าแล้ว" : "ยังไม่นำเข้า"),
           year_code: displayValue(item.year_code),
           type: displayValue(item.type),
           use_flag: displayValue(item.use_flag),
@@ -298,6 +342,9 @@ export default function RollingForecastTempDetail() {
     tableParams.pagination.current,
     tableParams.pagination.pageSize,
     JSON.stringify(tableParams.filters),
+    tableParams.syncStatus,
+    tableParams.sortField,
+    tableParams.sortOrder,
     uploadId,
   ]);
 
@@ -306,6 +353,7 @@ export default function RollingForecastTempDetail() {
       ...prev,
       pagination: { ...prev.pagination, current: 1 },
       filters: { ...filtersFromUI },
+      syncStatus: filtersFromUI.sync_status || "",
     }));
     setFilterValues({ ...filtersFromUI });
   };
@@ -316,8 +364,62 @@ export default function RollingForecastTempDetail() {
     setTableParams((prev) => ({
       ...prev,
       filters: {},
+      syncStatus: "",
       pagination: { ...prev.pagination, current: 1 },
     }));
+  };
+
+  const loadUploadStatus = async () => {
+    if (!uploadId) {
+      return;
+    }
+
+    try {
+      const response = await useServiceAPI.get(paths.pathTempMasterRollingUploadStatus, {
+        upload_id: uploadId,
+      });
+      setUploadStatusCode(response?.data?.status_code || "");
+    } catch (error) {
+      setUploadStatusCode("");
+    }
+  };
+
+  useEffect(() => {
+    loadUploadStatus();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [uploadId]);
+
+  const handleSync = () => {
+    Modal.confirm({
+      title: "Sync Rolling Forecast",
+      content: `นำ qty2 / value2 ของ Upload ID ${uploadId} จาก temp_master_rolling ไปบันทึกเป็น qty / value ใน rolling_forecast_month_quarter_month_items ?`,
+      okText: "Sync",
+      cancelText: "ยกเลิก",
+      onOk: async () => {
+        try {
+          const response = await useServiceAPI.post(
+            paths.pathTempMasterRollingSync,
+            { upload_id: uploadId },
+            setSyncLoading
+          );
+
+          if (response?.status === 200) {
+            showNotification("success", response.message || "Sync สำเร็จ", [
+              `เพิ่ม ${response.data?.inserted ?? 0} แถว`,
+              `อัปเดต ${response.data?.updated ?? 0} แถว`,
+              `ข้าม ${response.data?.skipped ?? 0} แถว`,
+            ]);
+            loadUploadStatus();
+            fetchData();
+          }
+        } catch (error) {
+          showNotification(
+            "error",
+            error?.response?.data?.message || error.message || "Sync ไม่สำเร็จ"
+          );
+        }
+      },
+    });
   };
 
   const handleFilterChange = (values) => {
@@ -331,14 +433,24 @@ export default function RollingForecastTempDetail() {
   };
 
   return (
-    <MainLayout loading={loading}>
+    <MainLayout loading={loading || syncLoading}>
       <div className="flex items-center justify-between">
         <div className="title-page">Temp Master Rolling #{uploadId}</div>
-        <ActionButton
-          mode="back"
-          text="กลับหน้ารายการอัปโหลด"
-          onClick={() => navigate("/sale-plan/rolling-forecast/temp-list")}
-        />
+        <div className="flex items-center gap-2">
+          <ActionButton
+            mode="sync"
+            text="Sync"
+            className="h-8 box-border"
+            style={{ width: 96, height: 32, minWidth: 96, minHeight: 32, boxSizing: "border-box" }}
+            disabled={uploadStatusCode !== "completed" || syncLoading}
+            onClick={handleSync}
+          />
+          <ActionButton
+            mode="back"
+            text="กลับหน้ารายการอัปโหลด"
+            onClick={() => navigate("/sale-plan/rolling-forecast/temp-list")}
+          />
+        </div>
       </div>
 
       <Filter
@@ -355,8 +467,33 @@ export default function RollingForecastTempDetail() {
           dataSource={dataSource}
           loading={tableLoading}
           pagination={tableParams.pagination}
-          onChange={(pagination) => {
-            setTableParams((prev) => ({ ...prev, pagination }));
+          onChange={(pagination, tableFilters, sorter) => {
+            const syncFilter = tableFilters?.sync_status;
+            const syncStatus = Array.isArray(syncFilter)
+              ? syncFilter[0] || ""
+              : syncFilter || "";
+            const isStatusSort = sorter?.field === "sync_status" && sorter?.order;
+
+            setTableParams((prev) => ({
+              ...prev,
+              pagination: {
+                ...prev.pagination,
+                current: pagination.current,
+                pageSize: pagination.pageSize,
+              },
+              filters: {
+                ...prev.filters,
+                sync_status: syncStatus,
+              },
+              syncStatus,
+              sortField: isStatusSort ? "sync_status" : "id",
+              sortOrder: isStatusSort
+                ? sorter.order === "ascend"
+                  ? "asc"
+                  : "desc"
+                : "desc",
+            }));
+            setFilterValues((prev) => ({ ...prev, sync_status: syncStatus }));
           }}
           scroll
         />

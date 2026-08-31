@@ -217,28 +217,28 @@ export default function RollingForecastTempList() {
         title: "Action",
         dataIndex: "upload_id",
         key: "action",
-        width: 160,
+        width: 220,
         align: "center",
         fixed: "right",
         render: (uploadId, record) => (
-          <div className="flex flex-col items-center gap-1">
-            <button
-              type="button"
-              className="text-[#009845] underline"
+          <div className="flex items-center justify-center gap-2">
+            <ActionButton
+              mode="custom"
+              text="ดูข้อมูล"
+              className="bg-[#009845] !p-2 !py-1 rounded-[4px] h-8 box-border"
+              style={{ width: 96, height: 32, minWidth: 96, minHeight: 32, boxSizing: "border-box" }}
               onClick={() =>
                 navigate(`/sale-plan/rolling-forecast/temp-list/${uploadId}`)
               }
-            >
-              ดูข้อมูล
-            </button>
-            <button
-              type="button"
-              className="text-[#F89E18] underline disabled:text-gray-400 disabled:no-underline"
+            />
+            <ActionButton
+              mode="sync"
+              text="Sync"
+              className="h-8 box-border"
+              style={{ width: 96, height: 32, minWidth: 96, minHeight: 32, boxSizing: "border-box" }}
               disabled={record.status_code !== "completed" || syncLoading}
               onClick={() => handleSync(uploadId)}
-            >
-              Sync
-            </button>
+            />
           </div>
         ),
       },
