@@ -1336,7 +1336,6 @@ export default function Dashboard() {
                       {
                         dataKey: "activity",
                         scaleType: "band",
-                        label: "Activity",
                       },
                     ]}
                     series={[
@@ -1359,7 +1358,7 @@ export default function Dashboard() {
                         color: "#3B82F6",
                       },
                     ]}
-                    yAxis={[{ label: "จำนวน (ครั้ง)" }]}
+                    yAxis={[{ label: null }]}
                     height={400}
                     slotProps={{
                       legend: {
@@ -1386,7 +1385,7 @@ export default function Dashboard() {
               <Card className="shadow-md rounded-lg bg-white border-t-[10px] border-solid border-t-[#00783F]">
                 <div className="flex flex-wrap items-center justify-between">
                   <h3 className="text-[#00783F] text-lg font-semibold mb-3">
-                    Sub Dealer Plan
+                    Sub Dealer Plan (THB)
                   </h3>
                   <div className="flex flex-wrap gap-2">
                     <Select
@@ -1556,7 +1555,7 @@ export default function Dashboard() {
       </Row>
 
       <Row gutter={[16, 16]} className="mb-4">
-        {/* Sub Dealer by Dealer (Bar Chart) */}
+        {/* Sub Dealer by Dealer (Doughnut Chart) */}
         <Col xs={24} lg={24} xl={12}>
           <Card className="shadow-md rounded-lg bg-white border-t-[10px] border-solid border-t-[#00783F] h-full">
             <div className="flex flex-wrap items-center justify-between">
@@ -1578,57 +1577,13 @@ export default function Dashboard() {
               </div>
             </div>
 
-            <div className="h-[380px] w-full">
-              {subdealerByDealerData?.length > 0 ? (
-                <BarChart
-                  dataset={subdealerByDealerData}
-                  xAxis={[
-                    {
-                      scaleType: "band",
-                      dataKey: "label",
-                      categoryGapRatio: Math.max(0.2, 0.9 - (subdealerByDealerData?.length || 0) * 0.05),
-                    },
-                  ]}
-                  yAxis={[{ label: "THB" }]}
-                  series={[
-                    {
-                      dataKey: "value",
-                      label: "Sales Plan (THB)",
-                      color: "#00783F",
-                      valueFormatter: valueFormatterTHB,
-                    },
-                  ]}
-                  height={380}
-                  slotProps={{
-                    legend: {
-                      direction: "row",
-                      position: { vertical: "top", horizontal: "right" },
-                      padding: 0,
-                    },
-                  }}
-                  margin={{ left: 90, bottom: 65 }}
-                  sx={{
-                    ".MuiBar-root": { borderRadius: "4px" },
-                    ".MuiAxis-left .MuiAxis-label": {
-                      fontSize: "12px",
-                      fill: "#6B7280",
-                    },
-                    ".MuiAxis-bottom .MuiAxis-tickLabel": {
-                      angle: -35,
-                      textAnchor: "end",
-                    },
-                  }}
-                />
-              ) : (
-                <div className="h-[380px] flex items-center justify-center text-gray-400">
-                  No data to display
-                </div>
-              )}
+            <div className="flex justify-center items-center">
+              <DoughnutChartComponent data={subdealerByDealerData} />
             </div>
           </Card>
         </Col>
 
-        {/* Sale By Crop (Bar Chart) */}
+        {/* Sale By Crop (Doughnut Chart) */}
         <Col xs={24} lg={24} xl={12}>
           <Card className="shadow-md rounded-lg bg-white border-t-[10px] border-solid border-t-[#00783F]">
             <div className="flex flex-wrap justify-between">
@@ -1662,52 +1617,8 @@ export default function Dashboard() {
               </div>
             </div>
 
-            <div className="h-[380px] w-full">
-              {saleCropData?.length > 0 ? (
-                <BarChart
-                  dataset={saleCropData}
-                  xAxis={[
-                    {
-                      scaleType: "band",
-                      dataKey: "label",
-                      categoryGapRatio: Math.max(0.2, 0.9 - (saleCropData?.length || 0) * 0.05),
-                    },
-                  ]}
-                  yAxis={[{ label: "THB" }]}
-                  series={[
-                    {
-                      dataKey: "value",
-                      label: "Sales (THB)",
-                      color: "#10B981",
-                      valueFormatter: valueFormatterTHB,
-                    },
-                  ]}
-                  height={380}
-                  slotProps={{
-                    legend: {
-                      direction: "row",
-                      position: { vertical: "top", horizontal: "right" },
-                      padding: 0,
-                    },
-                  }}
-                  margin={{ left: 90, bottom: 65 }}
-                  sx={{
-                    ".MuiBar-root": { borderRadius: "4px" },
-                    ".MuiAxis-left .MuiAxis-label": {
-                      fontSize: "12px",
-                      fill: "#6B7280",
-                    },
-                    ".MuiAxis-bottom .MuiAxis-tickLabel": {
-                      angle: -35,
-                      textAnchor: "end",
-                    },
-                  }}
-                />
-              ) : (
-                <div className="h-[380px] flex items-center justify-center text-gray-400">
-                  No data to display
-                </div>
-              )}
+            <div className="flex justify-center items-center">
+              <DoughnutChartComponent data={saleCropData} />
             </div>
           </Card>
         </Col>
@@ -1717,7 +1628,7 @@ export default function Dashboard() {
           <Card className="shadow-md rounded-lg bg-white border-t-[10px] border-solid border-t-[#00783F] h-full">
             <div className="flex flex-wrap items-center justify-between">
               <h3 className="text-[#00783F] text-lg font-semibold mb-3">
-                Actual Sub Dealer Points
+                Actual Sub Dealer (Point)
               </h3>
               <div className="flex flex-wrap gap-2">
                 <Select
@@ -1784,8 +1695,8 @@ export default function Dashboard() {
           </Card>
         </Col>
 
-        {/* Sub Dealer Bar Chart */}
-        <Col xs={24} lg={24} xl={12}>
+        {/* Sub Dealer Bar Chart (ซ่อนไว้) */}
+        {/* <Col xs={24} lg={24} xl={12}>
           <Card className="shadow-md rounded-lg bg-white border-t-[10px] border-solid border-t-[#00783F] h-full">
             <div className="flex flex-wrap items-center justify-between mb-3">
               <h3 className="text-[#00783F] text-lg font-semibold">
@@ -1864,10 +1775,10 @@ export default function Dashboard() {
               <div className="h-[350px] flex items-center justify-center text-gray-400">No data to display</div>
             )}
           </Card>
-        </Col>
+        </Col> */}
 
         {/* Farmer Bar Chart */}
-        <Col xs={24} lg={24} xl={12}>
+        <Col xs={24} lg={24} xl={24}>
           <Card className="shadow-md rounded-lg bg-white border-t-[10px] border-solid border-t-[#00783F] h-full">
             <div className="flex flex-wrap items-center justify-between mb-3">
               <h3 className="text-[#00783F] text-lg font-semibold">
