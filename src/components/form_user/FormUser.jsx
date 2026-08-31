@@ -11,6 +11,19 @@ dayjs.extend(customParseFormat);
 
 const { Option } = Select;
 
+const sanitizeDecimalInput = (value) => {
+  if (value === null || value === undefined) return "";
+
+  let next = String(value).replace(/[^\d.]/g, "");
+  const firstDot = next.indexOf(".");
+
+  if (firstDot !== -1) {
+    next = `${next.slice(0, firstDot + 1)}${next.slice(firstDot + 1).replace(/\./g, "")}`;
+  }
+
+  return next;
+};
+
 export default function FormUser({ fields, title, profile, form, onChange, disableImageUpload = false }) {
   const { showMsg } = useContext(AuthContext);
   const [loading, setLoading] = useState(false);
@@ -163,23 +176,29 @@ export default function FormUser({ fields, title, profile, form, onChange, disab
                     required: field.required,
                     message: `Please input ${field.label.toLowerCase()}`,
                   },
+                  ...(field.rules || []),
                 ]}
                 className="mb-3"
               >
                 {
                   field.type === "text" ||
                     field.type === "email" ||
-                    field.type === "tel" ? (
-                    // <Input
-                    //   type={field.type}
-                    //   placeholder={`Enter ${field.label.toLowerCase()}`}
-                    //   disabled={field.disabled} 
-                    //   suffix={field.iconSrc ? <img src={field.iconSrc} alt="Location Icon" style={{ width: '20px', height: '20px' }} /> : []}
-                    // />
+                    field.type === "tel" ||
+                    field.type === "number" ? (
                     <Input
-                      type={field.type}
+                      type={field.type === "number" ? "text" : field.type}
+                      inputMode={field.type === "number" ? "decimal" : undefined}
                       placeholder={`Enter ${field.label.toLowerCase()}`}
                       disabled={field.disabled}
+                      onChange={
+                        field.type === "number"
+                          ? (e) => {
+                              const sanitized = sanitizeDecimalInput(e.target.value);
+                              form?.setFieldsValue({ [field.name]: sanitized });
+                              handleChange(field.name, sanitized);
+                            }
+                          : undefined
+                      }
                       prefix={
                         field.iconPosition === "left" && field.iconSrc ? (
                           <img src={field.iconSrc} alt={`${field.label} Icon`} style={{ width: '20px', height: '20px' }} />

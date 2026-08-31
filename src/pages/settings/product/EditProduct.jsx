@@ -10,6 +10,23 @@ import useServiceAPI from "../../../services/CorsService";
 import { paths } from "../../../services/CorsPath";
 import ActionButton from "../../../components/button/ActionButton";
 
+const NUMBER_VALUE_PATTERN = /^\d+(\.\d+)?$/;
+
+const isNumericValue = (value) => {
+  if (value === null || value === undefined || value === "") return true;
+  return NUMBER_VALUE_PATTERN.test(String(value).trim());
+};
+
+const numericFieldRule = {
+  validator: (_, value) => {
+    if (isNumericValue(value)) {
+      return Promise.resolve();
+    }
+
+    return Promise.reject(new Error("กรอกได้เฉพาะตัวเลข เช่น 100 หรือ 100.50"));
+  },
+};
+
 const parseNumber = (value) => {
   if (value === null || value === undefined || value === "") return null;
   const parsed = Number(value);
@@ -45,8 +62,8 @@ const buildProductPayload = (values, selectedCrops, productImageFallback) => ({
   order_by: parseInteger(values.order_by),
   unit_convert_order_value: parseNumber(values.unit_convert_order_value),
   point: parseInteger(values.point),
-  unit_convert_sales_order: parseInteger(values.unit_convert_sales_order),
-  unit_size: parseInteger(values.unit_size),
+  unit_convert_sales_order: parseNumber(values.unit_convert_sales_order),
+  unit_size: parseNumber(values.unit_size),
   crop_list: selectedCrops,
 });
 
@@ -58,9 +75,17 @@ export default function EditProduct() {
   const navigate = useNavigate();
 
   const productId = location.state?.id;
-  const mode = location.state?.mode || (location.pathname.endsWith("/create") ? "create" : "view");
+  const pathMode = location.pathname.endsWith("/create")
+    ? "create"
+    : location.pathname.endsWith("/edit")
+      ? "edit"
+      : location.pathname.endsWith("/view")
+        ? "view"
+        : "view";
+  const mode = location.state?.mode || pathMode;
   const isCreateMode = mode === "create";
   const isViewMode = mode === "view";
+  const isEditMode = mode === "edit";
 
   const [productInfo, setProductInfo] = useState({});
   const [productTypes, setProductTypes] = useState([]);
@@ -69,7 +94,7 @@ export default function EditProduct() {
   const [cropOptions, setCropOptions] = useState([]);
   const [selectedCrops, setSelectedCrops] = useState([]);
   const [dataLoaded, setDataLoaded] = useState(false);
-  const [canEdit, setCanEdit] = useState(isCreateMode);
+  const [canEdit, setCanEdit] = useState(isCreateMode || isEditMode);
 
   const isFieldDisabled = isViewMode || (!isCreateMode && !canEdit);
 
@@ -118,7 +143,7 @@ export default function EditProduct() {
 
         const data = productResponse.data;
         setProductInfo(data);
-        setCanEdit(Boolean(data.permission?.edit));
+        setCanEdit(isEditMode || isCreateMode || Boolean(data.permission?.edit));
         setProductTypes(typesResponse.data || []);
         setProductGroups(groupsResponse.data || []);
         setCategories(categoriesResponse.data || []);
@@ -133,7 +158,7 @@ export default function EditProduct() {
     };
 
     fetchData();
-  }, [productId, isCreateMode, navigate, showMsg]);
+  }, [productId, isCreateMode, isEditMode, navigate, showMsg]);
 
   const useFlagOptions = [
     { name: "Active", id: 1 },
@@ -172,7 +197,7 @@ export default function EditProduct() {
         type: "text",
         required: false,
         col: 6,
-        disabled: true,
+        disabled: false,
         value: isCreateMode ? "" : productInfo.product_code,
       },
       {
@@ -244,82 +269,91 @@ export default function EditProduct() {
       {
         label: "Net Price",
         name: "net_price",
-        type: "text",
+        type: "number",
         required: false,
         col: 6,
         disabled: isFieldDisabled,
+        rules: [numericFieldRule],
         value: productInfo.net_price,
       },
       {
         label: "Baht/lt,kg",
         name: "bath_ltkg",
-        type: "text",
+        type: "number",
         required: false,
         col: 6,
         disabled: isFieldDisabled,
+        rules: [numericFieldRule],
         value: productInfo.bath_ltkg,
       },
       {
         label: "Baht/Unit",
         name: "bath_unit",
-        type: "text",
+        type: "number",
         required: false,
         col: 6,
         disabled: isFieldDisabled,
+        rules: [numericFieldRule],
         value: productInfo.bath_unit,
       },
       {
         label: "Sub Dealer",
         name: "sub_dealer",
-        type: "text",
+        type: "number",
         required: false,
         col: 6,
         disabled: isFieldDisabled,
+        rules: [numericFieldRule],
         value: productInfo.sub_dealer,
       },
       {
         label: "Farmer",
         name: "farmer",
-        type: "text",
+        type: "number",
         required: false,
         col: 6,
         disabled: isFieldDisabled,
+        rules: [numericFieldRule],
         value: productInfo.farmer,
       },
       {
         label: "Unit Convert Value",
         name: "unit_convert_value",
-        type: "text",
+        type: "number",
         required: false,
         col: 6,
         disabled: isFieldDisabled,
+        rules: [numericFieldRule],
         value: productInfo.unit_convert_value,
       },
       {
         label: "Unit Convert Order Value",
         name: "unit_convert_order_value",
-        type: "text",
+        type: "number",
         required: false,
         col: 6,
         disabled: isFieldDisabled,
+        rules: [numericFieldRule],
         value: productInfo.unit_convert_order_value,
       },
       {
         label: "Unit Convert Sales Order",
         name: "unit_convert_sales_order",
-        type: "text",
+        type: "number",
         required: false,
         col: 6,
         disabled: isFieldDisabled,
+        rules: [numericFieldRule],
         value: productInfo.unit_convert_sales_order,
       },
       {
         label: "Unit Size",
         name: "unit_size",
-        type: "text",
+        type: "number",
         required: false,
         col: 6,
         disabled: isFieldDisabled,
+        rules: [numericFieldRule],
         value: productInfo.unit_size,
       },
       {

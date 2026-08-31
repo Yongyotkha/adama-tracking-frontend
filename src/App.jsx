@@ -501,6 +501,7 @@ const App = () => {
             <Route path="/setting/sale/edit" element={<EditSale />} />
             <Route path="/setting/product" element={<SettingProduct />} />
             <Route path="/setting/product/create" element={<EditProduct />} />
+            <Route path="/setting/product/view" element={<EditProduct />} />
             <Route path="/setting/product/edit" element={<EditProduct />} />
             <Route path="/setting/promotion" element={<SettingPromotion />} />
             <Route
