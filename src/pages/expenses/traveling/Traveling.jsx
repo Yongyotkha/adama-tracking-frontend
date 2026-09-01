@@ -233,7 +233,7 @@ export default function Traveling() {
     const { current, pageSize } = tableParams.pagination;
     const filters = tableParams.filters || {};
     const requestData = {
-      user_id: filters.sale || "",
+      user_id: filters.sale && Number(filters.sale) > 0 ? filters.sale : "",
       year: filters.year || "",
       month: filters.month || "",
       status_code: filters.status || "",
