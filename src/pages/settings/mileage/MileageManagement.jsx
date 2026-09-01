@@ -77,13 +77,30 @@ export default function MileageManagement() {
     return next;
   };
 
+  const getId = (v) => {
+    if (!v) return "";
+    if (typeof v === "object") return v.value ?? v.id ?? "";
+    return v;
+  };
+
   const buildMileageRequestData = (filters = {}, current = 1, pageSize = 10) => {
     const requestData = {
       user_id: userInfo.id,
-      name: filters.name ?? "",
       page_length: current,
       page_size: pageSize,
     };
+
+    const rawName = filters.name;
+    if (rawName && typeof rawName === "object") {
+      requestData.sale_id = getId(rawName);
+    } else if (rawName) {
+      const name = String(rawName).trim();
+      if (/^\d+$/.test(name)) {
+        requestData.sale_id = name;
+      } else {
+        requestData.name = name;
+      }
+    }
 
     if (
       filters.dater &&
