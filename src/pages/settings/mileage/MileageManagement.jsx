@@ -12,11 +12,10 @@ import { AuthContext } from "../../../contexts/AuthContext";
 import ExportMileageExcelButton from "../../../components/export/ExportMileageExcelButton";
 
 export default function MileageManagement() {
-  const [loading, setLoading] = useState(false);
+  const [loading] = useState(false);
   const [dataSource, setDataSource] = useState([]);
   const [tableLoading, setTableLoading] = useState(false);
 
-  const [nameOptions, setNameOptions] = useState([]);
   const [filterValues, setFilterValues] = useState({});
 
   const [tableParams, setTableParams] = useState({
@@ -60,12 +59,6 @@ export default function MileageManagement() {
         })
       : "-";
 
-  const getId = (v) => {
-    if (!v) return "";
-    if (typeof v === "object") return v.value ?? v.id ?? "";
-    return v;
-  };
-
   const normalizeFilters = (raw = {}) => {
     const next = { ...raw };
 
@@ -87,7 +80,7 @@ export default function MileageManagement() {
   const buildMileageRequestData = (filters = {}, current = 1, pageSize = 10) => {
     const requestData = {
       user_id: userInfo.id,
-      sale_id: getId(filters.name),
+      name: filters.name ?? "",
       page_length: current,
       page_size: pageSize,
     };
@@ -104,25 +97,6 @@ export default function MileageManagement() {
 
     return requestData;
   };
-
-  useEffect(() => {
-    const getSaleMaster = async () => {
-      setLoading(true);
-      try {
-        const saleRes = await useServiceAPI.get(paths.pathMasterSaleDropdown, {
-          mode: "all",
-        });
-        setNameOptions(saleRes?.data || []);
-      } catch (e) {
-        console.error(e);
-        setNameOptions([]);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    getSaleMaster();
-  }, []);
 
   const fetchData = async () => {
     setTableLoading(true);
@@ -234,10 +208,9 @@ export default function MileageManagement() {
     () => [
       {
         key: "name",
-        type: "select",
+        type: "text",
         label: "Name",
         placeholder: "All",
-        options: nameOptions,
       },
       {
         key: "dater",
@@ -246,7 +219,7 @@ export default function MileageManagement() {
         placeholder: "Date",
       },
     ],
-    [nameOptions]
+    []
   );
 
   const handleFilterChange = (values) => {
