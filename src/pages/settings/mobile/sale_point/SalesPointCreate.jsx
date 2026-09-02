@@ -55,6 +55,7 @@ export default function SalesPointCreate() {
   const isFarmer = location.pathname.includes("farmer-points-list") || location.state?.is_farmer;
   const backPath = location.state?.back_path || (isFarmer ? "/points/line/farmer-points-list" : "/points/line/sales-points-list");
 
+  
   // ===== โหลดค่าจาก state กรณีมาจากหน้า previous =====
   useEffect(() => {
     if (location.state?.data) {

@@ -49,7 +49,7 @@ export default function PointHistoryDetail() {
 
   const [loading, setLoading] = useState(false);
   const [historydetail, setHistorydetail] = useState(null);
-
+  const [shopType, setShopType] = useState(undefined);
   const documentNumber = location.state?.document_number;
 
   useEffect(() => {
@@ -60,6 +60,7 @@ export default function PointHistoryDetail() {
           platform: "web",
           id: userInfo?.id,
           document_number: documentNumber,
+          ...(shopType === "farmer" ? { mode: "farmer" } : {}),
         });
 
         if (res?.status === 200) {

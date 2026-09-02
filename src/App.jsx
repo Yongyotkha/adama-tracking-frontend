@@ -47,6 +47,9 @@ import CreateSubDealer from "./pages/customer/sub_dealer/CreateSubDealer";
 import EditSubDealer from "./pages/customer/sub_dealer/EditSubDealer";
 import Farmer from "./pages/customer/Farmers/FarmersList";
 import FarmerCreate from "./pages/customer/Farmers/FarmersCreate";
+import FarmersImportList from "./pages/customer/Farmers/FarmersImportList";
+import FarmersImportUpload from "./pages/customer/Farmers/FarmersImportUpload";
+import FarmersImportDetail from "./pages/customer/Farmers/FarmersImportDetail";
 import CustomerMapping from "./pages/customer/mapping/CustomerMapping";
 import CameraView from "./pages/mobile/collect_points/CameraView";
 import CustomerContactList from "./pages/customer/contact/List";
@@ -79,6 +82,7 @@ import WorkPlanSaleBySubDealer from "./pages/sale_plan/workplan/WorkPlanSaleBySu
 import RollingForecastQuarter from "./pages/sale_plan/rolling_forecast/RollingForecastQuarter";
 import RollingForecastTempUpload from "./pages/sale_plan/rolling_forecast/RollingForecastTempUpload";
 import RollingForecastTempList from "./pages/sale_plan/rolling_forecast/RollingForecastTempList";
+import RollingForecastTempDetail from "./pages/sale_plan/rolling_forecast/RollingForecastTempDetail";
 import RollingForecastMonth from "./pages/sale_plan/rolling_forecast/RollingForecastMonth";
 import ActivityPlanDealer from "./pages/activity/activity_plan/ActivityPlanDealer";
 import ActivityPlanSubDealer from "./pages/activity/activity_plan/ActivityPlanSubDealer";
@@ -209,6 +213,9 @@ import ReportSellInByFarmer from "./pages/report/ReportSellInByFarmer";
 import PDFMaterialExpense from "./pages/pdf/PDFMaterialExpense";
 import PDFSampleExpense from "./pages/pdf/PDFSampleExpense";
 import ViewDraftCampaignPDF from "./pages/pdf/DraftCampaignPDF";
+import FarmerDraftCampaignList from "./pages/settings/mobile/farmer_draft_campaign/FarmerDraftCampaignList";
+import FarmerDraftCampaignAction from "./pages/settings/mobile/farmer_draft_campaign/FarmerDraftCampaignAction";
+import FarmerDraftCampaignPDF from "./pages/settings/mobile/farmer_draft_campaign/FarmerDraftCampaignPDF";
 
 const App = () => {
   return (
@@ -300,6 +307,10 @@ const App = () => {
             <Route
               path="/sale-plan/rolling-forecast/temp-list"
               element={<RollingForecastTempList />}
+            />
+            <Route
+              path="/sale-plan/rolling-forecast/temp-list/:uploadId"
+              element={<RollingForecastTempDetail />}
             />
 
             {/* Activity Route */}
@@ -452,6 +463,15 @@ const App = () => {
             {/* <Route path="/customer/sub-dealer/view" element={<EditSubDealer />} /> */}
 
             <Route path="/customer/farmers" element={<Farmer />} />
+            <Route path="/customer/farmers/import" element={<FarmersImportList />} />
+            <Route
+              path="/customer/farmers/import/upload"
+              element={<FarmersImportUpload />}
+            />
+            <Route
+              path="/customer/farmers/import/:uploadId"
+              element={<FarmersImportDetail />}
+            />
             <Route path="/customer/farmers/create" element={<FarmerCreate />} />
             <Route path="/customer/mapping" element={<CustomerMapping />} />
 
@@ -486,6 +506,7 @@ const App = () => {
             />
             <Route path="/setting/product" element={<SettingProduct />} />
             <Route path="/setting/product/create" element={<EditProduct />} />
+            <Route path="/setting/product/view" element={<EditProduct />} />
             <Route path="/setting/product/edit" element={<EditProduct />} />
             <Route path="/setting/promotion" element={<SettingPromotion />} />
             <Route
@@ -689,6 +710,23 @@ const App = () => {
             <Route
               path="/setting/line/draft-campaign/pdf"
               element={<ViewDraftCampaignPDF />}
+            />
+
+            <Route
+              path="/setting/line/farmer-draft-campaign"
+              element={<FarmerDraftCampaignList />}
+            />
+            <Route
+              path="/setting/line/farmer-draft-campaign/create"
+              element={<FarmerDraftCampaignAction />}
+            />
+            <Route
+              path="/setting/line/farmer-draft-campaign/:mode"
+              element={<FarmerDraftCampaignAction />}
+            />
+            <Route
+              path="/setting/line/farmer-draft-campaign/pdf"
+              element={<FarmerDraftCampaignPDF />}
             />
 
             <Route

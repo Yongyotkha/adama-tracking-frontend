@@ -27,6 +27,7 @@ export default function OrderHistoryDetail() {
   const [earnedPoints, setEarnedPoints] = useState(0);
 
   const documentNumber = location.state?.document_number;
+  const [shopType, setShopType] = useState(undefined);
 
   useEffect(() => {
     const fetchDetail = async () => {
@@ -36,6 +37,7 @@ export default function OrderHistoryDetail() {
           platform: "web",
           id: userInfo?.id,
           document_number: documentNumber,
+          ...(shopType === "farmer" ? { mode: "farmer" } : {}),
         });
 
         if (response?.status === 200) {
@@ -52,14 +54,14 @@ export default function OrderHistoryDetail() {
       }
     };
 
-    if (documentNumber) fetchDetail();
+    if (documentNumber && shopType !== undefined) fetchDetail();
 
     // cleanup objectURL ตอนออกจากหน้า
     return () => {
       productPhotos.forEach((f) => f.url && f.url.startsWith("blob:") && URL.revokeObjectURL(f.url));
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [documentNumber, userInfo?.id]);
+  }, [documentNumber, userInfo?.id, shopType]);
 
   // ---------------- ใช้ products จาก API โดยตรง ----------------
   const products = Array.isArray(historydetail?.products)
@@ -175,7 +177,9 @@ export default function OrderHistoryDetail() {
   return (
     <MobileLayout loading={loading}>
       <div className="flex flex-col items-center w-full h-full px-4">
-        <HeadSectionUser />
+        <HeadSectionUser
+          onProfileLoaded={(profile) => setShopType(profile?.shop_type || "")}
+        />
         <UserPointsSection />
         <SectionHeader title="รายละเอียด" icon="/img/icons/bill.png" />
 

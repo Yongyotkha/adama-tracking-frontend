@@ -145,6 +145,7 @@ export default function FarmerPointOrder() {
     setTableLoading(true);
     const { current, pageSize } = tableParams.pagination;
     const filters = tableParams.filters || {};
+    const sortOrder = tableParams.sortOrder || "desc";
     const sortField = tableParams.sortField || "document_date";
 
     const requestData = {
@@ -263,22 +264,24 @@ export default function FarmerPointOrder() {
         setDataSource(newDataSource);
         setTableParams((prev) => ({
           ...prev,
-          pagination: { ...prev.pagination, total: records_filtered || data.length },
+          pagination: { ...prev.pagination, total: records_filtered || 0 },
         }));
       }
-    } catch (e) {
-      console.error("fetch Farmer Point Order failed", e);
+    } catch (error) {
+      console.error(error);
     } finally {
       setTableLoading(false);
     }
   };
 
-  const fetchRequestData = async () => {
+  const fetchRequests = async () => {
     setRequestTableLoading(true);
     const { current, pageSize } = requestTableParams.pagination;
     const filters = requestTableParams.filters || {};
+    const sortOrder = requestTableParams.sortOrder || "desc";
+    const sortField = requestTableParams.sortField || "document_date";
 
-    const requestData = {
+    const payload = {
       user_id: filters.sale || "",
       dealer_id: filters.dealer || "",
       sub_dealer_id: filters.sub_dealer || "",
@@ -287,7 +290,7 @@ export default function FarmerPointOrder() {
       status_code: filters.status_code || "ODI",
       page: "all",
       use_flag: 1,
-      orderby_column: "document_date",
+      orderby_column: sortField,
       orderby: "desc",
       platform: "web",
       page_length: current,
@@ -296,120 +299,442 @@ export default function FarmerPointOrder() {
     };
 
     if (hasValidDater(filters.dater)) {
-      requestData.dater = filters.dater;
+      payload.dater = filters.dater;
     }
 
     try {
-      const response = await useServiceAPI.get(paths.pathSalePointOrderList, requestData);
-      if (response.status === 200) {
-        const { data = [], records_filtered } = response.data || {};
-        const rows = data.map((order, index) => ({
-          key: index + 1 + (current - 1) * pageSize,
-          document_number: order.document_number,
-          sale: order.sale_name,
-          dealer: order.dealer_name,
-          sub_dealer: order.sub_dealer_name,
-          farmer: order.farmer_name || "-",
-          document_date: order.document_date,
-          status: (
-            <BadgeStatus
-              text={order.status_transaction_name}
-              bgColor={order.status_transaction_bg_color}
-              textColor={order.status_transaction_color}
-            />
-          ),
-          action: (
-            <Dropdown
-              menu={{
-                items: (order.action || []).map((a, i) => {
-                  const actionName = String(a.action).toLowerCase();
-                  if (actionName === "view") {
-                    return {
-                      key: `view-${i}`,
-                      label: (
-                        <ItemDropDown
-                          mode="view"
-                          onClick={() =>
-                            navigate("/points/line/farmer-points-list/view", {
-                              state: { document_number: order.document_number, is_farmer: true, back_path: "/points/line/farmer-points-list" },
-                            })
-                          }
-                        />
-                      ),
-                    };
-                  }
-                  if (actionName === "edit") {
-                    return {
-                      key: `edit-${i}`,
-                      label: (
-                        <ItemDropDown
-                          mode="edit"
-                          onClick={() =>
-                            navigate("/points/line/farmer-points-list/edit", {
-                              state: { document_number: order.document_number, is_farmer: true, back_path: "/points/line/farmer-points-list" },
-                            })
-                          }
-                        />
-                      ),
-                    };
-                  }
-                  if (actionName === "delete") {
-                    return {
-                      key: `delete-${i}`,
-                      label: (
-                        <ItemDropDown
-                          mode="delete"
-                          onClick={() => handleDelete(order.document_number)}
-                        />
-                      ),
-                    };
-                  }
-                  return {
-                    key: `act-${i}`,
-                    label: (
-                      <ItemDropDown
-                        mode={actionName}
-                        onClick={() =>
-                          navigate(`/points/line/sales-points-request/${a.action}`, {
-                            state: { document_number: order.document_number },
-                          })
-                        }
-                      />
-                    ),
-                  };
-                }),
-              }}
-              placement="bottom"
-            >
-              <a onClick={(e) => e.preventDefault()}>
-                <img src="/img/icons/action.png" alt="button icon" className="inline-block w-5 h-5 mr-2" />
-              </a>
-            </Dropdown>
-          ),
-        }));
+      const res = await useServiceAPI.get(paths.pathSalePointOrderList, payload);
+      if (res.status === 200) {
+        const rows = res.data?.data || [];
 
-        setRequestDataSource(rows);
+        const mapped = rows.map((item, idx) => {
+          const requestDate =
+            item.document_date ||
+            (item.updated_at ? String(item.updated_at).split(" ")[0] : "") ||
+            "-";
+
+          return {
+            key: idx + 1 + (current - 1) * pageSize,
+            document_number: item.document_number,
+            dealer: item.dealer_name ?? "-",
+            sub_dealer: item.sub_dealer_name ?? "-",
+            farmer: item.farmer_name ?? "-",
+            sale: item.sale_name ?? "-",
+            document_date: requestDate,
+            status: (
+              <BadgeStatus
+                text={item.status_transaction_name}
+                bgColor={item.status_transaction_bg_color}
+                textColor={item.status_transaction_color}
+              />
+            ),
+            status_code: item.status_code,
+            action: (
+              <Dropdown
+                menu={{
+                  items: (item.action || []).map((a, i) => {
+                    const actionName = String(a.action).toLowerCase();
+                    if (actionName === "view") {
+                      return {
+                        key: `view-${i}`,
+                        label: (
+                          <ItemDropDown
+                            mode="view"
+                            onClick={() =>
+                              navigate("/points/line/farmer-points-list/view", {
+                                state: { document_number: item.document_number, is_farmer: true, back_path: "/points/line/farmer-points-list" },
+                              })
+                            }
+                          />
+                        ),
+                      };
+                    }
+                    if (actionName === "edit") {
+                      return {
+                        key: `edit-${i}`,
+                        label: (
+                          <ItemDropDown
+                            mode="edit"
+                            onClick={() =>
+                              navigate("/points/line/farmer-points-list/edit", {
+                                state: { document_number: item.document_number, is_farmer: true, back_path: "/points/line/farmer-points-list" },
+                              })
+                            }
+                          />
+                        ),
+                      };
+                    }
+                    if (actionName === "delete") {
+                      return {
+                        key: `delete-${i}`,
+                        label: (
+                          <ItemDropDown
+                            mode="delete"
+                            onClick={() => handleDelete(item.document_number)}
+                          />
+                        ),
+                      };
+                    }
+                    if (["refund", "refund point"].includes(actionName)) {
+                      return {
+                        key: `refund_point-${i}`,
+                        label: (
+                          <ItemDropDown
+                            mode="refund_point"
+                            onClick={() => handleRefund(item.document_number)}
+                          />
+                        ),
+                      };
+                    }
+                    return null;
+                  }).filter(Boolean),
+                }}
+                placement="bottom"
+              >
+                <a onClick={(e) => e.preventDefault()}>
+                  <img src="/img/icons/action.png" alt="action" className="inline-block w-5 h-5" />
+                </a>
+              </Dropdown>
+            ),
+          };
+        });
+
+        setRequestDataSource(mapped);
+
         setRequestTableParams((prev) => ({
           ...prev,
-          pagination: { ...prev.pagination, total: records_filtered || data.length },
+          pagination: {
+            ...prev.pagination,
+            total: typeof res.data?.records_filtered === "number"
+              ? res.data.records_filtered
+              : rows.length,
+          },
         }));
       }
-    } catch (e) {
-      console.error("fetch request data failed", e);
+    } catch (err) {
+      console.error(err);
+      setRequestDataSource([]);
     } finally {
       setRequestTableLoading(false);
     }
   };
 
-  useEffect(() => {
-    fetchData();
-  }, [tableParams.pagination.current, tableParams.pagination.pageSize, tableParams.filters]);
+  const handleSearch = (filters) => {
+    const cleanedFilters = normalizeFilters(filters);
+
+    setTableParams((prev) => ({
+      ...prev,
+      filters: cleanedFilters,
+      pagination: { ...prev.pagination, current: 1 },
+    }));
+  };
+
+  const handleClear = () => {
+    setFilterValues({});
+    setTableParams((prev) => ({
+      ...prev,
+      filters: {},
+      pagination: { ...prev.pagination, current: 1 },
+    }));
+    setDataDealer([]);
+    setSubDealerOptions([]);
+    setFarmerOptions([]);
+  };
+
+  const handleTableChange = (pagination, _filters, sorter) => {
+    setTableParams((prev) => ({
+      ...prev,
+      pagination,
+      sortOrder: sorter?.order === "descend" ? "desc" : "asc",
+      sortField: sorter?.field || prev.sortField,
+    }));
+  };
+
+  const handleChange = (filters) => {
+    let newFilters = { ...filters };
+
+    const oldSale = typeof filterValues.sale === "object" ? filterValues.sale?.value : filterValues.sale;
+    const newSale = typeof newFilters.sale === "object" ? newFilters.sale?.value : newFilters.sale;
+
+    const oldDealer = typeof filterValues.dealer === "object" ? filterValues.dealer?.value : filterValues.dealer;
+    const newDealer = typeof newFilters.dealer === "object" ? newFilters.dealer?.value : newFilters.dealer;
+
+    const oldSubDealer = typeof filterValues.sub_dealer === "object" ? filterValues.sub_dealer?.value : filterValues.sub_dealer;
+    const newSubDealer = typeof newFilters.sub_dealer === "object" ? newFilters.sub_dealer?.value : newFilters.sub_dealer;
+
+    if (oldSale !== newSale) {
+      newFilters.dealer = undefined;
+      newFilters.sub_dealer = undefined;
+      newFilters.farmer = undefined;
+    } else if (oldDealer !== newDealer) {
+      newFilters.sub_dealer = undefined;
+      newFilters.farmer = undefined;
+    } else if (oldSubDealer !== newSubDealer) {
+      newFilters.farmer = undefined;
+    }
+
+    setFilterValues(newFilters);
+
+    const saleId = typeof newFilters.sale === "object" ? newFilters.sale?.value : newFilters.sale;
+    const dealerId = typeof newFilters.dealer === "object" ? newFilters.dealer?.value : newFilters.dealer;
+    const subDealerId = typeof newFilters.sub_dealer === "object" ? newFilters.sub_dealer?.value : newFilters.sub_dealer;
+
+    if (subDealerId) {
+      (async () => {
+        try {
+          const res = await useServiceAPI.get(paths.pathUserLineFarmer, {
+            sub_dealer_id: subDealerId,
+          });
+          const list = Array.isArray(res?.data?.data) ? res.data.data : Array.isArray(res?.data) ? res.data : [];
+          const normalized = list.map(item => ({
+            id: String(item.farmer_id || item.id),
+            name: item.farmer_name || item.name || String(item.farmer_id || item.id)
+          }));
+          setFarmerOptions(normalized);
+        } catch (error) {
+          // no-op
+        }
+      })();
+    } else {
+      setFarmerOptions([]);
+    }
+
+    if (dealerId) {
+      (async () => {
+        try {
+          const res = await useServiceAPI.get(paths.pathMasterSubDealerAll, {
+            user_id: saleId || "",
+            dealer_id: dealerId,
+          });
+          const set_sub_dealer = (res?.data || []).map((item) => ({
+            name: item.sub_dealer_name,
+            id: item.sub_dealer_id,
+          }));
+          setSubDealerOptions(set_sub_dealer);
+        } catch (error) {
+          showMsg?.("error", error.message || "เกิดข้อผิดพลาดในการโหลด Sub Dealer");
+        }
+      })();
+    } else if (saleId) {
+      (async () => {
+        try {
+          const res = await useServiceAPI.get(paths.pathMasterDealerDropdown, {
+            user_id: saleId,
+          });
+          setDataDealer(res?.data || []);
+          setSubDealerOptions([]);
+        } catch (error) {
+          showMsg?.("error", error.message || "เกิดข้อผิดพลาดในการโหลด Dealer");
+        }
+      })();
+    } else {
+      setDataDealer([]);
+      setSubDealerOptions([]);
+    }
+  };
+
+  const handleSearchRequest = (filters) => {
+    const cleanedFilters = normalizeFilters(filters);
+
+    setRequestTableParams((prev) => ({
+      ...prev,
+      filters: cleanedFilters,
+      pagination: { ...prev.pagination, current: 1 },
+    }));
+  };
+
+  const handleClearRequest = () => {
+    setRequestFiltersValues({});
+    setRequestTableParams((prev) => ({
+      ...prev,
+      filters: {},
+      pagination: { ...prev.pagination, current: 1 },
+    }));
+    setDataDealer([]);
+    setSubDealerOptions([]);
+    setFarmerOptions([]);
+  };
+
+  const handleTableChangeRequest = (pagination, _filters, sorter) => {
+    setRequestTableParams((prev) => ({
+      ...prev,
+      pagination,
+      sortOrder: sorter?.order === "descend" ? "desc" : "asc",
+      sortField: sorter?.field || prev.sortField,
+    }));
+  };
+
+  const handleChangeRequestFilters = (filters) => {
+    let newFilters = { ...filters };
+
+    const oldSale = typeof requestFiltersValues.sale === "object" ? requestFiltersValues.sale?.value : requestFiltersValues.sale;
+    const newSale = typeof newFilters.sale === "object" ? newFilters.sale?.value : newFilters.sale;
+
+    const oldDealer = typeof requestFiltersValues.dealer === "object" ? requestFiltersValues.dealer?.value : requestFiltersValues.dealer;
+    const newDealer = typeof newFilters.dealer === "object" ? newFilters.dealer?.value : newFilters.dealer;
+
+    const oldSubDealer = typeof requestFiltersValues.sub_dealer === "object" ? requestFiltersValues.sub_dealer?.value : requestFiltersValues.sub_dealer;
+    const newSubDealer = typeof newFilters.sub_dealer === "object" ? newFilters.sub_dealer?.value : newFilters.sub_dealer;
+
+    if (oldSale !== newSale) {
+      newFilters.dealer = undefined;
+      newFilters.sub_dealer = undefined;
+      newFilters.farmer = undefined;
+    } else if (oldDealer !== newDealer) {
+      newFilters.sub_dealer = undefined;
+      newFilters.farmer = undefined;
+    } else if (oldSubDealer !== newSubDealer) {
+      newFilters.farmer = undefined;
+    }
+
+    setRequestFiltersValues(newFilters);
+
+    const saleId = typeof newFilters.sale === "object" ? newFilters.sale?.value : newFilters.sale;
+    const dealerId = typeof newFilters.dealer === "object" ? newFilters.dealer?.value : newFilters.dealer;
+    const subDealerId = typeof newFilters.sub_dealer === "object" ? newFilters.sub_dealer?.value : newFilters.sub_dealer;
+
+    if (subDealerId) {
+      (async () => {
+        try {
+          const res = await useServiceAPI.get(paths.pathUserLineFarmer, {
+            sub_dealer_id: subDealerId,
+          });
+          const list = Array.isArray(res?.data?.data) ? res.data.data : Array.isArray(res?.data) ? res.data : [];
+          const normalized = list.map(item => ({
+            id: String(item.farmer_id || item.id),
+            name: item.farmer_name || item.name || String(item.farmer_id || item.id)
+          }));
+          setFarmerOptions(normalized);
+        } catch (error) {
+          // no-op
+        }
+      })();
+    } else {
+      setFarmerOptions([]);
+    }
+
+    if (dealerId) {
+      (async () => {
+        try {
+          const res = await useServiceAPI.get(paths.pathMasterSubDealerAll, {
+            user_id: saleId || "",
+            dealer_id: dealerId,
+          });
+          const set_sub_dealer = (res?.data || []).map((item) => ({
+            name: item.sub_dealer_name,
+            id: item.sub_dealer_id,
+          }));
+          setSubDealerOptions(set_sub_dealer);
+        } catch (error) {
+          showMsg?.("error", error.message || "เกิดข้อผิดพลาดในการโหลด Sub Dealer");
+        }
+      })();
+    } else if (saleId) {
+      (async () => {
+        try {
+          const res = await useServiceAPI.get(paths.pathMasterDealerDropdown, {
+            user_id: saleId,
+          });
+          setDataDealer(res?.data || []);
+          setSubDealerOptions([]);
+        } catch (error) {
+          showMsg?.("error", error.message || "เกิดข้อผิดพลาดในการโหลด Dealer");
+        }
+      })();
+    } else {
+      setDataDealer([]);
+      setSubDealerOptions([]);
+    }
+  };
 
   useEffect(() => {
-    if (activeTab === "request") {
-      fetchRequestData();
+    const getMaster = async () => {
+      setLoading(true);
+      try {
+        const sale = await useServiceAPI.get(paths.pathMasterSaleSingle, {});
+        setSaleList(sale.data || []);
+      } catch (error) {
+        showMsg?.("error", error.message || "เกิดข้อผิดพลาด");
+      } finally {
+        setLoading(false);
+      }
+    };
+    getMaster();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
+    if (activeTab === "request") fetchRequests();
+    else fetchData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeTab]);
+
+  useEffect(() => {
+    if (activeTab === "list") fetchData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [
+    activeTab,
+    tableParams.pagination.current,
+    tableParams.pagination.pageSize,
+    tableParams.sortOrder,
+    tableParams.sortField,
+    JSON.stringify(tableParams.filters),
+  ]);
+
+  useEffect(() => {
+    if (activeTab === "request") fetchRequests();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [
+    activeTab,
+    requestTableParams.pagination.current,
+    requestTableParams.pagination.pageSize,
+    requestTableParams.sortOrder,
+    requestTableParams.sortField,
+    JSON.stringify(requestTableParams.filters),
+  ]);
+
+  useEffect(() => {
+    saveListPageState(PAGE_STATE_KEY, {
+      activeTab,
+      filterValues,
+      tableParams: {
+        pagination: {
+          current: tableParams.pagination.current,
+          pageSize: tableParams.pagination.pageSize,
+        },
+        filters: tableParams.filters,
+        sortOrder: tableParams.sortOrder,
+        sortField: tableParams.sortField,
+      },
+      requestFiltersValues,
+      requestTableParams: {
+        pagination: {
+          current: requestTableParams.pagination.current,
+          pageSize: requestTableParams.pagination.pageSize,
+        },
+        filters: requestTableParams.filters,
+        sortOrder: requestTableParams.sortOrder,
+        sortField: requestTableParams.sortField,
+      },
+    });
+  }, [activeTab, filterValues, tableParams, requestFiltersValues, requestTableParams]);
+
+  useEffect(() => {
+    if (!saleList.length) return;
+
+    const values = activeTab === "request" ? requestFiltersValues : filterValues;
+    const saleId = typeof values.sale === "object" ? values.sale.value : values.sale;
+    const dealerId = typeof values.dealer === "object" ? values.dealer.value : values.dealer;
+
+    if (saleId || dealerId) {
+      if (activeTab === "request") {
+        handleChangeRequestFilters(values);
+      } else {
+        handleChange(values);
+      }
     }
-  }, [activeTab, requestTableParams.pagination.current, requestTableParams.pagination.pageSize, requestTableParams.filters]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [saleList.length, activeTab]);
 
   const handleRefund = (documentNumber) => {
     let remark = "";
@@ -438,10 +763,30 @@ export default function FarmerPointOrder() {
             document_number: documentNumber,
             remark: remark,
           });
-          showNotification?.("success", res?.data?.message || "Refund successful");
-          fetchData();
+          const ok = res?.status === 200 || res?.status === "200";
+          const header =
+            res?.data?.data?.Message?.Message_Header ||
+            res?.data?.message ||
+            (ok ? "Refund successful" : "Notification");
+          const lines =
+            res?.data?.data?.Message?.Message_Line ||
+            res?.data?.message_line ||
+            [ok ? "Refund successful" : "Please try again."];
+
+          await showNotification(ok ? "success" : "warning", header, lines);
+
+          if (activeTab === "request") fetchRequests();
+          else fetchData();
         } catch (error) {
-          showNotification?.("warning", "Refund failed");
+          const msg = error?.response?.data?.data?.Message;
+          await showNotification(
+            "warning",
+            msg?.Message_Header || "Notification",
+            msg?.Message_Line || ["Refund failed"]
+          );
+
+          if (activeTab === "request") fetchRequests();
+          else fetchData();
         }
       },
     });
@@ -451,74 +796,34 @@ export default function FarmerPointOrder() {
     confirm({
       title: "Do you want to delete ?",
       icon: <ExclamationCircleFilled />,
+      content: [],
       centered: true,
       async onOk() {
         try {
           const res = await useServiceAPI.delete(paths.pathSalePointOrderDelete, { document_number: documentNumber });
-          showNotification?.("success", res?.data?.message || "Delete successful");
-          fetchData();
+          const ok = res?.status === 200;
+          const header =
+            res?.data?.data?.Message?.Message_Header ||
+            res?.data?.message ||
+            (ok ? "Delete successful" : "Notification");
+          const lines =
+            res?.data?.data?.Message?.Message_Line ||
+            res?.data?.message_line ||
+            [ok ? "Delete successful" : "Please try again."];
+
+          await showNotification(ok ? "success" : "warning", header, lines);
+
+          if (activeTab === "request") fetchRequests();
+          else fetchData();
         } catch (error) {
-          showNotification?.("warning", "Delete failed");
+          const msg = error?.response?.data?.data?.Message;
+          await showNotification("warning", msg?.Message_Header || "Notification", msg?.Message_Line || ["Data not found"]);
+
+          if (activeTab === "request") fetchRequests();
+          else fetchData();
         }
       },
     });
-  };
-
-  const handleSearch = () => {
-    if (activeTab === "list") {
-      setTableParams((prev) => ({
-        ...prev,
-        pagination: { ...prev.pagination, current: 1 },
-        filters: filterValues,
-      }));
-    } else {
-      setRequestTableParams((prev) => ({
-        ...prev,
-        pagination: { ...prev.pagination, current: 1 },
-        filters: requestFiltersValues,
-      }));
-    }
-  };
-
-  const handleClear = () => {
-    if (activeTab === "list") {
-      setFilterValues({});
-      setTableParams((prev) => ({
-        ...prev,
-        pagination: { ...prev.pagination, current: 1 },
-        filters: {},
-      }));
-    } else {
-      setRequestFiltersValues({});
-      setRequestTableParams((prev) => ({
-        ...prev,
-        pagination: { ...prev.pagination, current: 1 },
-        filters: {},
-      }));
-    }
-  };
-
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    if (activeTab === "list") {
-      setFilterValues((prev) => ({ ...prev, [name]: value }));
-    } else {
-      setRequestFiltersValues((prev) => ({ ...prev, [name]: value }));
-    }
-  };
-
-  const handleTableChange = (pagination) => {
-    if (activeTab === "list") {
-      setTableParams((prev) => ({
-        ...prev,
-        pagination: { ...prev.pagination, current: pagination.current, pageSize: pagination.pageSize },
-      }));
-    } else {
-      setRequestTableParams((prev) => ({
-        ...prev,
-        pagination: { ...prev.pagination, current: pagination.current, pageSize: pagination.pageSize },
-      }));
-    }
   };
 
   return (
@@ -526,36 +831,57 @@ export default function FarmerPointOrder() {
       <div className="flex justify-between items-center">
         <div className="title-page">Sales Point Order (Farmer)</div>
         <div className="flex gap-2">
-          <ActionButton
-            mode="create"
-            text="Create"
-            onClick={() => navigate("/points/line/farmer-points-list/create", { state: { is_farmer: true, back_path: "/points/line/farmer-points-list" } })}
-          />
+          {permission.btn_create && (
+            <ActionButton
+              mode="create"
+              text="Create"
+              onClick={() => navigate("/points/line/farmer-points-list/create", { state: { is_farmer: true, back_path: "/points/line/farmer-points-list" } })}
+            />
+          )}
         </div>
       </div>
 
       <Tabs activeKey={activeTab} onChange={setActiveTab} className="custom-tabs">
-        <TabPane tab={<span className="tab-title">Sales Point Order List</span>} key="list" />
-        <TabPane tab={<span className="tab-title">Sales Point Order Request</span>} key="request" />
+        <TabPane tab={<span className="tab-title">Sales Point Order List</span>} key="list">
+          <Filter
+            onSearch={handleSearch}
+            onClear={handleClear}
+            onChange={handleChange}
+            filters={filters}
+            values={filterValues}
+          />
+          <br />
+          <BoxPrimary>
+            <TableComponent
+              header={header}
+              dataSource={dataSource}
+              pagination={tableParams.pagination}
+              loading={tableLoading}
+              onChange={handleTableChange}
+            />
+          </BoxPrimary>
+        </TabPane>
+
+        <TabPane tab={<span className="tab-title">Sales Point Order Request</span>} key="request">
+          <Filter
+            onSearch={handleSearchRequest}
+            onClear={handleClearRequest}
+            onChange={handleChangeRequestFilters}
+            filters={requestFilters}
+            values={requestFiltersValues}
+          />
+          <br />
+          <BoxPrimary>
+            <TableComponent
+              header={headerRequest}
+              dataSource={requestDataSource}
+              pagination={requestTableParams.pagination}
+              loading={requestTableLoading}
+              onChange={handleTableChangeRequest}
+            />
+          </BoxPrimary>
+        </TabPane>
       </Tabs>
-
-      <Filter
-        onSearch={handleSearch}
-        onClear={handleClear}
-        onChange={handleChange}
-        filters={activeTab === "list" ? filters : requestFilters}
-        values={activeTab === "list" ? filterValues : requestFiltersValues}
-      />
-
-      <BoxPrimary>
-        <TableComponent
-          header={activeTab === "list" ? header : headerRequest}
-          dataSource={activeTab === "list" ? dataSource : requestDataSource}
-          pagination={activeTab === "list" ? tableParams.pagination : requestTableParams.pagination}
-          loading={activeTab === "list" ? tableLoading : requestTableLoading}
-          onChange={handleTableChange}
-        />
-      </BoxPrimary>
     </MainLayout>
   );
 }

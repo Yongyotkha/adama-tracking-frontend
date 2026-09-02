@@ -121,6 +121,18 @@ export default function ViewOrderWaiting() {
       render: (text) => <div className="text-center">{parseFloat(text || 0).toLocaleString("en-US")}</div>,
     },
     {
+      title: <div className="text-center">Point</div>,
+      dataIndex: "point",
+      key: "point",
+      render: (text) => (
+        <div className="text-center">
+          {text !== undefined && text !== null && text !== ""
+            ? parseFloat(text || 0).toLocaleString("en-US")
+            : "-"}
+        </div>
+      ),
+    },
+    {
       title: <div className="text-end">Sub Total (THB)</div>,
       dataIndex: "net_amount",
       key: "net_amount",
@@ -150,15 +162,22 @@ export default function ViewOrderWaiting() {
   ];
 
   const footerOrderList = () => {
-    const totalQuantity = dataSource.reduce((total, item) => total + parseFloat(item.quantity), 0);
-    const totalFOC = dataSource.reduce((total, item) => total + parseFloat(item.foc), 0);
+    const totalQuantity = dataSource.reduce((total, item) => total + parseFloat(item.quantity || 0), 0);
+    const totalFOC = dataSource.reduce((total, item) => total + parseFloat(item.foc || 0), 0);
     const totalAmount = dataSource.reduce((total, item) => total + parseFloat(item.net_amount || 0), 0);
+    const totalPoint =
+      dataOrderDetail?.total_point !== undefined &&
+      dataOrderDetail?.total_point !== null &&
+      dataOrderDetail?.total_point !== ""
+        ? parseFloat(dataOrderDetail.total_point || 0)
+        : dataSource.reduce((total, item) => total + parseFloat(item.point || 0), 0);
 
     return (
       <tr className="bg-[#978B87]">
         <td colSpan={9} className="text-right pr-2 text-white">
           Item: {dataSource.length} &nbsp; QTY (ctn): {totalQuantity}+{totalFOC} &nbsp; Total:{" "}
-          {totalAmount.toLocaleString("en-US", { minimumFractionDigits: 2 })}
+          {totalAmount.toLocaleString("en-US", { minimumFractionDigits: 2 })} &nbsp; Total Point:{" "}
+          {totalPoint.toLocaleString("en-US")}
         </td>
       </tr>
     );

@@ -20,8 +20,6 @@ export default function MileageManagement() {
   const [dataSource, setDataSource] = useState([]);
   const [tableLoading, setTableLoading] = useState(false);
 
-  const [nameOptions, setNameOptions] = useState([]);
-
   const [tableParams, setTableParams] = useState({
     pagination: {
       current: 1,
@@ -73,20 +71,6 @@ export default function MileageManagement() {
     };
   };
 
-  useEffect(() => {
-    const getSaleMaster = async () => {
-      try {
-        const saleRes = await useServiceAPI.get(paths.pathMasterSaleDropdown, { mode: "all" });
-        setNameOptions(saleRes?.data || []);
-      } catch (e) {
-        console.error(e);
-        setNameOptions([]);
-      }
-    };
-
-    getSaleMaster();
-  }, []);
-
   const fetchData = async () => {
     setTableLoading(true);
 
@@ -95,7 +79,7 @@ export default function MileageManagement() {
 
     const requestData = {
       user_id: userInfo.id,
-      sale_id: filters.name ?? "",
+      name: filters.name ?? "",
       page_length: current,
       page_size: pageSize,
     };
@@ -202,10 +186,9 @@ export default function MileageManagement() {
     () => [
       {
         key: "name",
-        type: "select",
+        type: "text",
         label: "Name",
         placeholder: "All",
-        options: nameOptions,
       },
       {
         key: "month",
@@ -214,7 +197,7 @@ export default function MileageManagement() {
         placeholder: "Select month",
       },
     ],
-    [nameOptions]
+    []
   );
 
   const handleSearch = (filtersValue) => {
@@ -257,7 +240,6 @@ export default function MileageManagement() {
           text="Export Excel"
           month={tableParams.filters?.month}
           selectedUserId={tableParams.filters?.name}
-          nameOptions={nameOptions}
           userInfoId={userInfo.id}
           requestData={(payload) => useServiceAPI.get(paths.pathMileageList, payload)}
           pageSize={5000}

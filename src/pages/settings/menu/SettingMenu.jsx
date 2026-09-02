@@ -63,11 +63,14 @@ export default function SettingMenu() {
     setModalOpen(true);
   };
 
-  const loadParents = async (excludeId) => {
+    const loadParents = async (excludeId) => {
     const res = await useServiceAPI.get(paths.pathMenuParents, {
       exclude_id: excludeId || "",
     });
-    setParentOptions(Array.isArray(res?.data) ? res.data : []);
+    const parents = (Array.isArray(res?.data) ? res.data : []).filter(
+      (item) => item.parent_id == null || item.parent_id === "" || item.parent_id === 0
+    );
+    setParentOptions(parents);
   };
 
   const loadEmptyRoles = async () => {
@@ -324,7 +327,7 @@ export default function SettingMenu() {
                     <Input placeholder="Dash Board" />
                   </Form.Item>
                   <Form.Item label="URL" name="url">
-                    <Input placeholder="/sale-plan/work-plan or leave empty for parent" />
+                    <Input placeholder="sale-plan/work-plan or leave empty for parent" />
                   </Form.Item>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <Form.Item label="Parent Menu" name="parent_id">

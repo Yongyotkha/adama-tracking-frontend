@@ -26,7 +26,6 @@ export default function DraftCampaignList() {
   const [saleList, setSaleList] = useState([]);
   const [dealerList, setDealerList] = useState([]);
   const [subDealerList, setSubDealerList] = useState([]);
-  const [farmerList, setFarmerList] = useState([]);
 
   const [tableParams, setTableParams] = useState({
     pagination: { current: 1, pageSize: 10, total: 0 },
@@ -65,25 +64,16 @@ export default function DraftCampaignList() {
       placeholder: "All",
       options: subDealerList,
     },
-    {
-      key: "farmers",
-      type: "select",
-      label: "Farmer",
-      placeholder: "All",
-      options: farmerList,
-      moderef: true,
-    },
   ];
 
   const fetchMaster = async () => {
     setLoading(true);
 
     try {
-      const [sales, dealerRes, subDealerRes, farmerRes] = await Promise.all([
+      const [sales, dealerRes, subDealerRes] = await Promise.all([
         useServiceAPI.get(paths.pathMasterSaleDropdown, {}),
         useServiceAPI.get(paths.pathMasterDealerAll, {}),
         useServiceAPI.get(paths.pathMasterSubDealerAll, {}),
-        useServiceAPI.get(paths.pathMasterFarmer, {}),
       ]);
 
       setSaleList(sales?.data || []);
@@ -93,13 +83,6 @@ export default function DraftCampaignList() {
         (subDealerRes?.data || []).map((item) => ({
           id: item.sub_dealer_id,
           name: item.sub_dealer_name,
-        }))
-      );
-
-      setFarmerList(
-        (farmerRes?.data || []).map((item) => ({
-          id: item.farmer_id,
-          name: item.farmer_name || item.farmer_id,
         }))
       );
     } catch (error) {
@@ -277,7 +260,6 @@ export default function DraftCampaignList() {
     { title: "Sales", dataIndex: "sales", width: 180 },
     { title: "Dealer", dataIndex: "dealer", width: 180 },
     { title: "Sub Dealer", dataIndex: "sub_dealer", width: 180 },
-    { title: "Farmer", dataIndex: "farmer", width: 180 },
     { title: "Draft Date", dataIndex: "draft_date", width: 130, align: "center" },
     { title: "Line Product", dataIndex: "line_product", width: 110, align: "right" },
     { title: "Target Point", dataIndex: "target_point", width: 120, align: "right" },

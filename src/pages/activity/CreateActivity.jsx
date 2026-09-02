@@ -24,6 +24,57 @@ dayjs.extend(timezone);
 
 const { Option } = Select;
 
+const formatMoneyDisplay = (value) => {
+  const num = Number(value ?? 0);
+  if (!Number.isFinite(num)) return "0.00";
+  return num.toLocaleString("en-US", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
+};
+
+const FreeKeyMoneyInput = ({ value, onChange, disabled, className }) => {
+  const [focused, setFocused] = useState(false);
+  const [draft, setDraft] = useState("");
+
+  const handleFocus = (e) => {
+    const isEmpty = value === null || value === undefined || value === "" || Number(value) === 0;
+    setDraft(isEmpty ? "" : String(value));
+    setFocused(true);
+    requestAnimationFrame(() => e.target.select());
+  };
+
+  const commitValue = (raw) => {
+    if (raw === "" || raw === ".") {
+      onChange(null);
+      return;
+    }
+    const n = parseFloat(raw);
+    onChange(Number.isFinite(n) ? n : null);
+  };
+
+  const handleChange = (e) => {
+    const raw = e.target.value.replace(/,/g, "");
+    if (raw === "" || /^\d*\.?\d{0,2}$/.test(raw)) {
+      setDraft(raw);
+      commitValue(raw);
+    }
+  };
+
+  return (
+    <Input
+      className={className}
+      disabled={disabled}
+      placeholder="0.00"
+      inputMode="decimal"
+      value={focused ? draft : formatMoneyDisplay(value)}
+      onFocus={handleFocus}
+      onBlur={() => setFocused(false)}
+      onChange={handleChange}
+    />
+  );
+};
+
 export default function CreateActivity() {
   const { confirm } = Modal;
   const { TextArea } = Input;
@@ -1284,14 +1335,10 @@ export default function CreateActivity() {
       key: "value",
       width: 320,
       render: (_, record, index) => (
-        <InputNumber
-          className="w-full h-[42px]"
-          min={0}
-          placeholder=""
+        <FreeKeyMoneyInput
+          className="w-full h-[42px] rounded-xl"
           value={record.value}
           disabled={!canEdit || isViewMode || isApproveMode}
-          formatter={moneyFormatter}
-          parser={moneyParser}
           onChange={(value) => handleFreeKeyChange(index, "value", value)}
         />
       ),
@@ -1625,9 +1672,9 @@ export default function CreateActivity() {
             <TableComponent
               header={header}
               dataSource={activityDetail?.expense_product_data_list}
-              pageSize={10}
+              pageSize={15}
               footer={activityDetail?.expense_product_data_list?.length > 0 ? footerOrderList : null}
-              pagination={10}
+              pagination={{ pageSize: 15 }}
             />
           </BoxPrimary>
 
