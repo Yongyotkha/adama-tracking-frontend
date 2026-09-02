@@ -25,6 +25,7 @@ import EditUser from "./pages/settings/user/EditUser";
 import SettingSale from "./pages/settings/sale/SettingSale";
 import CreateSale from "./pages/settings/sale/CreateSale";
 import EditSale from "./pages/settings/sale/EditSale";
+import TerritoryTransfer from "./pages/settings/territory/TerritoryTransfer";
 import SettingProduct from "./pages/settings/product/SettingProduct";
 import EditProduct from "./pages/settings/product/EditProduct";
 import SettingPromotion from "./pages/settings/promotion/SettingPromotion";
@@ -479,6 +480,10 @@ const App = () => {
             <Route path="/setting/sale" element={<SettingSale />} />
             <Route path="/setting/sale/create" element={<CreateSale />} />
             <Route path="/setting/sale/edit" element={<EditSale />} />
+            <Route
+              path="/setting/territory-transfer"
+              element={<TerritoryTransfer />}
+            />
             <Route path="/setting/product" element={<SettingProduct />} />
             <Route path="/setting/product/create" element={<EditProduct />} />
             <Route path="/setting/product/edit" element={<EditProduct />} />

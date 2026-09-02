@@ -187,6 +187,13 @@ export const paths = {
   pathSaleManagementCreate: "sale-management/sale-team/items/create",
   pathSaleManagementDeleteSubItem: "sale-management/sale-team/items/delete",
   pathSaleManagementDeleteSub: "sale-management/sale-team/delete",
+  pathTerritoryTransferOverview: "territory-transfer/overview",
+  pathTerritoryTransferOptions: "territory-transfer/options",
+  pathTerritoryTransferHistory: "territory-transfer/history",
+  pathTerritoryTransferMove: "territory-transfer/move",
+  pathTerritoryTransferSwap: "territory-transfer/swap",
+  pathTerritoryTransferResign: "territory-transfer/resign",
+  pathTerritoryTransferChangeRole: "territory-transfer/change-role",
 
   pathMasterTime: "master/time",
   pathMasterProducts: "master/product",
