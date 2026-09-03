@@ -22,6 +22,7 @@ import TableComponent from "../../../components/table/TableComponent";
 import DynamicModal from "../../../components/modal/DynamicModal";
 import { GoogleMap, LoadScript, Marker } from "@react-google-maps/api";
 import FormSubDealer from "../../../components/form_user/FormSubDealer";
+import SubDealerImportTab from "./SubDealerImportTab";
 
 const { Option } = Select;
 
@@ -1130,6 +1131,19 @@ export default function CreateSubDealer() {
     </>
   );
 
+  const importTabContent = (
+    <SubDealerImportTab
+      subDealerId={location.state?.id}
+      isViewMode={isViewMode}
+      onMapped={() => {
+        if (location.state?.id) {
+          fetchSubDealerDetails(location.state.id);
+        }
+      }}
+      onBack={() => navigate("/customer/sub-dealer")}
+    />
+  );
+
   return (
     <MainLayout loading={loading}>
       <div className="title-page">
@@ -1154,6 +1168,15 @@ export default function CreateSubDealer() {
             label: <span className="tab-title">Farmer</span>,
             children: networkTabContent,
           },
+          ...((isEditMode || isViewMode)
+            ? [
+                {
+                  key: "import",
+                  label: <span className="tab-title">Import</span>,
+                  children: importTabContent,
+                },
+              ]
+            : []),
         ]}
       />
 
