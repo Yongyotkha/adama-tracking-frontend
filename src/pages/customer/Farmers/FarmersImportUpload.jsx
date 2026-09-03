@@ -135,16 +135,17 @@ export default function FarmersImportUpload() {
       return;
     }
 
-    if (!dataSaleId || !dealerId || !subDealerId) {
-      showMsg("error", "กรุณาเลือก Sales, Dealer และ Sub Dealer");
-      return;
-    }
-
     const formData = new FormData();
     formData.append("file", selectedFile);
-    formData.append("sale_id", dataSaleId);
-    formData.append("dealer_id", dealerId);
-    formData.append("sub_dealer_id", subDealerId);
+    if (dataSaleId) {
+      formData.append("sale_id", dataSaleId);
+    }
+    if (dealerId) {
+      formData.append("dealer_id", dealerId);
+    }
+    if (subDealerId) {
+      formData.append("sub_dealer_id", subDealerId);
+    }
 
     try {
       const response = await useServiceAPI.post(
@@ -169,11 +170,6 @@ export default function FarmersImportUpload() {
   const handleImport = async () => {
     if (!currentUpload?.upload_id) {
       showMsg("error", "กรุณาอัปโหลดไฟล์ก่อน");
-      return;
-    }
-
-    if (!dataSaleId || !dealerId || !subDealerId) {
-      showMsg("error", "กรุณาเลือก Sales, Dealer และ Sub Dealer");
       return;
     }
 
@@ -202,9 +198,9 @@ export default function FarmersImportUpload() {
         paths.pathCustomerFarmersImport,
         {
           upload_id: currentUpload.upload_id,
-          sale_id: dataSaleId,
-          dealer_id: dealerId,
-          sub_dealer_id: subDealerId,
+          ...(dataSaleId ? { sale_id: dataSaleId } : {}),
+          ...(dealerId ? { dealer_id: dealerId } : {}),
+          ...(subDealerId ? { sub_dealer_id: subDealerId } : {}),
         },
         setImportLoading,
       );
@@ -294,7 +290,6 @@ export default function FarmersImportUpload() {
   const canImport =
     currentUpload?.upload_id &&
     ["uploaded", "failed"].includes(currentUpload.status_code);
-  const hasHierarchy = Boolean(dataSaleId && dealerId && subDealerId);
 
   return (
     <MainLayout loading={loading || importLoading}>
@@ -312,13 +307,15 @@ export default function FarmersImportUpload() {
       <BoxPrimary>
         <div className="rounded border border-[#d9d9d9] bg-[#fafafa] p-4 mb-5">
           <div className="mb-3 text-sm font-medium text-[#333]">
-            ภายใต้
+            ภายใต้ (ไม่บังคับ)
+          </div>
+          <div className="mb-3 text-xs text-[#888]">
+            สามารถเว้นว่างได้ เพราะจะไป mapping farmer กับ sub dealer ที่หน้า{" "}
+            <strong>Sub Dealer Edit</strong> ภายหลัง
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
-              <div className="mb-1 text-sm text-[#333]">
-                Sales <span className="text-red-500">*</span>
-              </div>
+              <div className="mb-1 text-sm text-[#333]">Sales</div>
               <Select
                 className="w-full"
                 placeholder="Select sales"
@@ -331,9 +328,7 @@ export default function FarmersImportUpload() {
               />
             </div>
             <div>
-              <div className="mb-1 text-sm text-[#333]">
-                Dealer <span className="text-red-500">*</span>
-              </div>
+              <div className="mb-1 text-sm text-[#333]">Dealer</div>
               <Select
                 className="w-full"
                 placeholder="Select dealer"
@@ -347,9 +342,7 @@ export default function FarmersImportUpload() {
               />
             </div>
             <div>
-              <div className="mb-1 text-sm text-[#333]">
-                Sub Dealer <span className="text-red-500">*</span>
-              </div>
+              <div className="mb-1 text-sm text-[#333]">Sub Dealer</div>
               <Select
                 className="w-full"
                 placeholder="Select sub dealer"
@@ -375,7 +368,7 @@ export default function FarmersImportUpload() {
               icon={<UploadOutlined />}
               onClick={handleUpload}
               loading={loading}
-              disabled={!selectedFile || !hasHierarchy || importLoading}
+              disabled={!selectedFile || importLoading}
             >
               อัปโหลดไฟล์ (Upload File)
             </Button>
@@ -385,10 +378,10 @@ export default function FarmersImportUpload() {
               icon={<ImportOutlined />}
               onClick={handleImport}
               loading={importLoading}
-              disabled={!canImport || !hasHierarchy || loading}
+              disabled={!canImport || loading}
               style={{
-                backgroundColor: canImport && hasHierarchy ? "#F89E18" : undefined,
-                borderColor: canImport && hasHierarchy ? "#F89E18" : undefined,
+                backgroundColor: canImport ? "#F89E18" : undefined,
+                borderColor: canImport ? "#F89E18" : undefined,
               }}
             >
               นำเข้าข้อมูล (Temp)
@@ -396,15 +389,11 @@ export default function FarmersImportUpload() {
           </Space>
           <div className="mt-3 text-xs text-[#888]">
             {selectedFile
-              ? hasHierarchy
-                ? `ไฟล์ที่เลือก: ${selectedFile.name}`
-                : `ไฟล์ที่เลือก: ${selectedFile.name} | กรุณาเลือก Sales, Dealer, Sub Dealer ก่อนอัปโหลด`
-              : "ขั้นตอนที่ 1: เลือก Sales, Dealer, Sub Dealer และไฟล์ CSV แล้วกดปุ่ม อัปโหลดไฟล์"}
+              ? `ไฟล์ที่เลือก: ${selectedFile.name}`
+              : "ขั้นตอนที่ 1: เลือกไฟล์ CSV แล้วกดปุ่ม อัปโหลดไฟล์"}
             {currentUpload?.upload_id &&
             currentUpload.status_code === "uploaded"
-              ? hasHierarchy
-                ? " | ขั้นตอนที่ 2: กดปุ่ม นำเข้าข้อมูล"
-                : " | ขั้นตอนที่ 2: เลือก Sales, Dealer, Sub Dealer แล้วกดปุ่ม นำเข้าข้อมูล"
+              ? " | ขั้นตอนที่ 2: กดปุ่ม นำเข้าข้อมูล"
               : ""}
           </div>
         </div>
@@ -414,6 +403,8 @@ export default function FarmersImportUpload() {
           แล้ว ปุ่มนำเข้าข้อมูลจะ insert ลงตาราง{" "}
           <strong>temp_master_farmers_import</strong> จากนั้นไปหน้ารายการ Temp
           เพื่อเลือกแถวแล้วนำเข้าจริงลง <strong>master_farmers</strong>
+          {" "}การผูก farmer กับ sub dealer ให้ไปทำที่หน้า{" "}
+          <strong>Sub Dealer Edit</strong>
         </div>
 
         <Steps
