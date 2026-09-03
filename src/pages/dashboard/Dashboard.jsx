@@ -977,7 +977,7 @@ export default function Dashboard() {
           dealer_id: fmChartDealer || "",
           sub_dealer_id: fmChartSubDealer || "",
           month_id: fmChartMonth || "",
-          group_by: "farmer",
+          mode: "farmer",
         });
         if (!alive) return;
         const payload = res?.data?.data ?? res?.data ?? {};
