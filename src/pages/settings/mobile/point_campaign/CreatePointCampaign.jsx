@@ -1167,7 +1167,16 @@ export default function CreatePointCampaign() {
                 name="period"
                 rules={[{ required: true, message: "Please select period" }]}
               >
-                <RangePicker showTime style={{ width: "100%" }} />
+                <RangePicker
+                  showTime={{
+                    format: "HH:mm:ss",
+                    defaultValue: [
+                      dayjs("00:00:00", "HH:mm:ss"),
+                      dayjs("23:59:59", "HH:mm:ss"),
+                    ],
+                  }}
+                  style={{ width: "100%" }}
+                />
               </Form.Item>
             </Col>
             <Col xs={24} md={12}>
