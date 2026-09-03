@@ -54,6 +54,7 @@ export default function FarmersImportDetail() {
   const { showNotification } = useContext(AuthContext);
   const [tableLoading, setTableLoading] = useState(false);
   const [syncLoading, setSyncLoading] = useState(false);
+  const [mapLoading, setMapLoading] = useState(false);
   const [dataSource, setDataSource] = useState([]);
   const [selectedRowKeys, setSelectedRowKeys] = useState([]);
   const [selectedMeta, setSelectedMeta] = useState({});
@@ -88,10 +89,15 @@ export default function FarmersImportDetail() {
           mobile_phone: displayValue(item.mobile_phone),
           email: displayValue(item.email),
           address: displayValue(item.address),
+          sale_name: displayValue(item.sale_name),
+          dealer_name: displayValue(item.dealer_name),
+          sub_dealer_name: displayValue(item.sub_dealer_name),
           status_code: item.status_code,
           status_message: item.status_message,
           farmer_id: farmerId || "-",
           can_insert: item.can_insert !== false && item.status_code === "pending",
+          can_map: item.can_map === true || item.can_map === 1 || item.can_map === "1",
+          is_mapped: item.is_mapped === true || item.is_mapped === 1 || item.is_mapped === "1",
           created_at: formatDateTime(item.created_at),
           no: index + 1 + (current - 1) * pageSize,
         };
@@ -216,6 +222,46 @@ export default function FarmersImportDetail() {
     });
   };
 
+  const handleMap = (row) => {
+    if (!row?.id) {
+      showNotification("error", "ไม่พบรายการที่ต้องการ mapping");
+      return;
+    }
+
+    Modal.confirm({
+      title: "Mapping Farmer กับ Sub Dealer",
+      content: `ผูก ${row.name} (Farmer ID ${row.farmer_id}) กับ Sub Dealer ${row.sub_dealer_name} ?`,
+      okText: "Mapping",
+      cancelText: "ปิด",
+      onOk: async () => {
+        try {
+          const response = await useServiceAPI.post(
+            paths.pathCustomerFarmersImportMap,
+            {
+              upload_id: Number(uploadId),
+              ids: [row.id],
+            },
+            setMapLoading
+          );
+
+          if (response?.status === 200) {
+            showNotification("success", response.message || "Mapping สำเร็จ", [
+              `Mapping ${response.data?.mapped ?? 0} แถว`,
+              `ข้าม ${response.data?.skipped ?? 0} แถว`,
+              `ล้มเหลว ${response.data?.failed ?? 0} แถว`,
+            ]);
+            fetchData();
+          }
+        } catch (error) {
+          showNotification(
+            "error",
+            error?.response?.data?.message || error.message || "Mapping ไม่สำเร็จ"
+          );
+        }
+      },
+    });
+  };
+
   const rowSelection = useMemo(
     () => ({
       selectedRowKeys,
@@ -255,19 +301,44 @@ export default function FarmersImportDetail() {
     { title: "Mobile Phone", dataIndex: "mobile_phone", width: 150, align: "center" },
     { title: "Email", dataIndex: "email", width: 220 },
     { title: "Address", dataIndex: "address", width: 320 },
+    { title: "Sale", dataIndex: "sale_name", width: 180 },
+    { title: "Dealer", dataIndex: "dealer_name", width: 200 },
+    { title: "Sub Dealer", dataIndex: "sub_dealer_name", width: 200 },
     {
       title: "สถานะ",
       dataIndex: "status_code",
       width: 220,
       align: "center",
-      render: (value, row) => renderStatusTag(value, row.status_message),
+      render: (value, row) => {
+        if (row.can_map) {
+          return (
+            <ActionButton
+              mode="custom"
+              text="Mapping"
+              className="bg-[#009845] !p-2 !py-1 rounded-[4px] h-8"
+              style={{ width: 110, height: 32, minWidth: 110, minHeight: 32, boxSizing: "border-box" }}
+              disabled={mapLoading}
+              onClick={(event) => {
+                event?.stopPropagation?.();
+                handleMap(row);
+              }}
+            />
+          );
+        }
+
+        if (row.is_mapped) {
+          return <Tag color="blue">Mapping แล้ว</Tag>;
+        }
+
+        return renderStatusTag(value, row.status_message);
+      },
     },
     { title: "Farmer ID", dataIndex: "farmer_id", width: 110, align: "center" },
     { title: "Created At", dataIndex: "created_at", width: 170, align: "center" },
   ];
 
   return (
-    <MainLayout loading={!!syncLoading}>
+    <MainLayout loading={!!syncLoading || !!mapLoading}>
       <div className="flex items-center justify-between">
         <div className="title-page">Temp Farmers #{uploadId}</div>
         <div className="flex items-center gap-2">
@@ -292,6 +363,7 @@ export default function FarmersImportDetail() {
           เลือกแถวที่ยังไม่ได้นำเข้า แล้วกดปุ่มนำข้อมูลเข้าจริง เพื่อ insert ลง{" "}
           <strong>master_farmers</strong>
           {pendingImportKeys.length > 0 ? ` (รอเข้า ${pendingImportKeys.length} แถว)` : ""}
+          {" "}จากนั้นกดปุ่ม Mapping เพื่อผูก farmer กับ sub dealer
         </div>
         <TableComponent
           header={header}
