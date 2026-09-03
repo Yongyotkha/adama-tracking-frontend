@@ -1775,8 +1775,8 @@ export default function Dashboard() {
           </Card>
         </Col> */}
 
-        {/* Farmer Bar Chart */}
-        {/* <Col xs={24} lg={24} xl={24}>
+
+        <Col xs={24} lg={24} xl={24}>
           <Card className="shadow-md rounded-lg bg-white border-t-[10px] border-solid border-t-[#00783F] h-full">
             <div className="flex flex-wrap items-center justify-between mb-3">
               <h3 className="text-[#00783F] text-lg font-semibold">
@@ -1869,7 +1869,7 @@ export default function Dashboard() {
               <div className="h-[350px] flex items-center justify-center text-gray-400">No data to display</div>
             )}
           </Card>
-        </Col> */}
+        </Col>
       </Row>
     </MainLayout>
   );
