@@ -12,6 +12,21 @@ import CameraMobile from "../../../components/mobile/camera/CameraMobile";
 import DynamicPopUp from "../../../components/mobile/popup/DynamicPopUp";
 import { message } from "antd";
 
+function resolveEarnedPoints(pointPayload) {
+  if (pointPayload == null) return 0;
+  if (typeof pointPayload === "number" || typeof pointPayload === "string") {
+    return Number(pointPayload) || 0;
+  }
+
+  const campaignPoint = Number(pointPayload.campaignPoint ?? 0);
+  if (campaignPoint !== 0) return campaignPoint;
+
+  const totalPoint = Number(pointPayload.total_point ?? 0);
+  if (totalPoint !== 0) return totalPoint;
+
+  return Number(pointPayload.basicPoint ?? 0) || 0;
+}
+
 export default function OrderHistoryDetail() {
   const navigate = useNavigate();
   const location = useLocation();
@@ -160,8 +175,7 @@ export default function OrderHistoryDetail() {
       const res = await useServiceAPI.post(paths.pathSalePointReceiveOrder, payload);
       console.log(res);
       if (res?.status === 200) {
-        const pts = Number(res?.data?.point ?? 0);
-        setEarnedPoints(pts);
+        setEarnedPoints(resolveEarnedPoints(res?.data?.point));
         setIsPointModalVisible(true);
       } else {
         message.error(res?.data?.message || "บันทึกไม่สำเร็จ");
@@ -345,7 +359,7 @@ export default function OrderHistoryDetail() {
           src="/img/icons/check-circle.png"
           text={`<div class='text-center'>
             <p class='text-[#4A4A4A] text-[16px] mt-1 sarabun-font'>ยินดีด้วยคุณได้รับคะแนน</p>
-            <p class='text-green-700 text-[24px] font-bold mt-1 sarabun-font'>${earnedPoints} คะแนน</p>
+            <p class='text-green-700 text-[24px] font-bold mt-1 sarabun-font'>${Number(earnedPoints).toLocaleString("th-TH")} คะแนน</p>
           </div>`}
           confirmText="ปิด"
         />
