@@ -15,6 +15,20 @@ const sumArray = (arr) =>
 
 const nf = (n) => new Intl.NumberFormat("th-TH").format(Number(n ?? 0));
 
+const splitLinePoints = (p) => {
+  const qty = Number(p?.quantity ?? 0);
+  const unitPoint = Number(p?.point ?? p?.points?.master_point ?? 0);
+  const apiStandard = Number(p?.points?.standard_point ?? 0);
+  const basic = apiStandard > 0 ? apiStandard : unitPoint * qty;
+  const pointXRaw = sumArray(p?.points?.point_x);
+  const xBonus =
+    pointXRaw > 0 && apiStandard === 0 && basic > 0 && pointXRaw >= basic
+      ? pointXRaw - basic
+      : pointXRaw;
+
+  return { basic, xBonus };
+};
+
 const statusMapTH = (en) => {
   switch (en) {
     case "Waiting for Receive":
@@ -100,9 +114,9 @@ export default function PointHistoryDetail() {
     return historydetail.products.map((p) => {
       const qty = Number(p?.quantity ?? 0);
       const amount = Number(p?.net_amount ?? 0);
-      const pointXSum = sumArray(p?.points?.point_x);
       const extraPointSum = sumArray(p?.points?.point_extra_point);
       const extraValueSum = sumArray(p?.points?.point_extra_value);
+      const { basic, xBonus } = splitLinePoints(p);
 
       return {
         qty,
@@ -112,8 +126,8 @@ export default function PointHistoryDetail() {
         amount,
         amount_display: nf(amount),
         points: p?.points ?? {},
-        master_point: Number(p?.points?.standard_point ?? 0),
-        x_point: pointXSum,
+        master_point: basic,
+        x_point: xBonus,
         extra_point: extraPointSum,
         extra_value: extraValueSum,
       };
@@ -124,22 +138,12 @@ export default function PointHistoryDetail() {
     const totalQty = products.reduce((s, it) => s + (Number.isFinite(it.qty) ? it.qty : 0), 0);
     const totalAmount = products.reduce((s, it) => s + (Number.isFinite(it.amount) ? it.amount : 0), 0);
 
-    // รวม check_point (คะแนนที่ใช้ตัดสินรวม)
-    const totalCheckPoint = products.reduce(
-      (s, it) => s + Number(it?.points?.check_point ?? 0),
-      0
-    );
-
-    // รวม Extra (point + value) ของทั้งบิล
     const totalExtraAccum = products.reduce(
       (s, it) => s + (Number(it.extra_point) + Number(it.extra_value)),
       0
     );
 
-    // รวม X Point (ถ้ามี)
     const totalXPoint = products.reduce((s, it) => s + Number(it.x_point ?? 0), 0);
-
-    // รวม Master Point (standard_point)
     const totalMasterPoint = products.reduce(
       (s, it) => s + Number(it.master_point ?? 0),
       0
@@ -149,10 +153,10 @@ export default function PointHistoryDetail() {
       totalQty,
       totalAmount,
       totalAmountDisplay: nf(totalAmount),
-      totalCheckPoint,
       totalExtraAccum,
       totalXPoint,
       totalMasterPoint,
+      totalReceived: totalMasterPoint + totalXPoint + totalExtraAccum,
     };
   }, [products]);
 
@@ -275,7 +279,7 @@ export default function PointHistoryDetail() {
                 <div className="flex justify-between text-gray-900 font-semibold">
                   <span>คะแนนรวมได้รับ</span>
                   <span className="text-green-700 text-right">
-                    {nf(summary.totalCheckPoint+summary.totalMasterPoint)} คะแนน
+                    {nf(summary.totalReceived)} คะแนน
                   </span>
                 </div>
               </div>

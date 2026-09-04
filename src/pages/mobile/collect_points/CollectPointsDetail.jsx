@@ -81,21 +81,38 @@ export default function CollectPointsDetail() {
 
   // ---------------- ใช้ products จาก API โดยตรง ----------------
   const products = Array.isArray(historydetail?.products)
-    ? historydetail.products.map((p) => ({
-      qty: Number(p?.quantity ?? 0),
-      product_name: p?.product_name ?? "-",
-      product_code: p?.product_code ?? "-",
-      product_unit: p?.product_unit ?? "-",
-      points: p?.points ?? [],
-      point: p?.point ?? "-",
-      amount: Number(p?.net_amount ?? 0),
-      point_x: Number(p?.point_x ?? 0),
-      amount_display:
-        typeof p?.net_amount === "string" || typeof p?.net_amount === "number"
-          ? new Intl.NumberFormat("th-TH").format(Number(p?.net_amount ?? 0))
-          : "0",
-      image: p?.product_image || null,
-    }))
+    ? historydetail.products.map((p) => {
+      const qty = Number(p?.quantity ?? 0);
+      const unitPoint = Number(p?.point ?? p?.points?.master_point ?? 0);
+      const apiStandard = Number(p?.points?.standard_point ?? 0);
+      const basic = apiStandard > 0 ? apiStandard : unitPoint * qty;
+      const pointXRaw = (p?.points?.point_x || []).reduce((a, b) => a + Number(b || 0), 0);
+      const xBonus =
+        pointXRaw > 0 && apiStandard === 0 && basic > 0 && pointXRaw >= basic
+          ? pointXRaw - basic
+          : pointXRaw;
+
+      return {
+        qty,
+        product_name: p?.product_name ?? "-",
+        product_code: p?.product_code ?? "-",
+        product_unit: p?.product_unit ?? "-",
+        points: {
+          ...(p?.points ?? {}),
+          standard_point: basic,
+          check_point: xBonus,
+          point_x: xBonus > 0 ? [xBonus] : [],
+        },
+        point: p?.point ?? "-",
+        amount: Number(p?.net_amount ?? 0),
+        point_x: xBonus,
+        amount_display:
+          typeof p?.net_amount === "string" || typeof p?.net_amount === "number"
+            ? new Intl.NumberFormat("th-TH").format(Number(p?.net_amount ?? 0))
+            : "0",
+        image: p?.product_image || null,
+      };
+    })
     : [];
 
   // คะแนนสะสมจาก Extra (point + value) ของทั้งบิล
