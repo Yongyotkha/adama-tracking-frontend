@@ -904,6 +904,19 @@ export default function Dashboard() {
         });
 
         if (!alive) return;
+        console.log("=== [Actual Sub Dealer (Point)] Response & Mapped Data ===", {
+          params: {
+            sub_dealer_id: "",
+            dealer_id: selectedSdByPointUser || "",
+            sale_id: selectedSale || "",
+            area_id: selectedArea || "",
+          },
+          responseRaw: response,
+          payload,
+          items,
+          totalPoint: total,
+          pointUsersData: mapped,
+        });
         setPointUsersData(mapped);
         setTotalPointUsers(total);
       } catch (error) {
@@ -991,8 +1004,21 @@ export default function Dashboard() {
             ? "#e61e1e"
             : GREEN_SHADES[idx % GREEN_SHADES.length],
         }));
+        console.log("=== [Farmer (Point)] Response & Mapped Data ===", {
+          params: {
+            dealer_id: fmChartDealer || "",
+            sub_dealer_id: fmChartSubDealer || "",
+            month_id: fmChartMonth || "",
+            mode: "farmer",
+          },
+          responseRaw: res,
+          payload,
+          items,
+          fmChartData: mapped,
+        });
         setFmChartData(mapped);
       } catch (err) {
+        console.error("Error fetching Farmer (Point):", err);
         if (alive) setFmChartData([]);
       } finally {
         if (alive) setFmChartLoading(false);
