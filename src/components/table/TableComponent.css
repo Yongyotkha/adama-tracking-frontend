@@ -25,3 +25,16 @@
 .ant-table-wrapper .ant-table-thead > tr > td {
   border-bottom: unset;
 }
+
+/* Pagination: Push showTotal to the left while keeping pages on the right */
+.ant-table-wrapper .ant-pagination {
+  display: flex !important;
+  align-items: center;
+  width: 100%;
+}
+
+.ant-table-wrapper .ant-pagination .ant-pagination-total-text {
+  margin-inline-end: auto !important;
+  color: #555;
+  font-size: 14px;
+}

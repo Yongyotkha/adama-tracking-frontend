@@ -130,6 +130,15 @@ export default function ActivityList() {
 
     { key: "Date", type: "date", label: "Date" },
     { key: "created_by", type: "select", label: "Create By", placeholder: "All", options: userCreate, moderef: true },
+    {
+      key: "mapping_status",
+      type: "select",
+      label: "Mapping",
+      placeholder: "All",
+      options: [
+        { id: "COMPLETE", name: "Complete" },
+      ],
+    },
   ];
 
   const handleChange = (newFilter) => {
@@ -268,6 +277,7 @@ export default function ActivityList() {
       page_length: current,
       page_size: pageSize,
       document_date: filters.Date ? dayjs(filters.Date).format("YYYY-MM-DD") : "",
+      mapping_status: getId(filters.mapping_status),
     };
 
 
@@ -281,7 +291,17 @@ export default function ActivityList() {
         const { data, records_filtered } = response.data;
         // console.log(data);
         // console.log(records_filtered);
-        const newDataSource = data.map((row, index) => {
+        const mappingFilter = String(getId(filters.mapping_status) || "").trim().toUpperCase();
+        const displayData = mappingFilter
+          ? data.filter((row) => {
+              const statusName = String(
+                row.status_mapping_name || row.status_mapping?.name || row.status_code || ""
+              ).toUpperCase();
+              return statusName.includes(mappingFilter);
+            })
+          : data;
+
+        const newDataSource = displayData.map((row, index) => {
           console.log(row.status_mapping_name);
           return {
             key: index + 1 + (current - 1) * pageSize,
@@ -353,12 +373,16 @@ export default function ActivityList() {
           };
         });
 
+        const totalRecords = mappingFilter ? displayData.length : (records_filtered ?? displayData.length);
+
         setDataSource(newDataSource);
         setTableParams({
           ...tableParams,
           pagination: {
             ...tableParams.pagination,
-            total: records_filtered,
+            total: totalRecords,
+            showTotal: (total, range) =>
+              `Showing ${range[0]} to ${range[1]} of ${total.toLocaleString()} entries`,
           },
         });
       }
