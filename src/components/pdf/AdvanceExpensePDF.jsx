@@ -236,7 +236,8 @@ const AdvanceExpensePDF = () => {
       : Number(dataHeader?.expense_actual || 0);
 
   const effectiveAdvanceExpense = Number(dataHeader?.expense_advance || 0);
-  const returnBalance = effectiveAdvanceExpense - effectiveActualExpense;
+  const rawActualExpense = Number(dataHeader?.expense_actual || 0);
+  const returnBalance = effectiveAdvanceExpense - rawActualExpense;
 
   return (
     <PDFViewer style={{ width: "100%", height: "100vh" }}>
@@ -360,13 +361,13 @@ const AdvanceExpensePDF = () => {
                     <Text style={{ fontWeight: "bold", fontSize: 11 }}>
                       Return to Company:{" "}
                       {returnBalance > 0
-                        ? `${formatNumber(returnBalance)} THB`
+                        ? `${formatNumber2(returnBalance)} THB`
                         : "0"}
                     </Text>
                     <Text style={{ fontWeight: "bold", fontSize: 11 }}>
                       Return to Staff:{" "}
                       {returnBalance < 0
-                        ? `${formatNumber(Math.abs(returnBalance))} THB`
+                        ? `${formatNumber2(Math.abs(returnBalance))} THB`
                         : "0"}
                     </Text>
                   </View>
