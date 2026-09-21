@@ -230,6 +230,13 @@ const AdvanceExpensePDF = () => {
     }));
   const freeKeyTotal = freeKeyItems.reduce((sum, item) => sum + Number(item.value || 0), 0);
 
+  const effectiveActualExpense =
+    getPageCode === "expense_clearing"
+      ? Number(dataHeader?.expense_actual || 0) + freeKeyTotal
+      : Number(dataHeader?.expense_actual || 0);
+
+  const effectiveAdvanceExpense = Number(dataHeader?.expense_advance || 0);
+  const returnBalance = effectiveAdvanceExpense - effectiveActualExpense;
 
   return (
     <PDFViewer style={{ width: "100%", height: "100vh" }}>
@@ -293,12 +300,12 @@ const AdvanceExpensePDF = () => {
             </View>
             <View style={styles.sectionColumnTop}>
               <Text style={{ fontWeight: "bold" }}>
-                Actual Exp: {formatNumber2(dataHeader.expense_actual)} THB
+                Actual Exp: {formatNumber2(effectiveActualExpense)} THB
               </Text>
               <View style={{ flexDirection: "row", justifyContent: "space-between", width: "100%", margin: 'auto' }}>
                 <Text style={{ textAlign: "center" }}>Exp :</Text>
                 <Text style={{ flex: 7, textAlign: "start", paddingLeft: 7 }}>
-                  {calculateActualPercentage(Number(dataHeader.expense_actual), totalActualValue > 0 ? totalActualValue : Number(dataHeader.product_total_acutal_sale))}
+                  {calculateActualPercentage(Number(effectiveActualExpense), totalActualValue > 0 ? totalActualValue : Number(dataHeader.product_total_acutal_sale))}
                 </Text>
               </View>
             </View>
@@ -352,14 +359,14 @@ const AdvanceExpensePDF = () => {
                   <View style={{ flex: 1 }}>
                     <Text style={{ fontWeight: "bold", fontSize: 11 }}>
                       Return to Company:{" "}
-                      {Number(dataHeader.expense_advance) - Number(dataHeader.expense_actual) > 0
-                        ? `${formatNumber(Number(dataHeader.expense_advance) - Number(dataHeader.expense_actual))} THB`
+                      {returnBalance > 0
+                        ? `${formatNumber(returnBalance)} THB`
                         : "0"}
                     </Text>
                     <Text style={{ fontWeight: "bold", fontSize: 11 }}>
                       Return to Staff:{" "}
-                      {Number(dataHeader.expense_advance) - Number(dataHeader.expense_actual) < 0
-                        ? `${formatNumber(Math.abs(Number(dataHeader.expense_advance) - Number(dataHeader.expense_actual)))} THB`
+                      {returnBalance < 0
+                        ? `${formatNumber(Math.abs(returnBalance))} THB`
                         : "0"}
                     </Text>
                   </View>
