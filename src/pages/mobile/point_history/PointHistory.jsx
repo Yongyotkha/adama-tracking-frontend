@@ -9,7 +9,8 @@ import { paths } from "../../../services/CorsPath";
 import useServiceAPI from "../../../services/CorsService";
 import { AuthContext } from "../../../contexts/AuthContext";
 import BadgeStatus from "../../../components/badge/BadgeStatus";
-import { Spin } from "antd";
+import { Spin, Image, Modal, message } from "antd";
+import { PictureOutlined } from "@ant-design/icons";
 import dayjs from "dayjs";
 
 export default function PointHistory() {
@@ -20,6 +21,59 @@ export default function PointHistory() {
   const navigate = useNavigate();
   const { userInfo } = useContext(AuthContext);
   const [poinrRegister, setPointRegister] = useState({});
+  const [modalLoading, setModalLoading] = useState(false);
+  const [modalVisible, setModalVisible] = useState(false);
+  const [imageList, setImageList] = useState([]);
+  const [previewIndex, setPreviewIndex] = useState(0);
+
+  // Function to view pictures from transport detail API
+  const handleViewPictures = async (item) => {
+    // If item already contains pictures array
+    if (Array.isArray(item.pictures) && item.pictures.length > 0) {
+      const urls = item.pictures.map((p) => p.part || p.url).filter(Boolean);
+      if (urls.length > 0) {
+        setImageList(urls);
+        setPreviewIndex(0);
+        setModalVisible(true);
+        return;
+      }
+    }
+
+    const transportId = item.id;
+    if (!transportId) {
+      message.info("ไม่พบข้อมูลรูปภาพ");
+      return;
+    }
+
+    try {
+      setModalLoading(true);
+      const isFarmer = item.shop_type === "farmer" || item.user_type === "farmer";
+      const res = await useServiceAPI.get(
+        `${paths.pathTransportDetail}/${transportId}`,
+        isFarmer ? { mode: "farmer" } : {}
+      );
+
+      if (res.status === 200 && res.data) {
+        const pics = Array.isArray(res.data.pictures) ? res.data.pictures : [];
+        const urls = pics.map((p) => p.part || p.url).filter(Boolean);
+        if (urls.length > 0) {
+          setImageList(urls);
+          setPreviewIndex(0);
+          setModalVisible(true);
+        } else {
+          message.info("ไม่มีรูปภาพแนบในรายการนี้");
+        }
+      } else {
+        message.info("ไม่มีรูปภาพแนบในรายการนี้");
+      }
+    } catch (err) {
+      console.error("Error fetching transport detail:", err);
+      message.error("ไม่สามารถโหลดรูปภาพได้");
+    } finally {
+      setModalLoading(false);
+    }
+  };
+
   // Tabs
   const tabs = [
     { id: "receive", label: "สะสมคะแนน", color: "border-green-500" },
@@ -221,16 +275,34 @@ export default function PointHistory() {
                             <p className="text-gray-700 text-xs sarabun-font truncate mb-2">
                               ชื่อรางวัล : {item.reward_name}
                             </p>
-                            {(() => {
-                              const status = getStatusInfo(item.status_tran);
-                              return (
-                                <BadgeStatus
-                                  text={status.text}
-                                  bgColor={status.bgColor}
-                                  textColor={status.textColor}
-                                />
-                              );
-                            })()}
+                            <div className="flex items-center gap-2 flex-wrap">
+                              {(() => {
+                                const status = getStatusInfo(item.status_tran);
+                                return (
+                                  <BadgeStatus
+                                    text={status.text}
+                                    bgColor={status.bgColor}
+                                    textColor={status.textColor}
+                                  />
+                                );
+                              })()}
+
+                              {/* ปุ่มดูรูปภาพเอกสารการจัดส่ง */}
+                              {(item.status_tran === "RTV" || item.pictures?.length > 0) && (
+                                <button
+                                  type="button"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleViewPictures(item);
+                                  }}
+                                  disabled={modalLoading}
+                                  className="flex items-center gap-1 px-2.5 py-1 text-xs font-semibold text-[#00783F] bg-green-50 hover:bg-green-100 border border-[#00783F] rounded-2xl transition cursor-pointer"
+                                >
+                                  <PictureOutlined />
+                                  <span>รูปภาพ</span>
+                                </button>
+                              )}
+                            </div>
                           </>
                         )}
 
@@ -266,6 +338,29 @@ export default function PointHistory() {
 
         {/* Back Button */}
         <BackButton url="/mobile/main" />
+
+        {/* Image Preview Group Modal */}
+        {imageList.length > 0 && (
+          <div style={{ display: "none" }}>
+            <Image.PreviewGroup
+              preview={{
+                visible: modalVisible,
+                current: previewIndex,
+                onVisibleChange: (visible) => {
+                  setModalVisible(visible);
+                  if (!visible) {
+                    setImageList([]);
+                  }
+                },
+                onChange: (current) => setPreviewIndex(current),
+              }}
+            >
+              {imageList.map((url, index) => (
+                <Image key={`${url}-${index}`} src={url} />
+              ))}
+            </Image.PreviewGroup>
+          </div>
+        )}
       </div>
     </MobileLayout>
   );
