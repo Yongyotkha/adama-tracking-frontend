@@ -111,21 +111,20 @@ export default function RewardProductUpdateStock() {
             <div className="quantity-control flex justify-center items-center">
               <img
                 src="/img/icons/collapse.png"
-                className="w-6 h-6 cursor-pointer"
-                onClick={dec}
+                className="w-6 h-6 opacity-40 cursor-not-allowed select-none"
                 alt="decrease"
               />
               <input
                 inputMode="numeric"
                 min={0}
                 value={row.qty}
-                onChange={onChangeQty}
-                className="border border-solid border-[#00783F] text-[#00783F] text-center mx-2 w-20 h-8 rounded"
+                readOnly
+                disabled
+                className="border border-solid border-gray-300 bg-gray-100 text-gray-500 text-center mx-2 w-20 h-8 rounded cursor-not-allowed"
               />
               <img
                 src="/img/icons/expand.png"
-                className="w-6 h-6 cursor-pointer"
-                onClick={inc}
+                className="w-6 h-6 opacity-40 cursor-not-allowed select-none"
                 alt="increase"
               />
             </div>

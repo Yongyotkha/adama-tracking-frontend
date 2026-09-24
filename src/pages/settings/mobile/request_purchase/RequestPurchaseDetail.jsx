@@ -51,21 +51,22 @@ export default function RequestPurchaseDetail() {
         <div className="flex items-center justify-center gap-2">
           <button
             type="button"
-            onClick={dec}
-            className="w-8 h-8 rounded-full border flex items-center justify-center"
+            disabled
+            className="w-8 h-8 rounded-full border flex items-center justify-center opacity-40 cursor-not-allowed select-none bg-gray-100 text-gray-400"
             aria-label="decrease"
           >
             –
           </button>
           <input
-            className="w-20 text-center border rounded-md h-8"
+            className="w-20 text-center border rounded-md h-8 bg-gray-100 text-gray-500 cursor-not-allowed"
             value={row.qty}
-            onChange={onChangeQty}
+            readOnly
+            disabled
           />
           <button
             type="button"
-            onClick={inc}
-            className="w-8 h-8 rounded-full border flex items-center justify-center"
+            disabled
+            className="w-8 h-8 rounded-full border flex items-center justify-center opacity-40 cursor-not-allowed select-none bg-gray-100 text-gray-400"
             aria-label="increase"
           >
             +

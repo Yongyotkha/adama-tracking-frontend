@@ -205,7 +205,7 @@ export default function CreateRewardCampaign() {
         { title: "Customer Name", dataIndex: "name", key: "name" },
         { title: "Type Name", dataIndex: "customer_type", key: "customer_type" },
         { title: "Points", dataIndex: "points", key: "points", render: (v) => String(v ?? "") },
-        { title: "Value (THB)", dataIndex: "value", key: "value", render: (v) => String(v ?? "") },
+        { title: "Value/Point (THB)", dataIndex: "value", key: "value", render: (v) => String(v ?? "") },
       ];
     }
     return [
@@ -225,7 +225,7 @@ export default function CreateRewardCampaign() {
         ),
       },
       {
-        title: "Value (THB)",
+        title: "Value/Point (THB)",
         dataIndex: "value",
         key: "value",
         render: (_, __, index) => (

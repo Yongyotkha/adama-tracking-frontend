@@ -47,7 +47,7 @@ export default function RewardCampaignList() {
     { title: "Customer Name", dataIndex: "customer_name", key: "customer_name" },
     { title: "Type Name", dataIndex: "type_name", key: "type_name" },
     { title: "Point", dataIndex: "point", key: "point", align: "right" },
-    { title: "Value (THB)", dataIndex: "value", key: "value", align: "right" },
+    { title: "Value/Point (THB)", dataIndex: "value", key: "value", align: "right" },
   ];
 
   // ---------- Load Category Master ----------
