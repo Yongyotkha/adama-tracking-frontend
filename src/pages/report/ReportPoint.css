@@ -1,0 +1,63 @@
+.point-report-table .ant-table-tbody > tr:not(.ant-table-measure-row) > td,
+.point-report-table .ant-table-summary > tr > td,
+.point-report-table .ant-table-thead > tr > th.point-report-total-header {
+  padding-top: 10px !important;
+  padding-bottom: 10px !important;
+  font-size: 14px !important;
+  font-weight: 400 !important;
+}
+
+.point-report-table .ant-table-tbody > tr.ant-table-measure-row,
+.point-report-table .ant-table-tbody > tr.ant-table-measure-row > td {
+  height: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  line-height: 0 !important;
+  font-size: 0 !important;
+}
+
+.point-report-table .point-report-input.ant-input-number {
+  width: 84px;
+  min-width: 84px;
+}
+
+.point-report-table .point-report-value-input.ant-input-number {
+  width: 108px;
+  min-width: 108px;
+}
+
+.point-report-table .point-report-quarter-input.ant-input-number {
+  width: 100%;
+  min-width: 0;
+  max-width: none;
+}
+
+.point-report-table .ant-table-tbody > tr:not(.ant-table-measure-row) > td {
+  color: #5f504d;
+}
+
+.point-report-table .point-report-input .ant-input-number-input {
+  text-align: right;
+  color: #5f504d !important;
+  -webkit-text-fill-color: #5f504d !important;
+}
+
+.point-report-table .point-report-quarter-input .ant-input-number-input {
+  text-align: center;
+  font-size: 14px;
+}
+
+.point-report-table .ant-table-thead > tr > th.quarter-divider,
+.point-report-table .ant-table-summary > tr > td.quarter-divider {
+  border-left: 1px solid rgba(255, 255, 255, 0.45) !important;
+}
+
+.point-report-table .ant-table-thead > tr > th.quarter-divider.quarter-divider-muted,
+.point-report-table .ant-table-tbody > tr > td.quarter-divider {
+  border-left: 1px solid #e6e2e0 !important;
+}
+
+.point-report-table .point-report-summary-input.ant-input-number-disabled {
+  background-color: #ffffff;
+  border-color: #d9d9d9;
+}

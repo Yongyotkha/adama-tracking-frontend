@@ -94,7 +94,11 @@ export default function VerifyOA() {
           }
 
           if (response.data.step_number == 0) {
-            showCancel('ขออภัย', 'ไม่พบข้อมูลของคุณในระบบ', 'ปิด');
+            showCancel(
+              'ขออภัย',
+              response.data.message || 'ไม่พบข้อมูลของคุณในระบบ',
+              'ปิด'
+            );
           } else if (response.data.step_number == 1 || response.data.step_number == 4) {
 
             const otpRefNo = response.data.data.data.otp_ref_no;

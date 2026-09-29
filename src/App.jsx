@@ -210,6 +210,7 @@ import ReportSellOutBySubDealer from "./pages/report/ReportSellOutBySubDealer";
 import ReportSellOut from "./pages/report/ReportSellOut";
 import ReportFarmerSales from "./pages/report/ReportFarmerSales";
 import ReportSellInByFarmer from "./pages/report/ReportSellInByFarmer";
+import ReportPoint from "./pages/report/ReportPoint";
 import PDFMaterialExpense from "./pages/pdf/PDFMaterialExpense";
 import PDFSampleExpense from "./pages/pdf/PDFSampleExpense";
 import ViewDraftCampaignPDF from "./pages/pdf/DraftCampaignPDF";
@@ -847,6 +848,7 @@ const App = () => {
               element={<ReportSellOut />}
             />
             <Route path="/report/sell-out-report" element={<ReportSellOut />} />
+            <Route path="/report/point-report" element={<ReportPoint />} />
 
             {/* <Route path="/report/activity-expense" element={<ReportActivityExpense />} /> */}
 

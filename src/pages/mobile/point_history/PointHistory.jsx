@@ -10,7 +10,7 @@ import useServiceAPI from "../../../services/CorsService";
 import { AuthContext } from "../../../contexts/AuthContext";
 import BadgeStatus from "../../../components/badge/BadgeStatus";
 import { Spin, Image, Modal, message } from "antd";
-import { PictureOutlined } from "@ant-design/icons";
+import { PictureOutlined, FilePdfOutlined, DownloadOutlined } from "@ant-design/icons";
 import dayjs from "dayjs";
 
 export default function PointHistory() {
@@ -26,24 +26,27 @@ export default function PointHistory() {
   const [imageList, setImageList] = useState([]);
   const [previewIndex, setPreviewIndex] = useState(0);
 
-  // Function to view pictures from transport detail API
-  const handleViewPictures = async (item) => {
-    // If item already contains pictures array
+  // ตรวจสอบนามสกุลว่าเป็นรูปภาพหรือไม่
+  const isImageFile = (url = "") => {
+    const cleanUrl = url.split("?")[0].toLowerCase();
+    return /\.(jpg|jpeg|png|gif|webp|svg|bmp|ico)$/.test(cleanUrl);
+  };
+
+  // ตรวจสอบว่าเป็นไฟล์ PDF หรือไม่
+  const isPdfFile = (url = "") => {
+    const cleanUrl = url.split("?")[0].toLowerCase();
+    return /\.pdf$/.test(cleanUrl);
+  };
+
+  // ดึงรายการไฟล์ทั้งหมดจาก item (ทั้งจาก pictures หรือ API transport detail)
+  const fetchItemFiles = async (item) => {
     if (Array.isArray(item.pictures) && item.pictures.length > 0) {
       const urls = item.pictures.map((p) => p.part || p.url).filter(Boolean);
-      if (urls.length > 0) {
-        setImageList(urls);
-        setPreviewIndex(0);
-        setModalVisible(true);
-        return;
-      }
+      if (urls.length > 0) return urls;
     }
 
     const transportId = item.id;
-    if (!transportId) {
-      message.info("ไม่พบข้อมูลรูปภาพ");
-      return;
-    }
+    if (!transportId) return [];
 
     try {
       setModalLoading(true);
@@ -55,22 +58,76 @@ export default function PointHistory() {
 
       if (res.status === 200 && res.data) {
         const pics = Array.isArray(res.data.pictures) ? res.data.pictures : [];
-        const urls = pics.map((p) => p.part || p.url).filter(Boolean);
-        if (urls.length > 0) {
-          setImageList(urls);
-          setPreviewIndex(0);
-          setModalVisible(true);
-        } else {
-          message.info("ไม่มีรูปภาพแนบในรายการนี้");
-        }
-      } else {
-        message.info("ไม่มีรูปภาพแนบในรายการนี้");
+        return pics.map((p) => p.part || p.url).filter(Boolean);
       }
+      return [];
     } catch (err) {
       console.error("Error fetching transport detail:", err);
-      message.error("ไม่สามารถโหลดรูปภาพได้");
+      message.error("ไม่สามารถดึงข้อมูลไฟล์ได้");
+      return [];
     } finally {
       setModalLoading(false);
+    }
+  };
+
+  // ฟังก์ชันดาวน์โหลดไฟล์
+  const handleDownloadFile = (url) => {
+    const fileName = url.split("/").pop().split("?")[0] || "download";
+    const link = document.createElement("a");
+    link.href = url;
+    link.setAttribute("download", fileName);
+    link.target = "_blank";
+    link.rel = "noopener noreferrer";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  // จัดการเมื่อกดปุ่มดูเอกสาร/รูปภาพ/PDF
+  const handleViewFiles = async (item, targetType = "all") => {
+    const urls = await fetchItemFiles(item);
+    if (!urls || urls.length === 0) {
+      message.info("ไม่พบไฟล์แนบในรายการนี้");
+      return;
+    }
+
+    const nonImages = urls.filter((url) => !isImageFile(url));
+    const images = urls.filter((url) => isImageFile(url));
+
+    if (targetType === "pdf") {
+      const pdfs = urls.filter((url) => isPdfFile(url));
+      if (pdfs.length > 0) {
+        pdfs.forEach((url) => handleDownloadFile(url));
+        return;
+      }
+      if (nonImages.length > 0) {
+        nonImages.forEach((url) => handleDownloadFile(url));
+        return;
+      }
+    }
+
+    if (targetType === "image") {
+      if (images.length > 0) {
+        setImageList(images);
+        setPreviewIndex(0);
+        setModalVisible(true);
+        return;
+      }
+    }
+
+    // fallback
+    if (nonImages.length > 0 && images.length === 0) {
+      nonImages.forEach((url) => handleDownloadFile(url));
+      return;
+    }
+
+    if (images.length > 0) {
+      setImageList(images);
+      setPreviewIndex(0);
+      setModalVisible(true);
+      if (nonImages.length > 0) {
+        nonImages.forEach((url) => handleDownloadFile(url));
+      }
     }
   };
 
@@ -131,7 +188,49 @@ export default function PointHistory() {
           });
 
           if (response.status === 200 && response.data?.point) {
-            setTransactionData(response.data.point);
+            const points = response.data.point;
+            setTransactionData(points);
+
+            // ถ้าเป็นแท็บ use ให้ดึงข้อมูลไฟล์/รูปภาพสำหรับรายการที่ status_tran === "RTV" เพื่อตรวจจับปุ่ม PDF / รูปภาพ ได้ทันที
+            if (activeTab === "use" && Array.isArray(points)) {
+              const rtvItems = points.filter(
+                (p) => p.status_tran === "RTV" && (!p.pictures || p.pictures.length === 0) && p.id
+              );
+
+              if (rtvItems.length > 0) {
+                // ดึง detail แบบคู่ขนาน
+                Promise.all(
+                  rtvItems.map(async (item) => {
+                    try {
+                      const isFarmer = item.shop_type === "farmer" || item.user_type === "farmer";
+                      const res = await useServiceAPI.get(
+                        `${paths.pathTransportDetail}/${item.id}`,
+                        isFarmer ? { mode: "farmer" } : {}
+                      );
+                      if (res.status === 200 && res.data?.pictures) {
+                        return { id: item.id, pictures: res.data.pictures };
+                      }
+                    } catch (e) {
+                      // ignore individual error
+                    }
+                    return null;
+                  })
+                ).then((results) => {
+                  const updates = results.filter(Boolean);
+                  if (updates.length > 0) {
+                    setTransactionData((prev) =>
+                      prev.map((item) => {
+                        const found = updates.find((u) => u.id === item.id);
+                        if (found) {
+                          return { ...item, pictures: found.pictures };
+                        }
+                        return item;
+                      })
+                    );
+                  }
+                });
+              }
+            }
           } else {
             setTransactionData([]);
           }
@@ -255,80 +354,149 @@ export default function PointHistory() {
             // 🔸 แท็บอื่น ใช้ layout เดิมของ PointHistory
             <>
               {transactionData.length > 0 ? (
-                transactionData.map((item, idx) => (
-                  <div
-                    key={idx}
-                    className="flex justify-between items-center bg-white p-3 rounded-lg shadow-md mb-2"
-                  >
-                    <div className="flex gap-2 flex-wrap ">
-                      <img src="/img/icons/point.png" className="h-5 w-5" alt="point-icon" />
-                      <div>
-                        {/* use */}
-                        {activeTab === "use" && (
-                          <>
-                            <p className="text-gray-500 text-sm sarabun-font">
-                              {item.created_at.split(".")[0]} | {item.page}
-                            </p>
-                            <p className="text-gray-700 text-xs sarabun-font">
-                              รหัสรางวัล : {item.reward_code}
-                            </p>
-                            <p className="text-gray-700 text-xs sarabun-font truncate mb-2">
-                              ชื่อรางวัล : {item.reward_name}
-                            </p>
-                            <div className="flex items-center gap-2 flex-wrap">
-                              {(() => {
-                                const status = getStatusInfo(item.status_tran);
-                                return (
-                                  <BadgeStatus
-                                    text={status.text}
-                                    bgColor={status.bgColor}
-                                    textColor={status.textColor}
-                                  />
-                                );
-                              })()}
+                transactionData.map((item, idx) => {
+                  // เช็คประเภทไฟล์ถ้ามี item.pictures อยู่ใน object
+                  const itemPictures = Array.isArray(item.pictures) ? item.pictures : [];
+                  const sampleFile = itemPictures.length > 0 ? (itemPictures[0]?.part || itemPictures[0]?.url || "") : "";
+                  const isPdf = sampleFile ? isPdfFile(sampleFile) : false;
 
-                              {/* ปุ่มดูรูปภาพเอกสารการจัดส่ง */}
-                              {(item.status_tran === "RTV" || item.pictures?.length > 0) && (
-                                <button
-                                  type="button"
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    handleViewPictures(item);
-                                  }}
-                                  disabled={modalLoading}
-                                  className="flex items-center gap-1 px-2.5 py-1 text-xs font-semibold text-[#00783F] bg-green-50 hover:bg-green-100 border border-[#00783F] rounded-2xl transition cursor-pointer"
-                                >
-                                  <PictureOutlined />
-                                  <span>รูปภาพ</span>
-                                </button>
-                              )}
-                            </div>
-                          </>
-                        )}
-
-                        {/* expire / อื่น ๆ */}
-                        {activeTab !== "use" && activeTab !== "receive" && (
-                          <>
-                            <p className="text-gray-500 text-sm sarabun-font">
-                              {item.created_at.split(".")[0]}
-                            </p>
-                            <p className="text-gray-700 text-sm sarabun-font">
-                              {item.document_number
-                                ? "Document No: " + item.document_number
-                                : "Register Point"}
-                            </p>
-                          </>
-                        )}
-                      </div>
-                    </div>
-                    <p
-                      className={`font-bold sarabun-font ${activeTab === "use" ? "text-red-600" : "text-green-600"
-                        }`}
+                  return (
+                    <div
+                      key={idx}
+                      className="flex justify-between items-start bg-white p-3 rounded-lg shadow-md mb-2"
                     >
-                      {renderCampaignLabel(item)} {activeTab === "use" ? `-${item.point}` : `+${item.point}`}
-                    </p>
-                  </div>
-                ))
+                      <div className="flex items-start gap-2 flex-1 min-w-0 mr-2">
+                        <img
+                          src="/img/icons/point.png"
+                          className="h-5 w-5 shrink-0 mt-0.5"
+                          alt="point-icon"
+                        />
+                        <div className="flex-1 min-w-0">
+                          {/* use */}
+                          {activeTab === "use" && (
+                            <>
+                              <p className="text-gray-500 text-sm sarabun-font">
+                                {item.created_at.split(".")[0]} | {item.page}
+                              </p>
+                              <p className="text-gray-700 text-xs sarabun-font">
+                                รหัสรางวัล : {item.reward_code}
+                              </p>
+                              <p className="text-gray-700 text-xs sarabun-font line-clamp-2 break-words mb-2 leading-relaxed">
+                                ชื่อรางวัล : {item.reward_name}
+                              </p>
+                              <div className="flex items-center gap-2 flex-wrap">
+                                {(() => {
+                                  const status = getStatusInfo(item.status_tran);
+                                  return (
+                                    <BadgeStatus
+                                      text={status.text}
+                                      bgColor={status.bgColor}
+                                      textColor={status.textColor}
+                                    />
+                                  );
+                                })()}
+
+                                {/* ปุ่มดูรูปภาพ / ดาวน์โหลด PDF */}
+                                {(item.status_tran === "RTV" || itemPictures.length > 0) && (
+                                  (() => {
+                                    const hasPdf = itemPictures.some((p) => isPdfFile(p?.part || p?.url || ""));
+                                    const hasImage = itemPictures.some((p) => isImageFile(p?.part || p?.url || ""));
+
+                                    // ถ้ามีข้อมูลรูปหรือไฟล์แล้ว
+                                    if (hasPdf && !hasImage) {
+                                      return (
+                                        <button
+                                          type="button"
+                                          onClick={(e) => {
+                                            e.stopPropagation();
+                                            handleViewFiles(item, "pdf");
+                                          }}
+                                          disabled={modalLoading}
+                                          className="flex items-center gap-1 px-2.5 py-1 text-xs font-semibold text-red-600 bg-red-50 hover:bg-red-100 border border-red-500 rounded-2xl transition cursor-pointer"
+                                        >
+                                          <FilePdfOutlined />
+                                          <span>PDF</span>
+                                        </button>
+                                      );
+                                    }
+
+                                    if (hasPdf && hasImage) {
+                                      return (
+                                        <>
+                                          <button
+                                            type="button"
+                                            onClick={(e) => {
+                                              e.stopPropagation();
+                                              handleViewFiles(item, "image");
+                                            }}
+                                            disabled={modalLoading}
+                                            className="flex items-center gap-1 px-2.5 py-1 text-xs font-semibold text-[#00783F] bg-green-50 hover:bg-green-100 border border-[#00783F] rounded-2xl transition cursor-pointer"
+                                          >
+                                            <PictureOutlined />
+                                            <span>รูปภาพ</span>
+                                          </button>
+                                          <button
+                                            type="button"
+                                            onClick={(e) => {
+                                              e.stopPropagation();
+                                              handleViewFiles(item, "pdf");
+                                            }}
+                                            disabled={modalLoading}
+                                            className="flex items-center gap-1 px-2.5 py-1 text-xs font-semibold text-red-600 bg-red-50 hover:bg-red-100 border border-red-500 rounded-2xl transition cursor-pointer"
+                                          >
+                                            <FilePdfOutlined />
+                                            <span>PDF</span>
+                                          </button>
+                                        </>
+                                      );
+                                    }
+
+                                    // Default หรือเป็นรูปภาพ (หรือยังไม่ได้โหลด pictures)
+                                    return (
+                                      <button
+                                        type="button"
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          handleViewFiles(item, "all");
+                                        }}
+                                        disabled={modalLoading}
+                                        className="flex items-center gap-1 px-2.5 py-1 text-xs font-semibold text-[#00783F] bg-green-50 hover:bg-green-100 border border-[#00783F] rounded-2xl transition cursor-pointer"
+                                      >
+                                        <PictureOutlined />
+                                        <span>รูปภาพ</span>
+                                      </button>
+                                    );
+                                  })()
+                                )}
+                              </div>
+                            </>
+                          )}
+
+                          {/* expire / อื่น ๆ */}
+                          {activeTab !== "use" && activeTab !== "receive" && (
+                            <>
+                              <p className="text-gray-500 text-sm sarabun-font">
+                                {item.created_at.split(".")[0]}
+                              </p>
+                              <p className="text-gray-700 text-sm sarabun-font break-words">
+                                {item.document_number
+                                  ? "Document No: " + item.document_number
+                                  : "Register Point"}
+                              </p>
+                            </>
+                          )}
+                        </div>
+                      </div>
+                      <p
+                        className={`font-bold sarabun-font text-right shrink-0 ${
+                          activeTab === "use" ? "text-red-600" : "text-green-600"
+                        }`}
+                      >
+                        {renderCampaignLabel(item)} {activeTab === "use" ? `-${item.point}` : `+${item.point}`}
+                      </p>
+                    </div>
+                  );
+                })
               ) : (
                 <p className="text-center text-gray-500 mt-4">ไม่มีข้อมูล</p>
               )}
