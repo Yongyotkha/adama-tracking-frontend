@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useContext, useEffect, useMemo, useState } from "react";
 import MainLayout from "../../layouts/MainLayout";
 import BoxPrimary from "../../components/box_primary/BoxPrimary";
 import { InputNumber, Table } from "antd";
@@ -6,6 +6,9 @@ import Title from "../../components/title/Title";
 import TableCustomComponent from "../../components/table/TableCustomComponent";
 import Filter from "../../components/filter/Filter";
 import { markQuarterEdge } from "../../components/table/quarterDivider";
+import useServiceAPI from "../../services/CorsService";
+import { paths } from "../../services/CorsPath";
+import { AuthContext } from "../../contexts/AuthContext";
 import "./ReportPoint.css";
 
 const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
@@ -27,22 +30,6 @@ const QUARTERS = [
   ...buildQuarters("value", "Value (THB)"),
 ];
 
-const AREA_OPTIONS = [
-  { id: "north", name: "North" },
-  { id: "central", name: "Central" },
-  { id: "northeast", name: "Northeast" },
-];
-
-const SALES_OPTIONS = [
-  { id: "somchai", name: "Somchai" },
-  { id: "anan", name: "Anan" },
-];
-
-const DEALER_OPTIONS = [
-  { id: "dealer-a", name: "Dealer A" },
-  { id: "dealer-b", name: "Dealer B" },
-];
-
 const POINT_SCALES = [8500, 420, 45, 18500, 760, 28, 3400, 14200, 90, 2100];
 const VALUE_SCALES = [250000, 480000, 125000, 625000, 175000, 85000, 1810000, 320000, 96000, 540000];
 const POINT_SEASON = [0.2, 0.45, 0.8, 1, 0.9, 0.55, 0.3, 0.15, 0.4, 0.7, 1.05, 0.85];
@@ -55,16 +42,16 @@ const monthAmount = (scale, season, rowIndex, monthOfYear, step) => {
 };
 
 const MOCK_ROWS = [
-  { company: "Herbicide", product: "Caiman 150SL", sku: "201720001 SCS", area: "north", sale: "somchai", dealer: "dealer-a" },
-  { company: "Fungicide", product: "Apron 2E 1L", sku: "303120981 512", area: "north", sale: "somchai", dealer: "dealer-b" },
-  { company: "Herbicide", product: "Atarax 50WG", sku: "203420877 412", area: "central", sale: "anan", dealer: "dealer-a" },
-  { company: "Herbicide", product: "Baccara 32WG", sku: "203120001 123", area: "central", sale: "somchai", dealer: "dealer-b" },
-  { company: "Fungicide", product: "Blus S", sku: "308120002 120", area: "northeast", sale: "anan", dealer: "dealer-a" },
-  { company: "Fungicide", product: "Bumper P", sku: "303720061 13", area: "north", sale: "anan", dealer: "dealer-b" },
-  { company: "Fungicide", product: "Custodia", sku: "303820003 120", area: "central", sale: "somchai", dealer: "dealer-a" },
-  { company: "Insecticide", product: "Demarin 5%WG", sku: "103420877 520", area: "northeast", sale: "somchai", dealer: "dealer-b" },
-  { company: "Insecticide", product: "Duric 93SC", sku: "103220023 2", area: "north", sale: "anan", dealer: "dealer-a" },
-  { company: "Insecticide", product: "Hamper", sku: "103320031 5", area: "central", sale: "anan", dealer: "dealer-b" },
+  { company: "Herbicide", product: "Caiman 150SL", sku: "201720001 SCS" },
+  { company: "Fungicide", product: "Apron 2E 1L", sku: "303120981 512" },
+  { company: "Herbicide", product: "Atarax 50WG", sku: "203420877 412" },
+  { company: "Herbicide", product: "Baccara 32WG", sku: "203120001 123" },
+  { company: "Fungicide", product: "Blus S", sku: "308120002 120" },
+  { company: "Fungicide", product: "Bumper P", sku: "303720061 13" },
+  { company: "Fungicide", product: "Custodia", sku: "303820003 120" },
+  { company: "Insecticide", product: "Demarin 5%WG", sku: "103420877 520" },
+  { company: "Insecticide", product: "Duric 93SC", sku: "103220023 2" },
+  { company: "Insecticide", product: "Hamper", sku: "103320031 5" },
 ].map((row, rowIndex) => {
   const months = {};
   QUARTERS.forEach((quarter) => {
@@ -121,18 +108,14 @@ const totalValueHeader = () => ({
 });
 
 export default function ReportPoint() {
-  const [filters, setFilters] = useState({});
+  const { showNotification } = useContext(AuthContext);
+  const [loading, setLoading] = useState(false);
+  const [areas, setAreas] = useState([]);
+  const [sales, setSales] = useState([]);
+  const [dealers, setDealers] = useState([]);
+  const [filterValues, setFilterValues] = useState({});
 
-  const dataSource = useMemo(
-    () =>
-      MOCK_ROWS.filter((row) => {
-        const matchArea = !filters.area || row.area === filters.area;
-        const matchSale = !filters.sale || row.sale === filters.sale;
-        const matchDealer = !filters.dealer || row.dealer === filters.dealer;
-        return matchArea && matchSale && matchDealer;
-      }),
-    [filters]
-  );
+  const dataSource = MOCK_ROWS;
 
   const monthTotals = useMemo(() => {
     const totals = {};
@@ -227,20 +210,122 @@ export default function ReportPoint() {
   ];
 
   const filterFields = [
-    { key: "area", label: "Area", type: "select", options: AREA_OPTIONS, placeholder: "All" },
-    { key: "sale", label: "Sales", type: "select", options: SALES_OPTIONS, placeholder: "All" },
-    { key: "dealer", label: "Dealer", type: "select", options: DEALER_OPTIONS, placeholder: "All" },
+    { key: "area_id", label: "Area", type: "select", options: areas, placeholder: "All" },
+    {
+      key: "user_id",
+      label: "Sales",
+      type: "select",
+      options: sales,
+      placeholder: "All",
+      disabled: !filterValues.area_id,
+    },
+    {
+      key: "dealer_id",
+      label: "Dealer",
+      type: "select",
+      options: dealers,
+      placeholder: "All",
+      disabled: !filterValues.user_id,
+    },
   ];
 
+  const loadSalesByArea = async (areaId) => {
+    if (!areaId) {
+      setSales([]);
+      return;
+    }
+    try {
+      const res = await useServiceAPI.get(paths.pathMasterUserByArea, { area_id: areaId });
+      const raw = res?.data?.data ?? res?.data ?? [];
+      const list = Array.isArray(raw) ? raw : [];
+      setSales(
+        list.map((item) => ({
+          id: String(item.user_id ?? item.id),
+          name: item.user_name ?? item.name,
+        }))
+      );
+    } catch (error) {
+      console.error(error);
+      setSales([]);
+      showNotification?.("error", "โหลด Sales ไม่สำเร็จ");
+    }
+  };
+
+  const loadDealersBySale = async (userId) => {
+    if (!userId) {
+      setDealers([]);
+      return;
+    }
+    try {
+      const res = await useServiceAPI.get(paths.pathMasterDealerDropdown, { user_id: userId });
+      const raw = res?.data?.data ?? res?.data ?? [];
+      const list = Array.isArray(raw) ? raw : [];
+      setDealers(
+        list.map((item) => ({
+          id: item.id,
+          name: item.name,
+        }))
+      );
+    } catch (error) {
+      console.error(error);
+      setDealers([]);
+      showNotification?.("error", "โหลด Dealer ไม่สำเร็จ");
+    }
+  };
+
+  useEffect(() => {
+    const loadAreas = async () => {
+      setLoading(true);
+      try {
+        const res = await useServiceAPI.get(paths.pathMasterAreas);
+        const raw = Array.isArray(res?.data) ? res.data : [];
+        setAreas(raw.map((item) => ({ id: String(item.id), name: item.name })));
+      } catch (error) {
+        console.error(error);
+        setAreas([]);
+        showNotification?.("error", "โหลด Area ไม่สำเร็จ");
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadAreas();
+  }, []);
+
+  const handleFilterChange = async (next = {}) => {
+    const areaChanged = next.area_id !== filterValues.area_id;
+    const saleChanged = next.user_id !== filterValues.user_id;
+
+    if (areaChanged) {
+      setFilterValues({ ...next, user_id: "", dealer_id: "" });
+      setDealers([]);
+      await loadSalesByArea(next.area_id);
+      return;
+    }
+
+    if (saleChanged) {
+      setFilterValues({ ...next, dealer_id: "" });
+      await loadDealersBySale(next.user_id);
+      return;
+    }
+
+    setFilterValues(next);
+  };
+
   return (
-    <MainLayout loading={false} childrenStyle={""}>
+    <MainLayout loading={loading} childrenStyle={""}>
       <Title prefix="Point Report" />
 
       <div className="mb-4">
         <Filter
           filters={filterFields}
-          onSearch={(values) => setFilters(values || {})}
-          onClear={() => setFilters({})}
+          values={filterValues}
+          onChange={handleFilterChange}
+          onSearch={() => {}}
+          onClear={() => {
+            setFilterValues({});
+            setSales([]);
+            setDealers([]);
+          }}
         />
       </div>
 
