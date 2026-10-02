@@ -217,6 +217,9 @@ import ViewDraftCampaignPDF from "./pages/pdf/DraftCampaignPDF";
 import FarmerDraftCampaignList from "./pages/settings/mobile/farmer_draft_campaign/FarmerDraftCampaignList";
 import FarmerDraftCampaignAction from "./pages/settings/mobile/farmer_draft_campaign/FarmerDraftCampaignAction";
 import FarmerDraftCampaignPDF from "./pages/settings/mobile/farmer_draft_campaign/FarmerDraftCampaignPDF";
+import DealerDraftCampaignList from "./pages/settings/mobile/dealer_draft_campaign/DealerDraftCampaignList";
+import DealerDraftCampaignAction from "./pages/settings/mobile/dealer_draft_campaign/DealerDraftCampaignAction";
+import DealerDraftCampaignPDF from "./pages/settings/mobile/dealer_draft_campaign/DealerDraftCampaignPDF";
 
 const App = () => {
   return (
@@ -728,6 +731,23 @@ const App = () => {
             <Route
               path="/setting/line/farmer-draft-campaign/pdf"
               element={<FarmerDraftCampaignPDF />}
+            />
+
+            <Route
+              path="/setting/line/dealer-draft-campaign"
+              element={<DealerDraftCampaignList />}
+            />
+            <Route
+              path="/setting/line/dealer-draft-campaign/create"
+              element={<DealerDraftCampaignAction />}
+            />
+            <Route
+              path="/setting/line/dealer-draft-campaign/:mode"
+              element={<DealerDraftCampaignAction />}
+            />
+            <Route
+              path="/setting/line/dealer-draft-campaign/pdf"
+              element={<DealerDraftCampaignPDF />}
             />
 
             <Route
