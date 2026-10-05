@@ -181,6 +181,7 @@ export default function RedeemList() {
       page: "all",
       page_size: pageSize,
       page_length: current,
+      mode: "sub_dealer",
       ...(hasValidDateRange(f.dater) ? { dater: f.dater } : {}),
     };
 
