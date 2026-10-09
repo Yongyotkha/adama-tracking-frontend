@@ -1,12 +1,14 @@
-import React, { useContext, useEffect, useState } from "react";
+import React, { useContext, useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Select, Input } from "antd";
+import { SettingOutlined } from "@ant-design/icons";
 import MainLayout from "../../../layouts/MainLayout";
 import BoxPrimary from "../../../components/box_primary/BoxPrimary";
 import ActionButton from "../../../components/button/ActionButton";
 import TableExpand from "../../../components/table/TableExpand";
 import DynamicModal from "../../../components/modal/DynamicModal"; // Adjust path if needed
 import DynamicButton from "../../../components/button/DynamicButton";
+import SaleTeamSettingModal from "./SaleTeamSettingModal";
 import { paths } from "../../../services/CorsPath";
 import useServiceAPI from "../../../services/corsService";
 import { Form } from "antd";
@@ -38,12 +40,70 @@ export default function CreateSale() {
   const [defaultSaleArea, setDefaultSaleArea] = useState(null);
   const [defaultArea, setDefaultArea] = useState(null);
   const [permission, setPermission] = useState({});
+  const [settingOpen, setSettingOpen] = useState(false);
+  const [settingRecord, setSettingRecord] = useState(null);
+  const [transferOptions, setTransferOptions] = useState({
+    areas: [],
+    territories: [],
+    roles: [],
+    users: [],
+  });
+  const [optionsLoading, setOptionsLoading] = useState(false);
+  const optionsLoadedRef = useRef(false);
+  const optionsLoadingRef = useRef(false);
 
   useEffect(() => {
     fetchData();
     fetchSaleHeads();
     fetchSaleAreas();
   }, []);
+
+  const loadTransferOptions = async (force = false) => {
+    if (!force && (optionsLoadedRef.current || optionsLoadingRef.current)) return;
+    optionsLoadingRef.current = true;
+    setOptionsLoading(true);
+    try {
+      const response = await useServiceAPI.get(paths.pathTerritoryTransferOptions, {});
+      if (response.status === 200) {
+        setTransferOptions({
+          areas: response.data?.areas || [],
+          territories: response.data?.territories || [],
+          roles: response.data?.roles || [],
+          users: response.data?.users || [],
+        });
+        optionsLoadedRef.current = true;
+      }
+    } catch (error) {
+      console.error("Error fetching transfer options:", error);
+    } finally {
+      optionsLoadingRef.current = false;
+      setOptionsLoading(false);
+    }
+  };
+
+  const handleOpenSetting = (item, areaId, areaName) => {
+    setSettingRecord({
+      name: item.name,
+      position: item.position_name,
+      territory: item.territory_name,
+      userId: item.user_id || item.sale_user_id || item.header_user_id || null,
+      territoryId: item.territory_id || null,
+      areaId: item.area_id || areaId || null,
+      areaName: areaName || null,
+      roleId: item.role_id || null,
+      team: (item.sub_items || []).map((subItem) => ({
+        name: subItem.name,
+        position: subItem.position_name,
+        territory: subItem.territory_name,
+        userId:
+          subItem.user_id || subItem.sub_user_id || subItem.sale_user_id || null,
+        territoryId: subItem.territory_id || null,
+        roleId: subItem.role_id || null,
+      })),
+    });
+    setSettingOpen(true);
+    loadTransferOptions();
+  };
 
   const fetchData = async () => {
     setLoading(true);
@@ -59,8 +119,9 @@ export default function CreateSale() {
 
       if (response.status === 200) {
         const { data } = response;
+        const pagePermission = data.permission || {};
         setSaleManagementId(id);
-        setPermission(data.permission); 
+        setPermission(pagePermission); 
 
         if (data.area_name) {
           setDefaultArea(data.area_name);
@@ -87,8 +148,8 @@ export default function CreateSale() {
           position: item.position_name,
           territory: item.territory_name,
           actionmain: (
-            <>
-              {permission?.edit !== false && (
+            <div className="flex items-center gap-2">
+              {pagePermission?.edit !== false && (
                 <DynamicButton
                   iconSrc="/img/icons/create.png"
                   onClick={() =>
@@ -101,17 +162,25 @@ export default function CreateSale() {
                   }
                 />
               )}
-            {
-              permission?.view !== false && ( 
-                <DynamicButton
-                iconSrc="/img/icons/delete.png"
-                onClick={() => handleDelete(item.sale_management_header_id)}
-              />
-            )}
-            </>
+              {pagePermission?.view !== false && (
+                <button
+                  type="button"
+                  title="ตั้งค่า"
+                  aria-label="ตั้งค่า"
+                  className="inline-flex h-5 w-5 items-center justify-center text-[#8d8279] hover:text-[#00783F]"
+                  onClick={(event) => {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    handleOpenSetting(item, data.area_id, data.area_name);
+                  }}
+                >
+                  <SettingOutlined className="text-[16px]" />
+                </button>
+              )}
+            </div>
           ),
 
-          nestedData: item.sub_items.map((subItem, index) => ({
+          nestedData: (item.sub_items || []).map((subItem, index) => ({
             key: subItem.sale_management_item_id,
             no: index + 1,
             name: subItem.name,
@@ -337,35 +406,6 @@ export default function CreateSale() {
     }
   };
 
-  const handleDelete = async (record) => {
-    try {
-      const requestData = {
-        sale_management_header_id: record, // ส่ง ID ที่ต้องการลบ
-      };
-
-      const response = await useServiceAPI.delete(
-        paths.pathSaleManagementDeleteSub,
-        requestData
-      );
-
-      if (response.status === 200) {
-        fetchData();
-        showNotification(
-          "success",
-          response.data.message,
-          response.data.message_line
-        );
-      } else {
-        console.error("Failed to delete record:", response.message);
-        showNotification("error", response.message, response.message_line);
-      }
-    } catch (error) {
-      console.error("Error deleting record:", error);
-
-      showNotification("error", error.message, error.message_line);
-    }
-  };
-
   const handleDeleteItem = async (record) => {
     try {
       const requestData = {
@@ -541,6 +581,18 @@ export default function CreateSale() {
         />
       )}
       </div>
+
+      <SaleTeamSettingModal
+        open={settingOpen}
+        record={settingRecord}
+        options={transferOptions}
+        optionsLoading={optionsLoading}
+        onClose={() => setSettingOpen(false)}
+        onSuccess={() => {
+          fetchData();
+          loadTransferOptions(true);
+        }}
+      />
 
       {/* Modal for Add Sale Territory */}
       <DynamicModal
