@@ -191,6 +191,7 @@ export const paths = {
 
   // Sale
   pathSaleManagementDetail: "sale-management/sale-team/detail",
+  pathSaleManagementAction: "sale-management/management",
   pathSaleManagementCreate: "sale-management/sale-team/items/create",
   pathSaleManagementDeleteSubItem: "sale-management/sale-team/items/delete",
   pathSaleManagementDeleteSub: "sale-management/sale-team/delete",
@@ -435,6 +436,7 @@ export const paths = {
   pathReportActivityByMonth: "/report/activity/month",
   pathReportActivityExpense: "/report/activity/expense",
   pathReportActivityType: "/report/activity/type",
+  pathReportActivityPlanActual: "/report/activity/plan/actual",
   pathReportStock: "/report/stock",
   pathReportSaleHistory: "/report/sale_point_item",
   pathReportSellOut: "/report/stock_group",

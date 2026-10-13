@@ -91,6 +91,7 @@ export default function CreateSale() {
       areaId: item.area_id || areaId || null,
       areaName: areaName || null,
       roleId: item.role_id || null,
+      isPending: Boolean(item.is_pending) || /รอสรรหา/i.test(item.name || ""),
       team: (item.sub_items || []).map((subItem) => ({
         name: subItem.name,
         position: subItem.position_name,
