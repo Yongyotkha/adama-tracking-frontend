@@ -509,4 +509,9 @@ export const paths = {
   pathDraftCampaignUpdate: "draft-campaign/update",
   pathDraftCampaignDelete: "draft-campaign/delete",
   pathDraftCampaignUserInfo: "draft-campaign/user-info",
+
+  pathCutPointList: "cut-point/list",
+  pathCutPointCreate: "cut-point/create",
+  pathCutPointDetail: "cut-point/detail",
+  pathCutPointRefund: "cut-point/refund",
 };
