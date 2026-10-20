@@ -220,6 +220,9 @@ import FarmerDraftCampaignPDF from "./pages/settings/mobile/farmer_draft_campaig
 import DealerDraftCampaignList from "./pages/settings/mobile/dealer_draft_campaign/DealerDraftCampaignList";
 import DealerDraftCampaignAction from "./pages/settings/mobile/dealer_draft_campaign/DealerDraftCampaignAction";
 import DealerDraftCampaignPDF from "./pages/settings/mobile/dealer_draft_campaign/DealerDraftCampaignPDF";
+import CutPointList from "./pages/settings/mobile/cut_point/CutPointList";
+import CutPointCreate from "./pages/settings/mobile/cut_point/CutPointCreate";
+import CutPointView from "./pages/settings/mobile/cut_point/CutPointView";
 
 const App = () => {
   return (
@@ -670,6 +673,15 @@ const App = () => {
             <Route
               path="/points/line/collect-points-list/view"
               element={<CollectPointsView />}
+            />
+            <Route path="/points/line/cut-point" element={<CutPointList />} />
+            <Route
+              path="/points/line/cut-point/create"
+              element={<CutPointCreate />}
+            />
+            <Route
+              path="/points/line/cut-point/view"
+              element={<CutPointView />}
             />
             {/* <Route path="/points/line/collect-points/create" element={<CollectPointCreate />} /> */}
             {/* <Route path="/points/line/collect-points/detail" element={<CollectPointDetail />} /> */}

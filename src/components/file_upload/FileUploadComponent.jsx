@@ -2,6 +2,8 @@ import React, { useState, useRef, forwardRef, useImperativeHandle, useEffect } f
 import { Image, Upload, message, App } from "antd";
 import useServiceAPI from "../../services/CorsService";
 import { paths } from "../../services/CorsPath";
+import PdfPreviewModal from "./PdfPreviewModal";
+import { attachmentUrl, isImageAttachment, isPdfAttachment, openAttachmentInNewTab } from "./filePreview";
 
 const getBase64 = (file) =>
   new Promise((resolve, reject) => {
@@ -23,6 +25,7 @@ const FileUploadComponent = forwardRef((props, ref) => {
 
   const [previewOpen, setPreviewOpen] = useState(false);
   const [previewImage, setPreviewImage] = useState("");
+  const [pdfPreview, setPdfPreview] = useState({ open: false, url: "", title: "" });
   const [fileList, setFileList] = useState(dataFile);
   const hiddenFileInputRef = useRef(null);
 
@@ -31,6 +34,24 @@ const FileUploadComponent = forwardRef((props, ref) => {
   }, [dataFile]);
 
   const handlePreview = async (file) => {
+    if (isPdfAttachment(file)) {
+      const url = attachmentUrl(file);
+      if (!url) {
+        message.warning("ไม่พบไฟล์สำหรับเปิดดู");
+        return;
+      }
+      setPdfPreview({ open: true, url, title: file.name || file.file_name || "PDF" });
+      return;
+    }
+
+    if (!isImageAttachment(file)) {
+      const url = attachmentUrl(file);
+      if (!openAttachmentInNewTab(url)) {
+        message.warning("ไม่พบไฟล์สำหรับเปิดดู");
+      }
+      return;
+    }
+
     if (!file.url && !file.preview) {
       file.preview = await getBase64(file.originFileObj);
     }
@@ -131,6 +152,13 @@ const FileUploadComponent = forwardRef((props, ref) => {
           src={previewImage}
         />
       )}
+
+      <PdfPreviewModal
+        open={pdfPreview.open}
+        url={pdfPreview.url}
+        title={pdfPreview.title}
+        onClose={() => setPdfPreview((prev) => ({ ...prev, open: false }))}
+      />
     </App>
   );
 });
