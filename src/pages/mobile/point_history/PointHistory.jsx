@@ -281,6 +281,25 @@ export default function PointHistory() {
     return values.some((value) => value === "cut-point" || value === "cut point");
   };
 
+  const isRefundPointItem = (item) => {
+    const values = [item?.page, item?.type, item?.status].map((value) =>
+      String(value || "").toLowerCase().trim()
+    );
+    return values.some((value) => value.includes("refund")) || Boolean(item?.remark_refund);
+  };
+
+  const getCutPointStatus = (item) => {
+    const refund = isRefundPointItem(item);
+    return {
+      text: item?.status_name || (refund ? "คืนแต้มสำเร็จ" : "ตัดแต้มสำเร็จ"),
+      bgColor: item?.status_bg_color || (refund ? "#F89E18" : "#00783F"),
+      textColor: item?.status_color || "#FFFFFF",
+    };
+  };
+
+  const statusBadgeClass =
+    "sarabun-font !px-3 !py-1 !text-sm !font-normal !leading-5";
+
   return (
     <MobileLayout loading={loading}>
       <div className="flex flex-col items-center w-full h-full">
@@ -384,7 +403,7 @@ export default function PointHistory() {
                           {/* use */}
                           {activeTab === "use" && (
                             <>
-                              <p className="text-gray-500 text-sm sarabun-font break-words">
+                              <p className="text-gray-500 text-sm sarabun-font break-words leading-6">
                                 {item.created_at.split(".")[0]}
                                 {cutPoint
                                   ? item.remark
@@ -394,27 +413,45 @@ export default function PointHistory() {
                                     ? ` | ${item.page}`
                                     : ""}
                               </p>
+                              {item.remark_refund ? (
+                                <p className="text-gray-700 text-sm sarabun-font leading-6 mt-0.5 break-words line-clamp-2">
+                                  เหตุผล : {item.remark_refund}
+                                </p>
+                              ) : null}
                               {!cutPoint && (
                                 <>
-                                  <p className="text-gray-700 text-xs sarabun-font">
+                                  <p className="text-gray-700 text-sm sarabun-font leading-6 mt-0.5">
                                     รหัสรางวัล : {item.reward_code}
                                   </p>
-                                  <p className="text-gray-700 text-xs sarabun-font line-clamp-2 break-words mb-2 leading-relaxed">
+                                  <p className="text-gray-800 text-sm sarabun-font line-clamp-2 break-words leading-6">
                                     ชื่อรางวัล : {item.reward_name}
                                   </p>
                                 </>
                               )}
-                              <div className="flex items-center gap-2 flex-wrap">
-                                {!cutPoint && (() => {
-                                  const status = getStatusInfo(item.status_tran);
-                                  return (
-                                    <BadgeStatus
-                                      text={status.text}
-                                      bgColor={status.bgColor}
-                                      textColor={status.textColor}
-                                    />
-                                  );
-                                })()}
+                              <div className="flex items-center gap-2 flex-wrap mt-1.5">
+                                {cutPoint || isRefundPointItem(item)
+                                  ? (() => {
+                                      const status = getCutPointStatus(item);
+                                      return (
+                                        <BadgeStatus
+                                          className={statusBadgeClass}
+                                          text={status.text}
+                                          bgColor={status.bgColor}
+                                          textColor={status.textColor}
+                                        />
+                                      );
+                                    })()
+                                  : (() => {
+                                      const status = getStatusInfo(item.status_tran);
+                                      return (
+                                        <BadgeStatus
+                                          className={statusBadgeClass}
+                                          text={status.text}
+                                          bgColor={status.bgColor}
+                                          textColor={status.textColor}
+                                        />
+                                      );
+                                    })()}
 
                                 {/* ปุ่มดูรูปภาพ / ดาวน์โหลด PDF */}
                                 {(item.status_tran === "RTV" || itemPictures.length > 0) && (
@@ -508,7 +545,7 @@ export default function PointHistory() {
                         </div>
                       </div>
                       <p
-                        className={`font-bold sarabun-font text-right shrink-0 ${
+                        className={`font-bold sarabun-font text-base leading-6 text-right shrink-0 ${
                           activeTab === "use" ? "text-red-600" : "text-green-600"
                         }`}
                       >
