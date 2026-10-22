@@ -274,6 +274,13 @@ export default function PointHistory() {
     }
   };
 
+  const isCutPointItem = (item) => {
+    const values = [item?.page, item?.type].map((value) =>
+      String(value || "").toLowerCase().trim()
+    );
+    return values.some((value) => value === "cut-point" || value === "cut point");
+  };
+
   return (
     <MobileLayout loading={loading}>
       <div className="flex flex-col items-center w-full h-full">
@@ -360,6 +367,8 @@ export default function PointHistory() {
                   const sampleFile = itemPictures.length > 0 ? (itemPictures[0]?.part || itemPictures[0]?.url || "") : "";
                   const isPdf = sampleFile ? isPdfFile(sampleFile) : false;
 
+                  const cutPoint = isCutPointItem(item);
+
                   return (
                     <div
                       key={idx}
@@ -377,11 +386,7 @@ export default function PointHistory() {
                             <>
                               <p className="text-gray-500 text-sm sarabun-font break-words">
                                 {item.created_at.split(".")[0]}
-                                {["cut-point", "cut point"].includes(
-                                  String(item.type || item.page || "")
-                                    .toLowerCase()
-                                    .trim()
-                                )
+                                {cutPoint
                                   ? item.remark
                                     ? ` | ${item.remark}`
                                     : ""
@@ -389,14 +394,18 @@ export default function PointHistory() {
                                     ? ` | ${item.page}`
                                     : ""}
                               </p>
-                              <p className="text-gray-700 text-xs sarabun-font">
-                                รหัสรางวัล : {item.reward_code}
-                              </p>
-                              <p className="text-gray-700 text-xs sarabun-font line-clamp-2 break-words mb-2 leading-relaxed">
-                                ชื่อรางวัล : {item.reward_name}
-                              </p>
+                              {!cutPoint && (
+                                <>
+                                  <p className="text-gray-700 text-xs sarabun-font">
+                                    รหัสรางวัล : {item.reward_code}
+                                  </p>
+                                  <p className="text-gray-700 text-xs sarabun-font line-clamp-2 break-words mb-2 leading-relaxed">
+                                    ชื่อรางวัล : {item.reward_name}
+                                  </p>
+                                </>
+                              )}
                               <div className="flex items-center gap-2 flex-wrap">
-                                {(() => {
+                                {!cutPoint && (() => {
                                   const status = getStatusInfo(item.status_tran);
                                   return (
                                     <BadgeStatus
