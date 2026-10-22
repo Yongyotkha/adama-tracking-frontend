@@ -375,8 +375,19 @@ export default function PointHistory() {
                           {/* use */}
                           {activeTab === "use" && (
                             <>
-                              <p className="text-gray-500 text-sm sarabun-font">
-                                {item.created_at.split(".")[0]} | {item.page}
+                              <p className="text-gray-500 text-sm sarabun-font break-words">
+                                {item.created_at.split(".")[0]}
+                                {["cut-point", "cut point"].includes(
+                                  String(item.type || item.page || "")
+                                    .toLowerCase()
+                                    .trim()
+                                )
+                                  ? item.remark
+                                    ? ` | ${item.remark}`
+                                    : ""
+                                  : item.page
+                                    ? ` | ${item.page}`
+                                    : ""}
                               </p>
                               <p className="text-gray-700 text-xs sarabun-font">
                                 รหัสรางวัล : {item.reward_code}
