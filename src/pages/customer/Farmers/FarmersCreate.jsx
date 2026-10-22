@@ -857,7 +857,12 @@ export default function FarmersCreate() {
         navigate("/customer/farmers");
       }
     } catch (error) {
-      if (error?.errorFields) return;
+      if (error?.errorFields) {
+        if (error.errorFields.some((field) => field.name?.[0] === "name")) {
+          setActiveTab("profile");
+        }
+        return;
+      }
       showNotification(
         "error",
         error.response?.data?.message || error.message || "Save failed"
@@ -912,7 +917,17 @@ export default function FarmersCreate() {
           </Col>
 
           <Col xs={24} md={6}>
-            <Form.Item label="Name - Surname (TH)" name="name">
+            <Form.Item
+              label="Name - Surname (TH)"
+              name="name"
+              rules={[
+                {
+                  required: true,
+                  whitespace: true,
+                  message: "Please enter Name - Surname",
+                },
+              ]}
+            >
               <Input disabled={isViewMode} placeholder="Enter Name - Surname (TH)" />
             </Form.Item>
           </Col>
