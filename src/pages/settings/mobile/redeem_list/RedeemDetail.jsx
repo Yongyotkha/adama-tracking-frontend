@@ -296,7 +296,7 @@ export default function RedeemDetail() {
   // โหมดจาก API / list (RFA/RFR/RFW) เพื่อคุมปุ่ม
   const currentMode = (detail?.status_code || location?.state?.mode || "").toUpperCase();
   const isRFW = currentMode === "RFW";
-  const canSendToPurchase = [1, 2].includes(Number(userInfo?.role_id));
+  const canSendToPurchase = [1, 2, 20].includes(Number(userInfo?.role_id));
 
   return (
     <MainLayout loading={loading}>
