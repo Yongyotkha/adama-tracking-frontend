@@ -81,6 +81,8 @@ import ActivityPlanList from "./pages/activity/activity_plan/ActivityPlanList";
 import ActivityCalendar from "./pages/activity/calendar/ActivityCalendar";
 import ActivityMapping from "./pages/activity/mapping/ActivityMapping";
 import WorkPlanSaleBySubDealer from "./pages/sale_plan/workplan/WorkPlanSaleBySubDealer";
+import FarmerSalesPlanList from "./pages/sale_plan/farmer_sales_plan/FarmerSalesPlanList";
+import FarmerSalesPlanCreate from "./pages/sale_plan/farmer_sales_plan/FarmerSalesPlanCreate";
 import RollingForecastQuarter from "./pages/sale_plan/rolling_forecast/RollingForecastQuarter";
 import RollingForecastTempUpload from "./pages/sale_plan/rolling_forecast/RollingForecastTempUpload";
 import RollingForecastTempList from "./pages/sale_plan/rolling_forecast/RollingForecastTempList";
@@ -282,6 +284,11 @@ const App = () => {
             <Route
               path="/sale-plan/work-plan-sale/sale-by-subdealer"
               element={<WorkPlanSaleBySubDealer />}
+            />
+            <Route path="/sale-plan/farmer-sales-plan" element={<FarmerSalesPlanList />} />
+            <Route
+              path="/sale-plan/farmer-sales-plan/create"
+              element={<FarmerSalesPlanCreate />}
             />
 
             {/* Rolling Rorecast Route */}
