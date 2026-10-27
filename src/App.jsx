@@ -26,6 +26,8 @@ import SettingSale from "./pages/settings/sale/SettingSale";
 import CreateSale from "./pages/settings/sale/CreateSale";
 import EditSale from "./pages/settings/sale/EditSale";
 import TerritoryTransfer from "./pages/settings/territory/TerritoryTransfer";
+import TerritoryList from "./pages/settings/territory/TerritoryList";
+import TerritoryForm from "./pages/settings/territory/TerritoryForm";
 import SettingProduct from "./pages/settings/product/SettingProduct";
 import EditProduct from "./pages/settings/product/EditProduct";
 import SettingPromotion from "./pages/settings/promotion/SettingPromotion";
@@ -511,6 +513,9 @@ const App = () => {
               path="/setting/territory-transfer"
               element={<TerritoryTransfer />}
             />
+            <Route path="/setting/territory" element={<TerritoryList />} />
+            <Route path="/setting/territory/create" element={<TerritoryForm />} />
+            <Route path="/setting/territory/edit" element={<TerritoryForm />} />
             <Route path="/setting/product" element={<SettingProduct />} />
             <Route path="/setting/product/create" element={<EditProduct />} />
             <Route path="/setting/product/view" element={<EditProduct />} />

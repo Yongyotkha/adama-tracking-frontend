@@ -202,6 +202,10 @@ export const paths = {
   pathTerritoryTransferSwap: "territory-transfer/swap",
   pathTerritoryTransferResign: "territory-transfer/resign",
   pathTerritoryTransferChangeRole: "territory-transfer/change-role",
+  pathTerritoryDetail: "territory/detail",
+  pathTerritoryDealers: "territory/dealers",
+  pathTerritoryCreate: "territory/create",
+  pathTerritoryUpdate: "territory/update",
 
   pathMasterTime: "master/time",
   pathMasterProducts: "master/product",
