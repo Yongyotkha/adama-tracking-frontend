@@ -232,12 +232,11 @@ const AdvanceExpensePDF = () => {
 
   const effectiveActualExpense =
     getPageCode === "expense_clearing"
-      ? Number(dataHeader?.expense_actual || 0) + freeKeyTotal
+      ? freeKeyTotal
       : Number(dataHeader?.expense_actual || 0);
 
   const effectiveAdvanceExpense = Number(dataHeader?.expense_advance || 0);
-  const rawActualExpense = Number(dataHeader?.expense_actual || 0);
-  const returnBalance = effectiveAdvanceExpense - rawActualExpense;
+  const returnBalance = effectiveAdvanceExpense - effectiveActualExpense;
 
   return (
     <PDFViewer style={{ width: "100%", height: "100vh" }}>
