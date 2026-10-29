@@ -253,6 +253,20 @@ export default function CreateActivity() {
     0
   );
 
+  const isClearingExpense = pageCode === "expense_clearing";
+  const displayedActualExpense = isClearingExpense
+    ? freeKeyTotal
+    : toNumber(activityDetail.expense_actual, 0);
+
+  useEffect(() => {
+    if (!isClearingExpense) return;
+    expenseForm.setFieldsValue({ actual_expense: freeKeyTotal });
+    setActivityDetail((prev) => {
+      if (toNumber(prev.expense_actual, 0) === freeKeyTotal) return prev;
+      return { ...prev, expense_actual: freeKeyTotal };
+    });
+  }, [isClearingExpense, freeKeyTotal]);
+
   const handleFreeKeyChange = (index, field, value) => {
     setActivityDetail((prev) => {
       const rows = normalizeFreeKeyRows(prev.freekey);
@@ -599,10 +613,17 @@ export default function CreateActivity() {
           0
         );
 
+        const loadedFreeKeyRows = ensureFreeKeyRows(clearingFreeKeyRows);
+        const loadedFreeKeyTotal = loadedFreeKeyRows.reduce(
+          (sum, row) => sum + toNumber(row.value, 0),
+          0
+        );
+
         const normalized = {
           ...d,
           expense_advance: toNumber(d.expense_advance, 0),
-          expense_actual: toNumber(d.expense_actual, 0),
+          expense_actual:
+            pageCode === "expense_clearing" ? loadedFreeKeyTotal : toNumber(d.expense_actual, 0),
           expense_participant_estimate: toNumber(d.expense_participant_estimate, 0),
           expense_particapant_actual: toNumber(d.expense_particapant_actual, 0),
 
@@ -617,7 +638,7 @@ export default function CreateActivity() {
 
           // ✅ normalize list rows (สำคัญมากสำหรับ InputNumber ใน table)
           expense_product_data_list: normalizedProductList,
-          freekey: ensureFreeKeyRows(clearingFreeKeyRows),
+          freekey: loadedFreeKeyRows,
         };
 
         const productListIds = d.product_list.map((p) => p.id);
@@ -800,6 +821,7 @@ export default function CreateActivity() {
         assing_user_list: userListIds,
         expense_product_data_list: d?.expense_product_data_list || [],
         freekey: ensureFreeKeyRows([]),
+        expense_actual: pageCode === "expense_clearing" ? 0 : toNumber(d?.expense_actual, 0),
       }));
 
       formCustom.setFieldsValue({
@@ -818,7 +840,7 @@ export default function CreateActivity() {
 
       expenseForm.setFieldsValue({
         advance_expense: toNumber(d?.expense_advance, 0),
-        actual_expense: toNumber(d?.expense_actual, 0),
+        actual_expense: pageCode === "expense_clearing" ? 0 : toNumber(d?.expense_actual, 0),
       });
 
       participantForm.setFieldsValue({
@@ -1530,6 +1552,7 @@ export default function CreateActivity() {
         particapant_list: particapantList,
         document_date: allValuesBasic.document_date,
         freekey: buildFreeKeyPayload(activityDetail.freekey),
+        expense_actual: isClearingExpense ? freeKeyTotal : toNumber(activityDetail.expense_actual, 0),
       };
 
       if (documentNumber) {
@@ -1611,7 +1634,7 @@ export default function CreateActivity() {
   };
 
   const adv = toNumber(activityDetail.expense_advance, 0);
-  const act = toNumber(activityDetail.expense_actual, 0);
+  const act = displayedActualExpense;
 
   let return_to_company = 0;
   let return_to_staff = 0;
@@ -1719,10 +1742,13 @@ export default function CreateActivity() {
                       min={0}
                       // formatter={(value) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
                       formatter={moneyFormatter}
-                      value={toNumber(activityDetail.expense_actual, 0)}
-                      onChange={(value) => setActivityDetail({ ...activityDetail, expense_actual: toNumber(value, 0) })}
-
+                      value={displayedActualExpense}
+                      onChange={(value) => {
+                        if (isClearingExpense) return;
+                        setActivityDetail({ ...activityDetail, expense_actual: toNumber(value, 0) });
+                      }}
                       disabled={
+                        isClearingExpense ||
                         !canEdit ||
                         (pageCode != "expense_clearing" || mode === "create"
                           ? pageCode !== "expense_clearing"
