@@ -435,6 +435,7 @@ export const paths = {
   pathReportActivityByMonth: "/report/activity/month",
   pathReportActivityExpense: "/report/activity/expense",
   pathReportActivityType: "/report/activity/type",
+  pathReportActivityTypeExport: "/report/activity/type/export",
   pathReportStock: "/report/stock",
   pathReportSaleHistory: "/report/sale_point_item",
   pathReportSellOut: "/report/stock_group",

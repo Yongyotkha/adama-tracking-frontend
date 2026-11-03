@@ -1,9 +1,8 @@
-import React, { useContext, useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import MainLayout from "../../layouts/MainLayout";
 import BoxPrimary from "../../components/box_primary/BoxPrimary";
 import TableCustomComponent from "../../components/table/TableCustomComponent";
 import { InputNumber, Table, Form, Row, Col, Select } from "antd";
-import { useLocation, useNavigate } from "react-router-dom";
 import useServiceAPI from "../../services/CorsService";
 import { paths } from "../../services/CorsPath";
 import { AuthContext } from "../../contexts/AuthContext";
@@ -18,8 +17,6 @@ dayjs.extend(utc);
 dayjs.extend(timezone);
 
 export default function ReportActivityByType() {
-  const navigate = useNavigate();
-  const location = useLocation();
   const { showNotification } = useContext(AuthContext);
 
   const [formCustom] = Form.useForm();
@@ -419,6 +416,17 @@ export default function ReportActivityByType() {
       .replace(/\s+/g, "_");
   };
 
+  const buildExportParams = () => {
+    const values = formCustom.getFieldsValue();
+    const yearCode = values.year_code ?? defaultYear ?? tableParams.filters?.year_code;
+
+    return {
+      ...(yearCode != null ? { year_code: yearCode } : {}),
+      ...(values.user_id ? { user_id: Number(values.user_id) } : {}),
+      ...(values.area_id ? { area_id: Number(values.area_id) } : {}),
+    };
+  };
+
   const monthOptions = [
     { value: "01", label: "January" },
     { value: "02", label: "February" },
@@ -511,8 +519,7 @@ export default function ReportActivityByType() {
             <ExportActivityTypeExcelButton
               text="Export Excel"
               fileName={buildFileName()}
-              rows={dataSource}
-              totals={tableTotals}
+              params={buildExportParams()}
             />
           </div>
         </BoxPrimary>
