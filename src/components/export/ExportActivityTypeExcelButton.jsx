@@ -1,7 +1,6 @@
 // src/components/export/ExportActivityTypeExcelButton.jsx
 import { useContext, useState } from "react";
 import PropTypes from "prop-types";
-import { saveAs } from "file-saver";
 import DynamicButton from "../../components/button/DynamicButton";
 import { axiosInstance } from "../../services/CorsService";
 import { paths } from "../../services/CorsPath";
@@ -32,7 +31,17 @@ export default function ExportActivityTypeExcelButton({
         params: { ...params, platform: "web" },
         responseType: "blob",
       });
-      saveAs(response.data, `${safeFileName(fileName)}.xlsx`);
+      const blob = new Blob([response.data], {
+        type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+      });
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `${safeFileName(fileName)}.xlsx`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      setTimeout(() => window.URL.revokeObjectURL(url), 1000);
     } catch (err) {
       console.error(err);
       showNotification?.("error", err.message || "Export ไม่สำเร็จ");
