@@ -139,7 +139,7 @@ export default function TerritoryForm() {
       onOk: async () => {
         try {
           const response = await useServiceAPI.put(paths.pathTerritoryRemoveDealer, {
-            territory_id: toNumberId(territoryId),
+            id: toNumberId(territoryId),
             dealer_id: record.dealer_id,
           });
           if (!isSuccess(response)) {
@@ -268,9 +268,14 @@ export default function TerritoryForm() {
               </Form.Item>
             </Col>
             <Col xs={24} md={8}>
-              <Form.Item label="Area" name="area_id">
+              <Form.Item
+                label="Area"
+                name="area_id"
+                rules={[{ required: true, message: "Please select area" }]}
+              >
                 <Select
-                  allowClear
+                  disabled={isEdit}
+                  allowClear={!isEdit}
                   showSearch
                   optionFilterProp="label"
                   options={areaOptions}
