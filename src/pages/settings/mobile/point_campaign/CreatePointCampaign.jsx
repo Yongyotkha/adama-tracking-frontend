@@ -919,7 +919,8 @@ export default function CreatePointCampaign() {
       if (productModeNum === 3) payload.products = productIds;
 
       if (typeNum === 3) {
-        payload.xpoint = Number(values.campaign_value || 0);
+        payload.xpoint =
+          Math.round(Number(values.campaign_value || 0) * 100) / 100;
         if (!payload.xpoint) throw new Error("กรุณากรอก X Point ให้ถูกต้อง");
       } else if (typeNum === 1) {
         if (!extraRows)
@@ -1147,12 +1148,21 @@ export default function CreatePointCampaign() {
               {campaignMode === "xpoint" && (
                 <Form.Item
                   name="campaign_value"
-                  rules={[{ required: true, message: "Please enter a number" }]}
+                  rules={[
+                    { required: true, message: "Please enter a number" },
+                    {
+                      validator: (_, v) =>
+                        v == null || /^\d+(\.\d{1,2})?$/.test(String(v))
+                          ? Promise.resolve()
+                          : Promise.reject(new Error("ทศนิยมได้ไม่เกิน 2 ตำแหน่ง")),
+                    },
+                  ]}
                 >
                   <InputNumber
                     style={{ width: 160 }}
                     placeholder="Enter point (X)"
                     min={0}
+                    step={0.01}
                   />
                 </Form.Item>
               )}
