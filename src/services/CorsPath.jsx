@@ -210,6 +210,10 @@ export const paths = {
   pathTerritoryAvailableDealers: "territory/available-dealers",
   pathTerritoryChangeStatus: "territory/change-status",
   pathTerritoryRemoveDealer: "territory/remove-dealer",
+  pathFarmerSalesPlanList: "farmer-sales-plan/list",
+  pathFarmerSalesPlanMappings: "farmer-sales-plan/mappings",
+  pathFarmerSalesPlanDetail: "farmer-sales-plan/detail",
+  pathFarmerSalesPlanSave: "farmer-sales-plan/save",
 
   pathMasterTime: "master/time",
   pathMasterProducts: "master/product",

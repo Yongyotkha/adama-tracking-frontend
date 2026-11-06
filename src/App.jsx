@@ -290,6 +290,8 @@ const App = () => {
               path="/sale-plan/farmer-sales-plan/create"
               element={<FarmerSalesPlanCreate />}
             />
+            <Route path="/sale-plan/farmer-sales-plan/edit" element={<FarmerSalesPlanCreate />} />
+            <Route path="/sale-plan/farmer-sales-plan/view" element={<FarmerSalesPlanCreate />} />
 
             {/* Rolling Rorecast Route */}
             <Route
