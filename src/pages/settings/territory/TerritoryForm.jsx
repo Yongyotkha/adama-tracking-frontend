@@ -26,6 +26,8 @@ const firstText = (row, keys) => {
   return "";
 };
 
+const toId = (value) => (value == null || value === "" ? undefined : String(value));
+
 const dealerIdsOf = (detail) => {
   if (!detail) return [];
   if (Array.isArray(detail.dealer_ids)) return detail.dealer_ids.filter((id) => id != null);
@@ -39,6 +41,8 @@ export default function TerritoryForm() {
   const { showMsg } = useContext(AuthContext);
   const [form] = Form.useForm();
   const isEdit = location.pathname.endsWith("/edit");
+  const isView = location.pathname.endsWith("/view");
+  const isExisting = isEdit || isView;
   const record = location.state?.record;
 
   const [loading, setLoading] = useState(false);
@@ -46,6 +50,7 @@ export default function TerritoryForm() {
   const [areas, setAreas] = useState([]);
   const [dealers, setDealers] = useState([]);
   const [areaSaleIds, setAreaSaleIds] = useState([]);
+  const [currentArea, setCurrentArea] = useState(null);
   const [dealerLoading, setDealerLoading] = useState(false);
   const [keyword, setKeyword] = useState("");
   const [selectedRowKeys, setSelectedRowKeys] = useState([]);
@@ -92,15 +97,18 @@ export default function TerritoryForm() {
   }, [showMsg]);
 
   useEffect(() => {
-    if (!isEdit || !record?.id) return;
+    if (!isExisting || !record?.id) return;
 
     const province = record.province === "-" ? "" : record.province;
     const name = record.territoryName === "-" ? "" : record.territoryName;
     form.setFieldsValue({
       territory_name: name || "",
       province: province || "",
-      area_id: record.areaId ?? undefined,
+      area_id: toId(record.areaId),
     });
+    if (record.areaId != null && record.area && record.area !== "-") {
+      setCurrentArea({ value: toId(record.areaId), label: record.area });
+    }
 
     const presetIds = []
       .concat(record.dealerIds || [], record.raw?.dealer_ids || [])
@@ -115,8 +123,14 @@ export default function TerritoryForm() {
         form.setFieldsValue({
           territory_name: detail.name || detail.territory_name || name || "",
           province: detail.province || detail.province_name || province || "",
-          area_id: detail.area_id ?? record.areaId ?? undefined,
+          area_id: toId(detail.area_id ?? record.areaId),
         });
+        const detailAreaName =
+          firstText(detail, ["area_name", "sale_area_name"]) ||
+          firstText(detail.area, ["name", "area_name"]);
+        if (detail.area_id != null && detailAreaName) {
+          setCurrentArea({ value: toId(detail.area_id), label: detailAreaName });
+        }
         setSelectedRowKeys(dealerIdsOf(detail));
       } catch {
         // Detail API is optional until the backend ships it.
@@ -124,7 +138,7 @@ export default function TerritoryForm() {
     };
 
     loadDetail();
-  }, [form, isEdit, record]);
+  }, [form, isExisting, record]);
 
   useEffect(() => {
     if (!areaId) {
@@ -160,24 +174,29 @@ export default function TerritoryForm() {
     };
   }, [areaId, showMsg]);
 
-  const areaOptions = useMemo(
-    () =>
-      areas
-        .map((area) => ({
-          value: area.id ?? area.area_id,
-          label: firstText(area, ["name", "area_name", "sale_area_name"]),
-        }))
-        .filter((area) => area.value != null && area.label),
-    [areas]
-  );
+  const areaOptions = useMemo(() => {
+    const options = areas
+      .map((area) => ({
+        value: toId(area.id ?? area.area_id),
+        label: firstText(area, ["name", "area_name", "sale_area_name"]),
+      }))
+      .filter((area) => area.value != null && area.label);
+    // Keep the territory's own area visible even if master/areas doesn't return it.
+    if (currentArea && !options.some((option) => option.value === currentArea.value)) {
+      options.unshift(currentArea);
+    }
+    return options;
+  }, [areas, currentArea]);
 
   const dealerRows = useMemo(() => {
     if (!areaId) return [];
     const saleIds = new Set(areaSaleIds.map(String));
+    const selectedIds = new Set(selectedRowKeys.map(String));
     const query = keyword.trim().toLowerCase();
 
     return dealers
       .filter((item) => {
+        if (isView && !selectedIds.has(String(item.id ?? item.dealer_id))) return false;
         const saleId = item.sale_id ?? item.user_id;
         if (saleId == null || !saleIds.has(String(saleId))) return false;
         if (!query) return true;
@@ -190,7 +209,7 @@ export default function TerritoryForm() {
         dealer: firstText(item, ["dealer_name_en", "dealer_name_th", "dealer_name", "name"]) || "-",
         address: firstText(item, ["address", "contact_address"]) || "-",
       }));
-  }, [areaId, areaSaleIds, dealers, keyword]);
+  }, [areaId, areaSaleIds, dealers, keyword, isView, selectedRowKeys]);
 
   const pageCurrent = tableParams.pagination.current || 1;
   const pageSize = tableParams.pagination.pageSize || 10;
@@ -224,7 +243,7 @@ export default function TerritoryForm() {
       const payload = {
         name: values.territory_name,
         province: values.province || "",
-        area_id: values.area_id,
+        area_id: Number.isNaN(Number(values.area_id)) ? values.area_id : Number(values.area_id),
         dealer_ids: selectedRowKeys,
       };
       if (isEdit) payload.id = record?.id;
@@ -261,10 +280,10 @@ export default function TerritoryForm() {
 
   return (
     <MainLayout loading={loading || saving}>
-      <div className="title-page">{isEdit ? "Edit Territory" : "Create Territory"}</div>
+      <div className="title-page">{isView ? "View Territory" : isEdit ? "Edit Territory" : "Create Territory"}</div>
 
       <BoxPrimary>
-        <Form form={form} layout="vertical">
+        <Form form={form} layout="vertical" disabled={isView}>
           <Row gutter={24}>
             <Col xs={24} md={8}>
               <Form.Item
@@ -324,7 +343,7 @@ export default function TerritoryForm() {
         <TableComponent
           header={header}
           dataSource={pagedDealerRows}
-          rowSelection={rowSelection}
+          rowSelection={isView ? undefined : rowSelection}
           loading={dealerLoading}
           pagination={{
             ...tableParams.pagination,
@@ -353,7 +372,9 @@ export default function TerritoryForm() {
 
       <div className="mt-4 flex justify-end gap-3">
         <ActionButton mode="back" text="Back" onClick={() => navigate("/setting/territory")} />
-        <ActionButton mode="save" text="Save" disabled={saving} onClick={handleSave} />
+        {!isView && (
+          <ActionButton mode="save" text="Save" disabled={saving} onClick={handleSave} />
+        )}
       </div>
     </MainLayout>
   );

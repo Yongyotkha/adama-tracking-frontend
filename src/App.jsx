@@ -523,6 +523,7 @@ const App = () => {
             <Route path="/setting/territory" element={<TerritoryList />} />
             <Route path="/setting/territory/create" element={<TerritoryForm />} />
             <Route path="/setting/territory/edit" element={<TerritoryForm />} />
+            <Route path="/setting/territory/view" element={<TerritoryForm />} />
             <Route path="/setting/product" element={<SettingProduct />} />
             <Route path="/setting/product/create" element={<EditProduct />} />
             <Route path="/setting/product/view" element={<EditProduct />} />

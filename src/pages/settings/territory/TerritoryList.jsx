@@ -120,6 +120,12 @@ export default function TerritoryList() {
     navigate("/setting/territory/create", { state: { mode: "create" } });
   };
 
+  const openView = (record) => {
+    navigate("/setting/territory/view", {
+      state: { mode: "view", id: record.id, record },
+    });
+  };
+
   const openEdit = (record) => {
     navigate("/setting/territory/edit", {
       state: { mode: "edit", id: record.id, record },
@@ -170,6 +176,10 @@ export default function TerritoryList() {
         <Dropdown
           menu={{
             items: [
+              {
+                key: "view",
+                label: <ItemDropDown mode="view" onClick={() => openView(record)} />,
+              },
               {
                 key: "edit",
                 label: <ItemDropDown mode="edit" onClick={() => openEdit(record)} />,
