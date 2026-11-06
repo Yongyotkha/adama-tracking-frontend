@@ -92,6 +92,11 @@ export default function CreateSale() {
       areaName: areaName || null,
       roleId: item.role_id || null,
       isPending: Boolean(item.is_pending) || /รอสรรหา/i.test(item.name || ""),
+      // Same query as the "+" (Add Sale Team) button: unassigned people for this slot.
+      freeUserQuery: {
+        area_id: areaId,
+        role_id: [item.position_id, item.department_id],
+      },
       team: (item.sub_items || []).map((subItem) => ({
         name: subItem.name,
         position: subItem.position_name,

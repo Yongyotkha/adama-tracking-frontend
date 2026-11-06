@@ -109,7 +109,6 @@ export default function SaleTeamSettingModal({
   const [saving, setSaving] = useState(false);
   const [replacementId, setReplacementId] = useState(undefined);
   const [targetUserId, setTargetUserId] = useState(undefined);
-  const [newRoleId, setNewRoleId] = useState(undefined);
   const [targetAreaId, setTargetAreaId] = useState(undefined);
   const [targetTerritoryId, setTargetTerritoryId] = useState(undefined);
 
@@ -123,7 +122,6 @@ export default function SaleTeamSettingModal({
     setAction("resign");
     setReplacementId(undefined);
     setTargetUserId(undefined);
-    setNewRoleId(undefined);
     setTargetAreaId(undefined);
     setTargetTerritoryId(undefined);
   }, [open, record]);
@@ -146,6 +144,17 @@ export default function SaleTeamSettingModal({
   }, [users, territories, record]);
 
   const sourceActive = Boolean(context.userId) && !context.pending;
+  // Vacant slot (รอสรรหา): each mode pulls a real person INTO this slot.
+  const vacantMode = Boolean(context.userId) && context.pending;
+  const vacantRoleId = MANAGED_ROLES.includes(Number(context.roleId))
+    ? Number(context.roleId)
+    : ROLE.SALES;
+  const [pickUserId, setPickUserId] = useState(undefined);
+  useEffect(() => {
+    if (!open) return;
+    setPickUserId(undefined);
+    if (vacantMode) setAction("role");
+  }, [open, record, vacantMode]);
   const roleKnown = MANAGED_ROLES.includes(Number(context.roleId));
   const inArea = (user) =>
     !context.areaId || !user.area_id || samePlace(user.area_id, context.areaId);
@@ -176,6 +185,142 @@ export default function SaleTeamSettingModal({
     [users, context.userId, context.territoryId, record]
   );
 
+  const personOption = (user, withArea = false) => {
+    const position = user.position_name || user.role_name || roleName(roles, user.role_id);
+    const place = [withArea ? user.area_name : null, user.territory_name].filter(Boolean).join(" / ");
+    return {
+      value: user.id,
+      roleId: Number(user.role_id),
+      label: `${user.name} (${position}${place ? ` / ${place}` : ""})`,
+    };
+  };
+  const isRealManaged = (user) =>
+    !isPendingUser(user) && MANAGED_ROLES.includes(Number(user.role_id));
+
+  // Unassigned people from the "+" (Add Sale Team) list, for vacant slots.
+  const [freeUsers, setFreeUsers] = useState([]);
+  const [freeLoading, setFreeLoading] = useState(false);
+  useEffect(() => {
+    if (!open || !vacantMode || !record?.freeUserQuery) {
+      setFreeUsers([]);
+      return undefined;
+    }
+    let cancelled = false;
+    setFreeLoading(true);
+    useServiceAPI
+      .get(paths.pathMasterUserlist, { ...record.freeUserQuery, page_size: 1, page_length: 500 })
+      .then((res) => {
+        if (cancelled) return;
+        const list = res?.data?.data || res?.data || [];
+        setFreeUsers((Array.isArray(list) ? list : []).filter((u) => !u.is_assign_sale));
+      })
+      .catch(() => {
+        if (!cancelled) setFreeUsers([]);
+      })
+      .finally(() => {
+        if (!cancelled) setFreeLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [open, vacantMode, record]);
+
+  // ย้ายเขต: same role, same area, other territory -> move into this slot,
+  // plus unassigned people from the Add Sale Team list.
+  const vacantMoveOptions = useMemo(() => {
+    if (!vacantMode) return [];
+    const inTeam = users
+      .filter(
+        (u) =>
+          isRealManaged(u) &&
+          Number(u.role_id) === vacantRoleId &&
+          inArea(u) &&
+          !inTerritory(u)
+      )
+      .map((u) => personOption(u));
+    const seen = new Set(inTeam.map((o) => String(o.value)));
+    const free = freeUsers
+      .filter((u) => u.id != null && !isPendingUser(u) && !seen.has(String(u.id)))
+      .map((u) => personOption({ ...(matchUser(users, u) || {}), ...u }));
+    return [
+      ...(inTeam.length ? [{ label: "Sales ในทีม (คนละเขต)", options: inTeam }] : []),
+      ...(free.length ? [{ label: "พนักงานที่ยังไม่มีทีม (Add Sale Team)", options: free }] : []),
+    ];
+  }, [vacantMode, users, freeUsers, vacantRoleId, context.areaId, context.territoryId, roles]);
+
+
+  // ย้ายเขตข้าม Area: Sales from another area -> into this slot.
+  const vacantCrossOptions = useMemo(
+    () =>
+      vacantMode
+        ? users
+            .filter(
+              (u) =>
+                isRealManaged(u) &&
+                Number(u.role_id) === ROLE.SALES &&
+                context.areaId &&
+                u.area_id &&
+                !samePlace(u.area_id, context.areaId)
+            )
+            .map((u) => personOption(u, true))
+        : [],
+    [vacantMode, users, context.areaId, roles]
+  );
+
+  // ---- ปรับตำแหน่ง: person in this territory -> existing vacant slot in this territory.
+  const [rolePersonId, setRolePersonId] = useState(undefined);
+  const [roleSlotId, setRoleSlotId] = useState(undefined);
+
+  const territoryMembers = useMemo(() => {
+    const byId = new Map();
+    const add = (user) => {
+      if (user?.id != null && !byId.has(String(user.id))) byId.set(String(user.id), user);
+    };
+    if (context.user) add(context.user);
+    (record?.team || []).forEach((p) => add(matchUser(users, p)));
+    users.filter((u) => MANAGED_ROLES.includes(Number(u.role_id)) && inTerritory(u)).forEach(add);
+    return [...byId.values()];
+  }, [users, record, context.user, context.territoryId]);
+
+  const territoryPeople = useMemo(
+    () =>
+      territoryMembers
+        .filter((u) => !isPendingUser(u) && MANAGED_ROLES.includes(Number(u.role_id)))
+        .map((u) => {
+          const position = u.position_name || u.role_name || roleName(roles, u.role_id);
+          return { value: u.id, roleId: Number(u.role_id), position, label: `${u.name} (${position})` };
+        }),
+    [territoryMembers, roles]
+  );
+  const rolePerson = territoryPeople.find((p) => samePlace(p.value, rolePersonId));
+
+  const territorySlots = useMemo(() => {
+    if (!rolePerson) return [];
+    return territoryMembers
+      .filter((u) => isPendingUser(u) && Number(u.role_id) !== rolePerson.roleId)
+      .map((u) => ({
+        value: u.id,
+        roleId: Number(u.role_id),
+        label: `${u.position_name || roleName(roles, u.role_id)} รอสรรหา`,
+      }));
+  }, [territoryMembers, rolePerson, roles]);
+  const roleSlotPick = territorySlots.find((s) => samePlace(s.value, roleSlotId));
+
+  // Default the person to the row that was clicked (when it's a real person).
+  useEffect(() => {
+    if (!open) return;
+    setRoleSlotId(undefined);
+    setRolePersonId(sourceActive ? context.userId : undefined);
+  }, [open, record, sourceActive, context.userId]);
+
+  const vacantOptionsFor = (mode) => {
+    if (mode === "move") return vacantMoveOptions;
+    if (mode === "move-area") return vacantCrossOptions;
+    return [];
+  };
+  const flatVacant = vacantOptionsFor(action).flatMap((o) => o.options || [o]);
+  const pickedUser = flatVacant.find((o) => samePlace(o.value, pickUserId));
+
   const pendingAreaSlots = useMemo(
     () =>
       users
@@ -195,35 +340,7 @@ export default function SaleTeamSettingModal({
     [users, context.userId, context.areaId, context.territoryId]
   );
 
-  const roleOnlyChange =
-    MANAGED_ROLES.includes(Number(context.roleId)) &&
-    MANAGED_ROLES.includes(Number(newRoleId)) &&
-    Number(context.roleId) !== ROLE.SALES &&
-    Number(newRoleId) !== ROLE.SALES;
 
-  const positionRoles = useMemo(
-    () =>
-      MANAGED_ROLES.filter((roleId) => !samePlace(roleId, context.roleId)).map((roleId) => ({
-        value: roleId,
-        label: roleName(roles, roleId),
-      })),
-    [roles, context.roleId]
-  );
-
-  const pendingRoleSlots = useMemo(() => {
-    if (!newRoleId || roleOnlyChange) return [];
-    return users
-      .filter((user) => {
-        if (!isPendingUser(user)) return false;
-        if (!samePlace(user.role_id, newRoleId)) return false;
-        if (!inArea(user) || !inTerritory(user)) return false;
-        return true;
-      })
-      .map((user) => ({
-        value: user.id,
-        label: user.name,
-      }));
-  }, [users, newRoleId, roleOnlyChange, context.areaId, context.territoryId]);
 
   const otherAreas = useMemo(
     () => areas.filter((item) => !samePlace(item.id, context.areaId)),
@@ -246,18 +363,19 @@ export default function SaleTeamSettingModal({
 
   const replacement = replacementOptions.find((item) => samePlace(item.value, replacementId));
   const areaSlot = pendingAreaSlots.find((item) => samePlace(item.value, targetUserId));
-  const roleSlot = pendingRoleSlots.find((item) => samePlace(item.value, targetUserId));
   const targetArea = otherAreas.find((item) => samePlace(item.id, targetAreaId));
   const targetTerritory = crossTerritories.find((item) => samePlace(item.id, targetTerritoryId));
 
   const destinationText = () => {
+    if (action === "role") {
+      if (!rolePerson) return "-";
+      return `${rolePerson.label} → ${roleSlotPick?.label || "-"} / ${record?.territory || "-"}`;
+    }
+    if (vacantMode) {
+      return `${record?.name || "-"} / ${roleName(roles, vacantRoleId)} / ${record?.territory || "-"}`;
+    }
     if (action === "resign") return replacement?.label || "ไม่ระบุคนแทน";
     if (action === "move") return areaSlot?.label || "-";
-    if (action === "role") {
-      const roleLabel = newRoleId ? roleName(roles, newRoleId) : "-";
-      if (roleOnlyChange) return `${roleLabel} (เปลี่ยน Role อย่างเดียว)`;
-      return roleSlot ? `${roleLabel} - ${roleSlot.label}` : roleLabel;
-    }
     const areaLabel = targetArea?.name || "-";
     const territoryLabel = targetTerritory?.name || "-";
     return `${areaLabel} / ${territoryLabel} / Sales (รอสรรหา)`;
@@ -265,15 +383,61 @@ export default function SaleTeamSettingModal({
 
   const changeAction = (value) => {
     setAction(value);
+    setPickUserId(undefined);
     setReplacementId(undefined);
     setTargetUserId(undefined);
-    setNewRoleId(undefined);
     setTargetAreaId(undefined);
     setTargetTerritoryId(undefined);
   };
 
   const handleOk = async () => {
     if (saving) return;
+    if (action === "role" || vacantMode) {
+      let body;
+      if (action === "role") {
+        // Move a person in this territory into an existing vacant slot (no new slot).
+        if (!rolePerson || !roleSlotPick) return;
+        body = {
+          mode: "CHANGE_POSITION",
+          user_id: asId(rolePerson.value),
+          target_role_id: roleSlotPick.roleId,
+          target_user_id: asId(roleSlotPick.value),
+        };
+      }
+      if (!body && !pickedUser) return;
+      const payloadByMode = {
+        move: pickedUser && {
+          mode: "TRANSFER_AREA",
+          user_id: asId(pickedUser.value),
+          target_user_id: asId(context.userId),
+        },
+        "move-area": pickedUser && {
+          mode: "TRANSFER_CROSS_AREA",
+          user_id: asId(pickedUser.value),
+          target_area_id: asId(context.areaId),
+          target_territory_id: asId(context.territoryId),
+          target_role_id: vacantRoleId,
+        },
+      };
+      setSaving(true);
+      try {
+        const res = await useServiceAPI.post(
+          paths.pathSaleManagementAction,
+          body || payloadByMode[action]
+        );
+        const accepted =
+          res?.status == null || res.status === true || Number(res.status) === 200;
+        if (!accepted) throw new Error(res.message || res.data?.message || "บันทึกไม่สำเร็จ");
+        showNotification("success", "บันทึกสำเร็จ", res?.message || res?.data?.message || "");
+        onClose?.();
+        onSuccess?.();
+      } catch (error) {
+        showNotification("error", "ไม่สำเร็จ", errorText(error, "บันทึกไม่สำเร็จ"));
+      } finally {
+        setSaving(false);
+      }
+      return;
+    }
     if (!sourceActive) {
       showNotification(
         "error",
@@ -298,19 +462,6 @@ export default function SaleTeamSettingModal({
           user_id: asId(context.userId),
           target_user_id: asId(targetUserId),
         };
-      }
-
-      if (action === "role") {
-        if (!newRoleId) throw new Error("เลือกตำแหน่งปลายทาง");
-        if (!roleOnlyChange && !targetUserId) {
-          throw new Error("เลือกตำแหน่ง รอสรรหา ใน Territory เดียวกัน");
-        }
-        payload = {
-          mode: "CHANGE_POSITION",
-          user_id: asId(context.userId),
-          target_role_id: asId(newRoleId),
-        };
-        if (!roleOnlyChange) payload.target_user_id = asId(targetUserId);
       }
 
       if (action === "move-area") {
@@ -348,12 +499,14 @@ export default function SaleTeamSettingModal({
     loading: optionsLoading,
   };
 
-  const canSubmit =
-    sourceActive &&
+  const canSubmit = action === "role"
+    ? !optionsLoading && Boolean(rolePerson && roleSlotPick)
+    : vacantMode
+    ? !optionsLoading && action !== "resign" && Boolean(pickedUser)
+    : sourceActive &&
     !optionsLoading &&
     (action === "resign" ||
       (action === "move" && targetUserId) ||
-      (action === "role" && roleKnown && newRoleId && (roleOnlyChange || targetUserId)) ||
       (action === "move-area" && roleKnown && targetAreaId && targetTerritoryId));
 
   return (
@@ -385,7 +538,12 @@ export default function SaleTeamSettingModal({
               <div className="font-medium text-gray-800">{record?.territory || "-"}</div>
             </div>
           </div>
-          {!sourceActive && (
+          {vacantMode && (
+            <p className="mt-2 text-xs text-[#00783F]">
+              ตำแหน่งนี้ว่าง (รอสรรหา) เลือกโหมดแล้วเลือกคนที่จะย้ายเข้ามาแทน
+            </p>
+          )}
+          {!sourceActive && !vacantMode && (
             <p className="mt-2 text-xs text-[#C47B16]">
               ต้องเป็นพนักงานจริงที่ Active และอยู่ในตำแหน่ง Sales, BDE หรือ Sales Assistant
             </p>
@@ -399,7 +557,7 @@ export default function SaleTeamSettingModal({
               value={action}
               onChange={(event) => changeAction(event.target.value)}
             >
-              <Radio value="resign">ลาออก</Radio>
+              <Radio value="resign" disabled={vacantMode}>ลาออก</Radio>
               <Radio value="move">ย้ายเขต</Radio>
               <Radio value="role">ปรับตำแหน่ง</Radio>
               <Radio value="move-area">ย้ายเขตข้าม Area</Radio>
@@ -407,7 +565,28 @@ export default function SaleTeamSettingModal({
           </div>
 
           <div className="flex flex-col p-4">
-            {action === "resign" && (
+            {vacantMode && action !== "resign" && action !== "role" && (
+              <div>
+                <label className="mb-1 block text-sm text-gray-600">
+                  {action === "move" && "เลือก Sales ใน Area เดียวกัน (คนละ Territory) มาแทน"}
+                  {action === "move-area" && "เลือก Sales จาก Area อื่นมาแทน"}
+                </label>
+                <Select
+                  {...selectProps}
+                  allowClear
+                  placeholder="เลือกพนักงาน"
+                  value={pickUserId}
+                  options={vacantOptionsFor(action)}
+                  loading={optionsLoading || freeLoading}
+                  onChange={setPickUserId}
+                />
+                {!optionsLoading && !freeLoading && !flatVacant.length && (
+                  <p className="mt-2 text-xs text-gray-400">ไม่มีพนักงานที่เลือกได้ในโหมดนี้</p>
+                )}
+              </div>
+            )}
+
+            {!vacantMode && action === "resign" && (
               <div>
                 <label className="mb-1 block text-sm text-gray-600">ขอแทนที่</label>
                 <Select
@@ -425,7 +604,7 @@ export default function SaleTeamSettingModal({
               </div>
             )}
 
-            {action === "move" && (
+            {!vacantMode && action === "move" && (
               <div>
                 <label className="mb-1 block text-sm text-gray-600">
                   ตำแหน่งปลายทาง (รอสรรหา)
@@ -449,47 +628,43 @@ export default function SaleTeamSettingModal({
             {action === "role" && (
               <div className="space-y-3">
                 <div>
-                  <label className="mb-1 block text-sm text-gray-600">ตำแหน่งปลายทาง</label>
+                  <label className="mb-1 block text-sm text-gray-600">รายชื่อ</label>
                   <Select
                     {...selectProps}
-                    placeholder="เลือกตำแหน่ง"
-                    value={newRoleId}
-                    options={positionRoles}
-                    disabled={!sourceActive || !roleKnown}
+                    placeholder="เลือกพนักงานในเขต"
+                    value={rolePersonId}
+                    options={territoryPeople}
                     onChange={(value) => {
-                      setNewRoleId(value);
-                      setTargetUserId(undefined);
+                      setRolePersonId(value);
+                      setRoleSlotId(undefined);
                     }}
                   />
+                  {rolePerson && (
+                    <p className="mt-1 text-xs text-gray-400">
+                      ตำแหน่งปัจจุบัน: {rolePerson.position}
+                    </p>
+                  )}
                 </div>
-                {newRoleId && roleOnlyChange && (
-                  <p className="text-xs text-gray-400">
-                    BDE กับ Sales Assistant เปลี่ยน Role อย่างเดียว
-                  </p>
-                )}
-                {newRoleId && !roleOnlyChange && (
-                  <div>
-                    <label className="mb-1 block text-sm text-gray-600">
-                      รอสรรหาใน Territory เดียวกัน
-                    </label>
-                    <Select
-                      {...selectProps}
-                      placeholder="เลือกตำแหน่ง รอสรรหา"
-                      value={targetUserId}
-                      options={pendingRoleSlots}
-                      onChange={setTargetUserId}
-                    />
-                    {!pendingRoleSlots.length && (
-                      <p className="mt-2 text-xs text-gray-400">
-                        ไม่มีตำแหน่ง รอสรรหา ของตำแหน่งนี้ใน Territory เดียวกัน
-                      </p>
-                    )}
-                  </div>
-                )}
+                <div>
+                  <label className="mb-1 block text-sm text-gray-600">ตำแหน่ง</label>
+                  <Select
+                    {...selectProps}
+                    placeholder="เลือกตำแหน่ง รอสรรหา ในเขต"
+                    value={roleSlotId}
+                    options={territorySlots}
+                    disabled={!rolePerson}
+                    onChange={setRoleSlotId}
+                  />
+                  {rolePerson && !territorySlots.length && (
+                    <p className="mt-2 text-xs text-gray-400">
+                      ไม่มีตำแหน่ง รอสรรหา ในเขตนี้ให้ย้ายไปแทน
+                    </p>
+                  )}
+                </div>
               </div>
             )}
 
-            {action === "move-area" && (
+            {!vacantMode && action === "move-area" && (
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
                 <div>
                   <label className="mb-1 block text-sm text-gray-600">Area</label>
@@ -582,6 +757,7 @@ SaleTeamSettingModal.propTypes = {
     roleId: idType,
     isPending: PropTypes.bool,
     team: PropTypes.array,
+    freeUserQuery: PropTypes.object,
   }),
   options: PropTypes.shape({
     areas: PropTypes.array,

@@ -146,19 +146,14 @@ export default function FarmerSalesPlanList() {
     { title: "No", dataIndex: "no", key: "no", width: 70, align: "center" },
     { title: "Farmer Name", dataIndex: "farmer_name", key: "farmer_name" },
     {
-      title: "Dealer / Sub Dealer",
+      title: "Dealer",
       key: "dealer",
-      render: (_, record) => {
-        const dealer = text(record.dealer_name);
-        const sub = text(record.sub_dealer_name);
-        if (!dealer && !sub) return "-";
-        return (
-          <div>
-            <div>{dealer || "-"}</div>
-            {sub && <div className="text-xs text-gray-500">{sub}</div>}
-          </div>
-        );
-      },
+      render: (_, record) => text(record.dealer_name) || "-",
+    },
+    {
+      title: "Sub Dealer",
+      key: "sub_dealer",
+      render: (_, record) => text(record.sub_dealer_name) || "-",
     },
     { title: "Year", dataIndex: "year_code", key: "year_code", width: 90, align: "center" },
     {
