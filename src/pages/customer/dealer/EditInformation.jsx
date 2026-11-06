@@ -265,6 +265,19 @@ export default function EditInformation() {
       col: 6,
       disabled: isViewMode,
     },
+    // Territory is managed from Setting > Territory, so it's display-only here.
+    ...(!isCreateMode
+      ? [
+          {
+            label: "Territory",
+            name: "territory_name",
+            type: "text",
+            required: false,
+            col: 6,
+            disabled: true,
+          },
+        ]
+      : []),
     {
       label: "Outlet Location Please select a location on the map",
       labelColor: "red",
@@ -365,6 +378,11 @@ export default function EditInformation() {
               ? Number(data.target_group)
               : undefined,
           outlet_location: data.location_address,
+          territory_name:
+            data.territory_name ||
+            data.territory?.name ||
+            (typeof data.territory === "string" ? data.territory : "") ||
+            "-",
         });
         setContactItems(data.contact_items);
         setProfileImage(data.photo_path);
