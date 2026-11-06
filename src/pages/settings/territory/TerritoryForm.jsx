@@ -1,178 +1,87 @@
-import { useContext, useEffect, useMemo, useState } from "react";
-import { Col, Form, Input, Row, Select } from "antd";
-import { SearchOutlined } from "@ant-design/icons";
+import { useCallback, useContext, useEffect, useMemo, useState } from "react";
+import { Button, Col, Form, Input, Modal, Row, Select, Tag } from "antd";
+import { DeleteOutlined, PlusOutlined, SearchOutlined } from "@ant-design/icons";
 import { useLocation, useNavigate } from "react-router-dom";
 import MainLayout from "../../../layouts/MainLayout";
 import BoxPrimary from "../../../components/box_primary/BoxPrimary";
 import TableComponent from "../../../components/table/TableComponent";
 import ActionButton from "../../../components/button/ActionButton";
+import BadgeStatus from "../../../components/badge/BadgeStatus";
 import useServiceAPI from "../../../services/CorsService";
 import { paths } from "../../../services/CorsPath";
 import { AuthContext } from "../../../contexts/AuthContext";
+import AddDealerModal from "./AddDealerModal";
+import {
+  apiError,
+  asList,
+  firstText,
+  isActive,
+  isSuccess,
+  mapDealer,
+  toId,
+  toNumberId,
+} from "./territoryShared";
 
-const asList = (body) => {
-  if (!body) return [];
-  if (Array.isArray(body)) return body;
-  if (Array.isArray(body.data)) return body.data;
-  if (Array.isArray(body.data?.data)) return body.data.data;
-  return [];
-};
-
-const firstText = (row, keys) => {
-  for (const key of keys) {
-    const value = row?.[key];
-    if (value != null && String(value).trim() !== "") return String(value);
-  }
-  return "";
-};
-
-const toId = (value) => (value == null || value === "" ? undefined : String(value));
-
-const dealerIdsOf = (detail) => {
-  if (!detail) return [];
-  if (Array.isArray(detail.dealer_ids)) return detail.dealer_ids.filter((id) => id != null);
-  if (!Array.isArray(detail.dealers)) return [];
-  return detail.dealers.map((item) => item.id ?? item.dealer_id).filter((id) => id != null);
-};
-
+// One page for /create, /edit and /view (read-only).
 export default function TerritoryForm() {
   const navigate = useNavigate();
   const location = useLocation();
   const { showMsg } = useContext(AuthContext);
   const [form] = Form.useForm();
+
   const isEdit = location.pathname.endsWith("/edit");
   const isView = location.pathname.endsWith("/view");
-  const isExisting = isEdit || isView;
-  const record = location.state?.record;
+  const territoryId = location.state?.id ?? location.state?.record?.id;
 
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [areas, setAreas] = useState([]);
-  const [dealers, setDealers] = useState([]);
-  const [areaSaleIds, setAreaSaleIds] = useState([]);
   const [currentArea, setCurrentArea] = useState(null);
-  const [dealerLoading, setDealerLoading] = useState(false);
+  const [detail, setDetail] = useState(null);
+  // Dealers already saved on this territory (from the backend).
+  const [savedDealers, setSavedDealers] = useState([]);
+  // Dealers added in this session, not yet saved.
+  const [newDealers, setNewDealers] = useState([]);
   const [keyword, setKeyword] = useState("");
-  const [selectedRowKeys, setSelectedRowKeys] = useState([]);
-  const [tableParams, setTableParams] = useState({
-    pagination: {
-      current: 1,
-      pageSize: 10,
-      total: 0,
-      showSizeChanger: true,
-      pageSizeOptions: ["10", "20", "50", "100"],
-    },
-  });
-
-  const areaId = Form.useWatch("area_id", form);
+  const [modalOpen, setModalOpen] = useState(false);
+  const [pagination, setPagination] = useState({ current: 1, pageSize: 10 });
 
   useEffect(() => {
-    const loadMaster = async () => {
-      setLoading(true);
-      try {
-        const [areaRes, optionRes, dealerRes] = await Promise.all([
-          useServiceAPI.get(paths.pathMasterAreas, {}).catch(() => null),
-          useServiceAPI.get(paths.pathTerritoryTransferOptions, {}).catch(() => null),
-          useServiceAPI
-            .get(paths.pathCustomerDealer, { page_length: 1, page_size: 500, use_flag: "" })
-            .catch(() => null),
-        ]);
+    useServiceAPI
+      .get(paths.pathMasterAreas, {})
+      .then((res) => setAreas(asList(res?.data ?? res)))
+      .catch(() => setAreas([]));
+  }, []);
 
-        if (!areaRes && !optionRes) {
-          showMsg("error", "โหลดข้อมูล Territory ไม่สำเร็จ");
-        }
-
-        const masterAreas = asList(areaRes?.data ?? areaRes);
-        const optionAreas = Array.isArray(optionRes?.data?.areas) ? optionRes.data.areas : [];
-        setAreas(masterAreas.length ? masterAreas : optionAreas);
-        setDealers(asList(dealerRes?.data ?? dealerRes));
-      } catch (error) {
-        showMsg("error", error?.message || "โหลดข้อมูล Territory ไม่สำเร็จ");
-      } finally {
-        setLoading(false);
+  const loadDetail = useCallback(async () => {
+    if (!territoryId) return;
+    setLoading(true);
+    try {
+      // detail already returns the territory's dealers, so territory/dealers isn't needed here.
+      const detailRes = await useServiceAPI.get(paths.pathTerritoryDetail, { id: territoryId });
+      const data = detailRes?.data && !Array.isArray(detailRes.data) ? detailRes.data : {};
+      setDetail(data);
+      form.setFieldsValue({
+        name: firstText(data, ["name", "territory_name"]),
+        area_id: toId(data.area_id),
+        description: data.description || "",
+      });
+      const areaName = firstText(data, ["area_name", "sale_area_name"]);
+      if (data.area_id != null && areaName) {
+        setCurrentArea({ value: toId(data.area_id), label: areaName });
       }
-    };
-
-    loadMaster();
-  }, [showMsg]);
-
-  useEffect(() => {
-    if (!isExisting || !record?.id) return;
-
-    const province = record.province === "-" ? "" : record.province;
-    const name = record.territoryName === "-" ? "" : record.territoryName;
-    form.setFieldsValue({
-      territory_name: name || "",
-      province: province || "",
-      area_id: toId(record.areaId),
-    });
-    if (record.areaId != null && record.area && record.area !== "-") {
-      setCurrentArea({ value: toId(record.areaId), label: record.area });
+      setSavedDealers(asList(data.dealers).map(mapDealer));
+      setNewDealers([]);
+    } catch (error) {
+      showMsg("error", apiError(error, "โหลดข้อมูล Territory ไม่สำเร็จ"));
+    } finally {
+      setLoading(false);
     }
-
-    const presetIds = []
-      .concat(record.dealerIds || [], record.raw?.dealer_ids || [])
-      .filter((id) => id != null);
-    if (presetIds.length) setSelectedRowKeys(presetIds);
-
-    const loadDetail = async () => {
-      try {
-        const detailRes = await useServiceAPI.get(paths.pathTerritoryDetail, { id: record.id });
-        const detail = detailRes?.data && !Array.isArray(detailRes.data) ? detailRes.data : null;
-        if (!detail) return;
-        form.setFieldsValue({
-          territory_name: detail.name || detail.territory_name || name || "",
-          province: detail.province || detail.province_name || province || "",
-          area_id: toId(detail.area_id ?? record.areaId),
-        });
-        const detailAreaName =
-          firstText(detail, ["area_name", "sale_area_name"]) ||
-          firstText(detail.area, ["name", "area_name"]);
-        if (detail.area_id != null && detailAreaName) {
-          setCurrentArea({ value: toId(detail.area_id), label: detailAreaName });
-        }
-        setSelectedRowKeys(dealerIdsOf(detail));
-      } catch {
-        // Detail API is optional until the backend ships it.
-      }
-    };
-
-    loadDetail();
-  }, [form, isExisting, record]);
+  }, [form, showMsg, territoryId]);
 
   useEffect(() => {
-    if (!areaId) {
-      setAreaSaleIds([]);
-      return;
-    }
-
-    let cancelled = false;
-    const loadAreaSales = async () => {
-      setDealerLoading(true);
-      try {
-        const response = await useServiceAPI.get(paths.pathMasterUserByArea, { area_id: areaId });
-        if (!cancelled) {
-          setAreaSaleIds(
-            asList(response?.data ?? response)
-              .map((sale) => sale.id ?? sale.user_id)
-              .filter((id) => id != null)
-          );
-        }
-      } catch (error) {
-        if (!cancelled) {
-          setAreaSaleIds([]);
-          showMsg("error", error?.message || "โหลด Dealer ไม่สำเร็จ");
-        }
-      } finally {
-        if (!cancelled) setDealerLoading(false);
-      }
-    };
-
-    loadAreaSales();
-    return () => {
-      cancelled = true;
-    };
-  }, [areaId, showMsg]);
+    if (isEdit || isView) loadDetail();
+  }, [isEdit, isView, loadDetail]);
 
   const areaOptions = useMemo(() => {
     const options = areas
@@ -181,106 +90,170 @@ export default function TerritoryForm() {
         label: firstText(area, ["name", "area_name", "sale_area_name"]),
       }))
       .filter((area) => area.value != null && area.label);
-    // Keep the territory's own area visible even if master/areas doesn't return it.
     if (currentArea && !options.some((option) => option.value === currentArea.value)) {
       options.unshift(currentArea);
     }
     return options;
   }, [areas, currentArea]);
 
-  const dealerRows = useMemo(() => {
-    if (!areaId) return [];
-    const saleIds = new Set(areaSaleIds.map(String));
-    const selectedIds = new Set(selectedRowKeys.map(String));
-    const query = keyword.trim().toLowerCase();
+  const allDealers = useMemo(
+    () => [...savedDealers, ...newDealers.map((d) => ({ ...d, isNew: true }))],
+    [savedDealers, newDealers]
+  );
 
-    return dealers
-      .filter((item) => {
-        if (isView && !selectedIds.has(String(item.id ?? item.dealer_id))) return false;
-        const saleId = item.sale_id ?? item.user_id;
-        if (saleId == null || !saleIds.has(String(saleId))) return false;
-        if (!query) return true;
-        const address = firstText(item, ["address", "contact_address"]).toLowerCase();
-        return address.includes(query);
-      })
-      .map((item, index) => ({
-        key: item.id ?? item.dealer_id ?? index,
-        id: item.id ?? item.dealer_id ?? index,
-        dealer: firstText(item, ["dealer_name_en", "dealer_name_th", "dealer_name", "name"]) || "-",
-        address: firstText(item, ["address", "contact_address"]) || "-",
-      }));
-  }, [areaId, areaSaleIds, dealers, keyword, isView, selectedRowKeys]);
+  const filteredDealers = useMemo(() => {
+    const q = keyword.trim().toLowerCase();
+    if (!q) return allDealers;
+    return allDealers.filter((d) =>
+      [d.dealer_name, d.address].some((v) => String(v).toLowerCase().includes(q))
+    );
+  }, [allDealers, keyword]);
 
-  const pageCurrent = tableParams.pagination.current || 1;
-  const pageSize = tableParams.pagination.pageSize || 10;
+  // Dealers being moved from another territory -> need confirm_transfer.
+  const transferDealers = useMemo(
+    () =>
+      newDealers.filter(
+        (d) => d.current_territory_id != null && String(d.current_territory_id) !== String(territoryId)
+      ),
+    [newDealers, territoryId]
+  );
 
-  const pagedDealerRows = useMemo(() => {
-    const start = (pageCurrent - 1) * pageSize;
-    return dealerRows.slice(start, start + pageSize);
-  }, [dealerRows, pageCurrent, pageSize]);
-
-  useEffect(() => {
-    setTableParams((prev) => ({
-      ...prev,
-      pagination: { ...prev.pagination, current: 1, total: dealerRows.length },
-    }));
-  }, [dealerRows.length]);
-
-  const rowSelection = {
-    selectedRowKeys,
-    preserveSelectedRowKeys: true,
-    onChange: (keys) => setSelectedRowKeys(keys),
+  const handleAddDealers = (rows) => {
+    const existing = new Set(allDealers.map((d) => d.key));
+    setNewDealers((prev) => [...prev, ...rows.filter((r) => !existing.has(r.key))]);
+    setModalOpen(false);
   };
 
-  const handleSave = async () => {
+  const removeDealer = (record) => {
+    if (record.isNew) {
+      setNewDealers((prev) => prev.filter((d) => d.key !== record.key));
+      return;
+    }
+    Modal.confirm({
+      title: "Remove dealer from territory?",
+      content: `${record.dealer_name} will be removed from this territory.`,
+      okText: "Remove",
+      okType: "danger",
+      cancelText: "Cancel",
+      centered: true,
+      onOk: async () => {
+        try {
+          const response = await useServiceAPI.put(paths.pathTerritoryRemoveDealer, {
+            territory_id: toNumberId(territoryId),
+            dealer_id: record.dealer_id,
+          });
+          if (!isSuccess(response)) {
+            showMsg("error", response?.message || "ถอด Dealer ไม่สำเร็จ");
+            return;
+          }
+          showMsg("success", response?.message || "ถอด Dealer สำเร็จ");
+          setSavedDealers((prev) => prev.filter((d) => d.key !== record.key));
+        } catch (error) {
+          showMsg("error", apiError(error, "ถอด Dealer ไม่สำเร็จ"));
+        }
+      },
+    });
+  };
+
+  const submit = async (values, confirmTransfer) => {
+    const payload = {
+      name: values.name.trim(),
+      area_id: toNumberId(values.area_id),
+      description: values.description || "",
+      dealer_ids: (isEdit ? newDealers : allDealers).map((d) => d.dealer_id),
+    };
+    if (isEdit) payload.confirm_transfer = confirmTransfer;
+    if (isEdit) payload.id = toNumberId(territoryId);
+
+    setSaving(true);
     try {
-      const values = await form.validateFields();
-      if (!selectedRowKeys.length) {
-        showMsg("warning", "กรุณาเลือก Dealer");
+      const response = isEdit
+        ? await useServiceAPI.put(paths.pathTerritoryUpdate, payload)
+        : await useServiceAPI.post(paths.pathTerritoryCreate, payload);
+      if (!isSuccess(response)) {
+        showMsg("error", response?.message || "บันทึกไม่สำเร็จ");
         return;
       }
-
-      const payload = {
-        name: values.territory_name,
-        province: values.province || "",
-        area_id: Number.isNaN(Number(values.area_id)) ? values.area_id : Number(values.area_id),
-        dealer_ids: selectedRowKeys,
-      };
-      if (isEdit) payload.id = record?.id;
-
-      setSaving(true);
-      const response = await useServiceAPI.post(
-        isEdit ? paths.pathTerritoryUpdate : paths.pathTerritoryCreate,
-        payload
-      );
-      if (response?.status === 200 || response?.status === 201) {
-        showMsg("success", response?.message || "บันทึกสำเร็จ");
+      showMsg("success", response?.message || "บันทึกสำเร็จ");
+      if (isEdit) {
+        await loadDetail();
+      } else {
         navigate("/setting/territory");
-        return;
       }
-      showMsg("error", response?.message || "บันทึกไม่สำเร็จ");
     } catch (error) {
-      if (error?.errorFields) return;
-      const message =
-        error?.response?.data?.message ||
-        error?.response?.data?.data?.message ||
-        error?.message ||
-        "บันทึกไม่สำเร็จ";
-      showMsg("error", message);
+      showMsg("error", apiError(error, "บันทึกไม่สำเร็จ"));
     } finally {
       setSaving(false);
     }
   };
 
+  const handleSave = async () => {
+    let values;
+    try {
+      values = await form.validateFields();
+    } catch {
+      return;
+    }
+    // Create: backend already filters available dealers, so save directly.
+    if (!isEdit || !transferDealers.length) {
+      submit(values, false);
+      return;
+    }
+    Modal.confirm({
+      title: "Confirm dealer transfer",
+      width: 560,
+      centered: true,
+      okText: "Confirm & Save",
+      cancelText: "Cancel",
+      content: (
+        <div>
+          <p className="mb-2">These dealers already belong to another territory and will be moved:</p>
+          <ul className="list-disc pl-5">
+            {transferDealers.map((d) => (
+              <li key={d.key}>
+                {d.dealer_name} <span className="text-gray-500">(from {d.current_territory_name || "-"})</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      ),
+      onOk: () => submit(values, true),
+    });
+  };
+
   const header = [
-    { title: "No", dataIndex: "no", key: "no", width: 80, align: "center" },
-    { title: "Dealer", dataIndex: "dealer", key: "dealer", width: 280 },
+    { title: "No", dataIndex: "no", key: "no", width: 70, align: "center" },
+    {
+      title: "Dealer Name (EN)",
+      dataIndex: "dealer_name",
+      key: "dealer_name",
+      width: 260,
+      render: (value, record) => (
+        <span>
+          {value}
+          {record.isNew && <Tag color="green" className="ml-2">New</Tag>}
+        </span>
+      ),
+    },
     { title: "Address", dataIndex: "address", key: "address" },
   ];
+  if (!isView) {
+    header.push({
+      title: "Action",
+      key: "action",
+      width: 90,
+      align: "center",
+      render: (_, record) => (
+        <Button type="text" danger icon={<DeleteOutlined />} onClick={() => removeDealer(record)} />
+      ),
+    });
+  }
+
+  const title = isView ? "View Territory" : isEdit ? "Edit Territory" : "Create Territory";
 
   return (
     <MainLayout loading={loading || saving}>
-      <div className="title-page">{isView ? "View Territory" : isEdit ? "Edit Territory" : "Create Territory"}</div>
+      <div className="title-page">{title}</div>
 
       <BoxPrimary>
         <Form form={form} layout="vertical" disabled={isView}>
@@ -288,36 +261,37 @@ export default function TerritoryForm() {
             <Col xs={24} md={8}>
               <Form.Item
                 label="Territory Name"
-                name="territory_name"
+                name="name"
                 rules={[{ required: true, whitespace: true, message: "Please enter territory name" }]}
               >
-                <Input placeholder="Territory name" />
+                <Input placeholder="Territory name" maxLength={255} />
               </Form.Item>
             </Col>
             <Col xs={24} md={8}>
-              <Form.Item label="Province" name="province">
-                <Input placeholder="Province" />
-              </Form.Item>
-            </Col>
-            <Col xs={24} md={8}>
-              <Form.Item
-                label="Area"
-                name="area_id"
-                rules={[{ required: true, message: "Please select area" }]}
-              >
+              <Form.Item label="Area" name="area_id">
                 <Select
                   allowClear
                   showSearch
-                  className="w-full"
                   optionFilterProp="label"
                   options={areaOptions}
                   placeholder="Select area"
-                  onChange={(value) => {
-                    form.setFieldValue("area_id", value);
-                    setKeyword("");
-                    setSelectedRowKeys([]);
-                  }}
                 />
+              </Form.Item>
+            </Col>
+            {isView && (
+              <Col xs={24} md={8}>
+                <Form.Item label="Status">
+                  <BadgeStatus
+                    text={isActive(detail) ? "Active" : "Inactive"}
+                    bgColor={isActive(detail) ? "#00783F" : "#978B87"}
+                    textColor="#FFFFFF"
+                  />
+                </Form.Item>
+              </Col>
+            )}
+            <Col xs={24}>
+              <Form.Item label="Description" name="description">
+                <Input.TextArea rows={3} placeholder="Description" />
               </Form.Item>
             </Col>
           </Row>
@@ -326,56 +300,54 @@ export default function TerritoryForm() {
 
       <BoxPrimary>
         <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
-          <div className="text-lg font-semibold text-[#00783F]">
-            Dealer ({selectedRowKeys.length})
+          <div className="text-lg font-semibold text-[#00783F]">Dealer ({allDealers.length})</div>
+          <div className="flex flex-wrap gap-3">
+            <Input
+              allowClear
+              value={keyword}
+              placeholder="Search dealer name / address"
+              prefix={<SearchOutlined className="text-[#978B87]" />}
+              onChange={(event) => {
+                setKeyword(event.target.value);
+                setPagination((prev) => ({ ...prev, current: 1 }));
+              }}
+              className="w-full sm:w-[300px]"
+            />
+            {!isView && (
+              <Button type="primary" icon={<PlusOutlined />} onClick={() => setModalOpen(true)}>
+                Add Dealer
+              </Button>
+            )}
           </div>
-          <Input
-            allowClear
-            value={keyword}
-            placeholder={areaId ? "Search address" : "Select area first"}
-            prefix={<SearchOutlined className="text-[#978B87]" />}
-            onChange={(event) => setKeyword(event.target.value)}
-            disabled={!areaId}
-            className="w-full sm:w-[280px]"
-          />
         </div>
 
         <TableComponent
           header={header}
-          dataSource={pagedDealerRows}
-          rowSelection={isView ? undefined : rowSelection}
-          loading={dealerLoading}
+          dataSource={filteredDealers}
           pagination={{
-            ...tableParams.pagination,
-            current: pageCurrent,
-            pageSize,
-            total: dealerRows.length,
+            ...pagination,
+            total: filteredDealers.length,
             showSizeChanger: true,
             pageSizeOptions: ["10", "20", "50", "100"],
           }}
-          onChange={(pagination) => {
-            const nextSize = Number(pagination?.pageSize) || 10;
-            const maxPage = Math.max(1, Math.ceil(dealerRows.length / nextSize) || 1);
-            const nextCurrent = Math.min(Number(pagination?.current) || 1, maxPage);
-            setTableParams((prev) => ({
-              ...prev,
-              pagination: {
-                ...prev.pagination,
-                current: nextCurrent,
-                pageSize: nextSize,
-                total: dealerRows.length,
-              },
-            }));
-          }}
+          onChange={(next) => setPagination({ current: next.current, pageSize: next.pageSize })}
         />
       </BoxPrimary>
 
       <div className="mt-4 flex justify-end gap-3">
         <ActionButton mode="back" text="Back" onClick={() => navigate("/setting/territory")} />
-        {!isView && (
-          <ActionButton mode="save" text="Save" disabled={saving} onClick={handleSave} />
-        )}
+        {!isView && <ActionButton mode="save" text="Save" disabled={saving} onClick={handleSave} />}
       </div>
+
+      {!isView && (
+        <AddDealerModal
+          open={modalOpen}
+          territoryId={isEdit ? territoryId : undefined}
+          excludeIds={allDealers.map((d) => d.key)}
+          onCancel={() => setModalOpen(false)}
+          onConfirm={handleAddDealers}
+        />
+      )}
     </MainLayout>
   );
 }

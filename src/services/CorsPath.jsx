@@ -206,6 +206,10 @@ export const paths = {
   pathTerritoryDealers: "territory/dealers",
   pathTerritoryCreate: "territory/create",
   pathTerritoryUpdate: "territory/update",
+  pathTerritoryList: "territory/list",
+  pathTerritoryAvailableDealers: "territory/available-dealers",
+  pathTerritoryChangeStatus: "territory/change-status",
+  pathTerritoryRemoveDealer: "territory/remove-dealer",
 
   pathMasterTime: "master/time",
   pathMasterProducts: "master/product",
