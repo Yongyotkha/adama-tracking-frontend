@@ -93,7 +93,7 @@ export default function FarmerSalesPlanCreate() {
           setPlanInfo(detail);
           setFarmerName(text(detail.farmer_name) || text(row.farmer_name));
           if (detail.year_code) setYear(detail.year_code);
-          setCropId(detail.crop_id ?? undefined);
+          setCropId(detail.crop_id != null ? String(detail.crop_id) : undefined);
           setRemark(detail.remark || "");
           setLines(asList(detail.products ?? detail.items ?? detail.details).map(mapDetailLine));
           if (detail.dealer_id != null || detail.sub_dealer_id != null) {
@@ -144,9 +144,11 @@ export default function FarmerSalesPlanCreate() {
   );
 
   const cropOptions = useMemo(() => {
-    const options = crops.map((item) => ({ value: item.id, label: item.name }));
-    if (cropId != null && !options.some((o) => String(o.value) === String(cropId)) && planInfo?.crop_name) {
-      options.unshift({ value: cropId, label: planInfo.crop_name });
+    // Use string values so a numeric/string id mismatch still shows the name.
+    const options = crops.map((item) => ({ value: String(item.id), label: item.name }));
+    const cropName = text(planInfo?.crop_name ?? planInfo?.crop?.name);
+    if (cropId != null && !options.some((o) => o.value === String(cropId)) && cropName) {
+      options.unshift({ value: String(cropId), label: cropName });
     }
     return options;
   }, [crops, cropId, planInfo]);
@@ -226,7 +228,7 @@ export default function FarmerSalesPlanCreate() {
       year_code: year,
       dealer_id: mapping?.dealer_id ?? null,
       sub_dealer_id: mapping?.sub_dealer_id ?? null,
-      crop_id: cropId ?? null,
+      crop_id: cropId != null ? num(cropId) || cropId : null,
       remark,
       products: lines.map((line) => ({ product_id: line.id, quantity: line.qty })),
     };
@@ -253,9 +255,9 @@ export default function FarmerSalesPlanCreate() {
     { title: "No", dataIndex: "no", key: "no", width: 70, align: "center" },
     { title: "SKU", dataIndex: "sku", key: "sku", width: 150 },
     { title: "Product Name", dataIndex: "name", key: "name" },
-    { title: "Unit", dataIndex: "unit", key: "unit", width: 120 },
+    { title: "Pack Size", dataIndex: "unit", key: "unit", width: 120 },
     {
-      title: "THB/Unit",
+      title: "THB/Pack Size",
       dataIndex: "price",
       key: "price",
       align: "right",
@@ -263,7 +265,7 @@ export default function FarmerSalesPlanCreate() {
       render: (value) => money(value),
     },
     {
-      title: "QTY",
+      title: "No of Pack",
       dataIndex: "qty",
       key: "qty",
       width: 160,
@@ -322,7 +324,6 @@ export default function FarmerSalesPlanCreate() {
   ].filter(Boolean);
 
   const title = isView ? "View Sales Plan" : isEdit ? "Edit Sales Plan" : "Create Sales Plan";
-  const docNo = text(planInfo?.document_no ?? planInfo?.document_number ?? row.document_no);
 
   return (
     <MainLayout loading={loading || saving}>
@@ -377,12 +378,6 @@ export default function FarmerSalesPlanCreate() {
               onChange={setCropId}
             />
           </Col>
-          {docNo && (
-            <Col xs={24} md={6} className="mb-3">
-              <label className="mb-1 block text-gray-700">Document Number</label>
-              <Input value={docNo} disabled />
-            </Col>
-          )}
           <Col xs={24}>
             <label className="mb-1 block text-gray-700">Remark</label>
             <Input.TextArea

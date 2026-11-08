@@ -130,7 +130,7 @@ export default function FarmerSalesPlanList() {
   };
 
   const filters = [
-    { key: "keyword", type: "text", label: "Keyword", placeholder: "Farmer / Document No." },
+    { key: "keyword", type: "text", label: "Keyword", placeholder: "Farmer name" },
     { key: "dealer_id", type: "select", label: "Dealer", placeholder: "All", options: dealers },
     {
       key: "sub_dealer_id",
@@ -156,12 +156,6 @@ export default function FarmerSalesPlanList() {
       render: (_, record) => text(record.sub_dealer_name) || "-",
     },
     { title: "Year", dataIndex: "year_code", key: "year_code", width: 90, align: "center" },
-    {
-      title: "Document Number",
-      key: "document_no",
-      width: 170,
-      render: (_, record) => text(record.document_no ?? record.document_number ?? record.doc_no) || "-",
-    },
     {
       title: "Total Amount",
       dataIndex: "total_amount",

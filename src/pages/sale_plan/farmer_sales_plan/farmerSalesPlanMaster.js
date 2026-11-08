@@ -86,7 +86,8 @@ export async function loadPlanProduct(productId) {
     sku: text(data.product_code) || "-",
     name: text(data.product_name || data.name) || "-",
     unit: text(data.packing_list) || "-",
-    price: num(data.bath_unit ?? data.unit_convert_order_value),
+    // Farmer price/point, same as the farmer order request screen.
+    price: num(data.farmer ?? data.bath_unit),
     pointPerUnit: num(data.point_farmer ?? data.point),
     qty: 1,
   };
@@ -95,7 +96,7 @@ export async function loadPlanProduct(productId) {
 // Normalise one product line from /farmer-sales-plan/detail.
 export const mapDetailLine = (item) => {
   const qty = num(item.quantity ?? item.qty) || 1;
-  const price = num(item.unit_price ?? item.price ?? item.bath_unit);
+  const price = num(item.unit_price ?? item.price ?? item.farmer ?? item.bath_unit);
   const amount = item.amount ?? item.total_amount ?? item.sub_total;
   const point = item.point ?? item.total_point;
   return {
