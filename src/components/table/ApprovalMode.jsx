@@ -17,12 +17,12 @@ const ApprovalMode = ({
   showUpdateAll = true,
 }) => {
   return (
-    <div className="flex items-center gap-3 mt-4 mb-4">
+    <div className="flex items-center gap-3 mt-4 mb-4 flex-1 min-w-0">
       <ActionButton
         mode="custom"
         text={isApprovalMode ? "Exit Approval Mode" : "Approval Mode"}
         onClick={onToggleApprovalMode}
-        className={isApprovalMode ? "bg-[#f11113] hover:bg-[#d00f11]" : "bg-[#752157] hover:bg-[#5b1943]"}
+        className={isApprovalMode ? "!h-8 !border-0 !shadow-none bg-[#f11113] hover:bg-[#d00f11]" : "!h-8 !border-0 !shadow-none bg-[#752157] hover:bg-[#5b1943]"}
         icon={isApprovalMode ? <CloseOutlined /> : <AuditOutlined />}
       />
 
@@ -59,6 +59,7 @@ const ApprovalMode = ({
             mode="save"
             text="Approve"
             onClick={onApprove}
+            className="!h-8 !border-0 !shadow-none"
             icon={<CheckOutlined />}
             disabled={
               updateAll

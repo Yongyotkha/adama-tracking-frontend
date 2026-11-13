@@ -12,7 +12,7 @@ import ItemDropDown from "../../../components/dropdown/ItemDropDown";
 import useServiceAPI from "../../../services/CorsService";
 import { paths } from "../../../services/CorsPath";
 import { AuthContext } from "../../../contexts/AuthContext";
-import { ExclamationCircleFilled } from "@ant-design/icons";
+import { CheckOutlined, CloseOutlined, ExclamationCircleFilled, SwapOutlined } from "@ant-design/icons";
 import { loadListPageState, saveListPageState } from "../../../utils/listPageState";
 import {
   findStatusLabel,
@@ -53,6 +53,7 @@ export default function AdvanceExpense() {
   const [statusList, setStatusList] = useState([]);
 
   const [isApprovalMode, setIsApprovalMode] = useState(false);
+  const [isConvertMode, setIsConvertMode] = useState(false);
   const [selectedRowKeys, setSelectedRowKeys] = useState([]);
   const [convertKeys, setConvertKeys] = useState([]);
   const [selectedStatus, setSelectedStatus] = useState(null);
@@ -483,6 +484,17 @@ const newDataSource = (data || []).map((row, index) => ({
 
   const handleToggleApprovalMode = () => {
     setIsApprovalMode((prev) => !prev);
+    setIsConvertMode(false);
+    setSelectedRowKeys([]);
+    setConvertKeys([]);
+    setSelectedStatus(null);
+    setLockedTableStatus(null);
+    setUpdateAll(false);
+  };
+
+  const handleToggleConvertMode = () => {
+    setIsConvertMode((prev) => !prev);
+    setIsApprovalMode(false);
     setSelectedRowKeys([]);
     setConvertKeys([]);
     setSelectedStatus(null);
@@ -500,7 +512,7 @@ const newDataSource = (data || []).map((row, index) => ({
     confirm({
       title: "Convert to Clearing ?",
       icon: <ExclamationCircleFilled />,
-      content: `แปลง ${documentNumbers.length} รายการที่เลือกเป็น Clearing`,
+      content: `ส่ง ${documentNumbers.length} รายการที่เลือกไป Clearing`,
       centered: true,
       async onOk() {
         try {
@@ -516,6 +528,7 @@ const newDataSource = (data || []).map((row, index) => ({
           if (isSuccess) {
             showNotification("success", messageHeader, messageLines);
             setConvertKeys([]);
+            setIsConvertMode(false);
             fetchData();
           } else {
             showNotification("error", messageHeader, messageLines);
@@ -705,12 +718,6 @@ const newDataSource = (data || []).map((row, index) => ({
       <div className="flex items-center justify-between">
         <div className="title-page">Advance Expense</div>
         <div className="flex items-center gap-3">
-          <ActionButton
-            mode="saveDraft"
-            text="Convert"
-            disabled={isApprovalMode || convertKeys.length === 0}
-            onClick={handleConvertSelected}
-          />
           {pagePermission?.btn_create && (
             <ActionButton
               mode="create"
@@ -733,20 +740,45 @@ const newDataSource = (data || []).map((row, index) => ({
         onClear={handleClear}
       />
 
-      <ApprovalMode
-        isApprovalMode={isApprovalMode}
-        onToggleApprovalMode={handleToggleApprovalMode}
-        selectedStatus={selectedStatus}
-        onStatusChange={handleStatusChange}
-        statusOptions={approvalStatusList}
-        onApprove={handleBulkApprove}
-        selectedRowKeys={selectedRowKeys}
-        updateAll={updateAll}
-        onUpdateAllChange={handleUpdateAllChange}
-        lockedTableStatus={lockedTableStatus}
-        lockedTableStatusLabel={lockedTableStatusLabel}
-        showUpdateAll={![4, 5, 6, 7].includes(Number(userInfo?.role_id))}
-      />
+      <div className="flex items-center justify-between gap-3">
+        <ApprovalMode
+          isApprovalMode={isApprovalMode}
+          onToggleApprovalMode={handleToggleApprovalMode}
+          selectedStatus={selectedStatus}
+          onStatusChange={handleStatusChange}
+          statusOptions={approvalStatusList}
+          onApprove={handleBulkApprove}
+          selectedRowKeys={selectedRowKeys}
+          updateAll={updateAll}
+          onUpdateAllChange={handleUpdateAllChange}
+          lockedTableStatus={lockedTableStatus}
+          lockedTableStatusLabel={lockedTableStatusLabel}
+          showUpdateAll={![4, 5, 6, 7].includes(Number(userInfo?.role_id))}
+        />
+        <div className="flex items-center gap-3 mt-4 mb-4 shrink-0">
+          <button
+            type="button"
+            onClick={handleToggleConvertMode}
+            className={`flex items-center justify-center gap-2 h-8 px-3 rounded-[4px] text-sm text-white border-0 outline-none cursor-pointer ${
+              isConvertMode ? "bg-[#f11113] hover:bg-[#d00f11]" : "bg-[#F89E18] hover:bg-[#df8b0d]"
+            }`}
+          >
+            {isConvertMode ? <CloseOutlined /> : <SwapOutlined />}
+            <span>{isConvertMode ? "Exit Convert" : "Convert"}</span>
+          </button>
+          {isConvertMode && (
+            <button
+              type="button"
+              onClick={handleConvertSelected}
+              disabled={convertKeys.length === 0}
+              className="flex items-center justify-center gap-2 h-8 px-3 rounded-[4px] text-sm text-white border-0 outline-none bg-[#00783F] hover:bg-[#006433] disabled:bg-[#9CA3AF] disabled:cursor-not-allowed"
+            >
+              <CheckOutlined />
+              <span>Submit</span>
+            </button>
+          )}
+        </div>
+      </div>
 
       <BoxPrimary>
         <TableComponent
@@ -756,7 +788,7 @@ const newDataSource = (data || []).map((row, index) => ({
           loading={tableLoading}
           onChange={handleTableChange}
           rowSelection={
-            isApprovalMode && !updateAll ? rowSelection : !isApprovalMode ? convertSelection : undefined
+            isConvertMode ? convertSelection : isApprovalMode && !updateAll ? rowSelection : undefined
           }
         />
       </BoxPrimary>
