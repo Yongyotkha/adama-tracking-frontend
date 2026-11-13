@@ -282,7 +282,7 @@ export default function PointHistory() {
   };
 
   const isRefundPointItem = (item) => {
-    const values = [item?.page, item?.type, item?.status].map((value) =>
+    const values = [item?.page, item?.type, item?.status, item?.status_name].map((value) =>
       String(value || "").toLowerCase().trim()
     );
     return values.some((value) => value.includes("refund")) || Boolean(item?.remark_refund);
@@ -582,10 +582,11 @@ export default function PointHistory() {
                       </div>
                       <p
                         className={`font-bold sarabun-font text-base leading-6 text-right shrink-0 ${
-                          activeTab === "use" ? "text-red-600" : "text-green-600"
+                          activeTab === "use" && !isRefundPointItem(item) ? "text-red-600" : "text-green-600"
                         }`}
                       >
-                        {renderCampaignLabel(item)} {activeTab === "use" ? `-${item.point}` : `+${item.point}`}
+                        {renderCampaignLabel(item)}{" "}
+                        {activeTab === "use" && !isRefundPointItem(item) ? `-${item.point}` : `+${item.point}`}
                       </p>
                     </div>
                     </React.Fragment>
