@@ -54,6 +54,7 @@ export default function AdvanceExpense() {
 
   const [isApprovalMode, setIsApprovalMode] = useState(false);
   const [selectedRowKeys, setSelectedRowKeys] = useState([]);
+  const [convertKeys, setConvertKeys] = useState([]);
   const [selectedStatus, setSelectedStatus] = useState(null);
   const [lockedTableStatus, setLockedTableStatus] = useState(null);
   const [approvalStatusList, setApprovalStatusList] = useState([]);
@@ -483,9 +484,65 @@ const newDataSource = (data || []).map((row, index) => ({
   const handleToggleApprovalMode = () => {
     setIsApprovalMode((prev) => !prev);
     setSelectedRowKeys([]);
+    setConvertKeys([]);
     setSelectedStatus(null);
     setLockedTableStatus(null);
     setUpdateAll(false);
+  };
+
+  const handleConvertSelected = () => {
+    const documentNumbers = convertKeys
+      .map((key) => dataSource.find((row) => row.key === key)?.raw?.document_number)
+      .filter(Boolean);
+
+    if (documentNumbers.length === 0) return;
+
+    confirm({
+      title: "Convert to Clearing ?",
+      icon: <ExclamationCircleFilled />,
+      content: `แปลง ${documentNumbers.length} รายการที่เลือกเป็น Clearing`,
+      centered: true,
+      async onOk() {
+        try {
+          const response = await useServiceAPI.put(paths.pathActivityExpenseConvertClearing, {
+            document_numbers: documentNumbers,
+            action_code: "convert_clearing",
+          });
+          const { isSuccess, messageHeader, messageLines } = getBulkApproveFeedback(
+            response,
+            "Converted successfully",
+            "Failed to convert"
+          );
+          if (isSuccess) {
+            showNotification("success", messageHeader, messageLines);
+            setConvertKeys([]);
+            fetchData();
+          } else {
+            showNotification("error", messageHeader, messageLines);
+          }
+        } catch (error) {
+          console.error(error);
+          showNotification("error", "Transaction failed", ["Please try again later."]);
+        }
+      },
+    });
+  };
+
+  const convertSelection = {
+    type: "checkbox",
+    selectedRowKeys: convertKeys,
+    columnWidth: 50,
+    onChange: (keys) => {
+      const selectedRows = dataSource.filter((row) => keys.includes(row.key));
+      if (selectedRows.some((row) => !isCompleteStatus(row))) {
+        showNotification("warning", "Convert", ["เลือกได้เฉพาะรายการสถานะ Complete"]);
+        return;
+      }
+      setConvertKeys(keys);
+    },
+    getCheckboxProps: (record) => ({
+      disabled: !isCompleteStatus(record),
+    }),
   };
 
   const handleStatusChange = (value) => {
@@ -648,6 +705,12 @@ const newDataSource = (data || []).map((row, index) => ({
       <div className="flex items-center justify-between">
         <div className="title-page">Advance Expense</div>
         <div className="flex items-center gap-3">
+          <ActionButton
+            mode="saveDraft"
+            text="Convert"
+            disabled={isApprovalMode || convertKeys.length === 0}
+            onClick={handleConvertSelected}
+          />
           {pagePermission?.btn_create && (
             <ActionButton
               mode="create"
@@ -692,7 +755,9 @@ const newDataSource = (data || []).map((row, index) => ({
           pagination={tableParams.pagination}
           loading={tableLoading}
           onChange={handleTableChange}
-          rowSelection={isApprovalMode && !updateAll ? rowSelection : undefined}
+          rowSelection={
+            isApprovalMode && !updateAll ? rowSelection : !isApprovalMode ? convertSelection : undefined
+          }
         />
       </BoxPrimary>
     </MainLayout>

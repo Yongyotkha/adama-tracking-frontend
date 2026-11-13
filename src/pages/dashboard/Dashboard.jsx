@@ -1652,7 +1652,7 @@ export default function Dashboard() {
           <Card className="shadow-md rounded-lg bg-white border-t-[10px] border-solid border-t-[#00783F] h-full">
             <div className="flex flex-wrap items-center justify-between">
               <h3 className="text-[#00783F] text-lg font-semibold mb-3">
-                Actual Sub Dealer (Point)
+                Current Sub Dealer (Point)
               </h3>
               <div className="flex flex-wrap gap-2">
                 <Select
@@ -1806,7 +1806,7 @@ export default function Dashboard() {
           <Card className="shadow-md rounded-lg bg-white border-t-[10px] border-solid border-t-[#00783F] h-full">
             <div className="flex flex-wrap items-center justify-between mb-3">
               <h3 className="text-[#00783F] text-lg font-semibold">
-                Farmer (Point)
+                Current Farmer (Point)
               </h3>
               <div className="flex flex-wrap gap-2">
                 <Select

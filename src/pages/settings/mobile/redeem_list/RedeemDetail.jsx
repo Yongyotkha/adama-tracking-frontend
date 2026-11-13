@@ -325,6 +325,16 @@ export default function RedeemDetail() {
 
       <div className="flex justify-end gap-3 mt-4">
         <ActionButton
+          mode="saveDraft"
+          text="Print PR"
+          onClick={() => {
+            const id = location?.state?.id || detail?.id;
+            if (!id) return;
+            const farmer = location.pathname.includes("farmer-redeem") ? "&mode=farmer" : "";
+            window.open(`/points/line/pdf/purchase-request?id=${id}${farmer}`, "_blank", "noopener,noreferrer");
+          }}
+        />
+        <ActionButton
           mode="back"
           text="Back"
           onClick={() =>

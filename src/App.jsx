@@ -206,6 +206,7 @@ import NewsPromotionList from "./pages/settings/mobile/news_promotion/NewsPromot
 import CreateNewsPromotion from "./pages/settings/mobile/news_promotion/CreateNewsPromotion";
 import ShippingAddressPDF from "./pages/pdf/ShippingAddressPDF";
 import DeliverySlipPDF from "./pages/pdf/DeliverySlipPDF";
+import PurchaseRequestPDF from "./pages/pdf/PurchaseRequestPDF";
 import SaleHistoryReport from "./pages/settings/mobile/report/SaleHistoryReport";
 import ReportStock from "./pages/report/ReportStock";
 import ReportSellOutBySales from "./pages/report/ReportSellOutBySales";
@@ -828,6 +829,10 @@ const App = () => {
             <Route
               path="/points/line/pdf/shipping-address"
               element={<ShippingAddressPDF />}
+            />
+            <Route
+              path="/points/line/pdf/purchase-request"
+              element={<PurchaseRequestPDF />}
             />
             <Route
               path="/points/line/pdf/delivery-slip"

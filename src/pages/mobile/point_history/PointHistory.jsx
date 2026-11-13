@@ -300,6 +300,31 @@ export default function PointHistory() {
   const statusBadgeClass =
     "sarabun-font !px-3 !py-1 !text-sm !font-normal !leading-5";
 
+  const timeValue = (value) => {
+    const parsed = dayjs(value);
+    return parsed.isValid() ? parsed.valueOf() : 0;
+  };
+
+  const sortNewest = (rows, field) =>
+    [...rows].sort((a, b) => timeValue(b?.[field]) - timeValue(a?.[field]));
+
+  const sortedOrders = sortNewest(orderData, "updated_at");
+  const rewardHistory = sortNewest(
+    transactionData.filter((item) => !isCutPointItem(item) && !isRefundPointItem(item)),
+    "created_at"
+  );
+  const cutPointHistory = sortNewest(
+    transactionData.filter((item) => isCutPointItem(item) && !isRefundPointItem(item)),
+    "created_at"
+  );
+  const refundHistory = sortNewest(transactionData.filter(isRefundPointItem), "created_at");
+  const useGroups = [
+    { key: "reward", title: "แลกของรางวัล", items: rewardHistory },
+    { key: "cut", title: "ตัดแต้ม", items: cutPointHistory },
+    { key: "refund", title: "คืนแต้ม", items: refundHistory },
+  ].filter((group) => group.items.length > 0);
+  const sortedExpire = sortNewest(transactionData, "created_at");
+
   return (
     <MobileLayout loading={loading}>
       <div className="flex flex-col items-center w-full h-full">
@@ -338,8 +363,8 @@ export default function PointHistory() {
               {/* <h5 className="sarabun-font text-gray-700 mb-2">รายการทั้งหมด {orderData.length} รายการ</h5> */}
               <div className="mt-2 space-y-3 min-h-[24px] flex flex-col justify-center items-center">
 
-                {orderData.length > 0 ? (
-                  orderData.map((order, index) => {
+                {sortedOrders.length > 0 ? (
+                  sortedOrders.map((order, index) => {
                     const statusColor = "text-green-600";
                     const borderColor = "border-green-500";
                     return (
@@ -379,8 +404,16 @@ export default function PointHistory() {
           ) : (
             // 🔸 แท็บอื่น ใช้ layout เดิมของ PointHistory
             <>
-              {transactionData.length > 0 ? (
-                transactionData.map((item, idx) => {
+              {(activeTab === "use" ? useGroups.length > 0 : sortedExpire.length > 0) ? (
+                (activeTab === "use"
+                  ? useGroups.flatMap((group) =>
+                      group.items.map((item, index) => ({
+                        item,
+                        title: index === 0 ? group.title : null,
+                      }))
+                    )
+                  : sortedExpire.map((item) => ({ item, title: null }))
+                ).map(({ item, title }, idx) => {
                   // เช็คประเภทไฟล์ถ้ามี item.pictures อยู่ใน object
                   const itemPictures = Array.isArray(item.pictures) ? item.pictures : [];
                   const sampleFile = itemPictures.length > 0 ? (itemPictures[0]?.part || itemPictures[0]?.url || "") : "";
@@ -389,8 +422,11 @@ export default function PointHistory() {
                   const cutPoint = isCutPointItem(item);
 
                   return (
+                    <React.Fragment key={idx}>
+                    {title ? (
+                      <p className="sarabun-font text-sm font-semibold text-[#00783F] mt-3 mb-2">{title}</p>
+                    ) : null}
                     <div
-                      key={idx}
                       className="flex justify-between items-start bg-white p-3 rounded-lg shadow-md mb-2"
                     >
                       <div className="flex items-start gap-2 flex-1 min-w-0 mr-2">
@@ -552,6 +588,7 @@ export default function PointHistory() {
                         {renderCampaignLabel(item)} {activeTab === "use" ? `-${item.point}` : `+${item.point}`}
                       </p>
                     </div>
+                    </React.Fragment>
                   );
                 })
               ) : (

@@ -101,7 +101,7 @@ export default function RedeemList() {
   const commonHeaders = [
     { title: "No", dataIndex: "key", width: 60 },
     { title: "Customer Name", dataIndex: "shop_name" },
-    { title: "Reward Code", dataIndex: "reward_code" },
+    { title: "Transaction ID", dataIndex: "transaction_id" },
     { title: "Reward Name", dataIndex: "reward_name" },
     { title: "Stock (Pcs)", dataIndex: "stock", align: "right" },
     { title: "Cost (THB)", dataIndex: "cost", align: "right" },
@@ -117,7 +117,7 @@ export default function RedeemList() {
     key: index + 1 + (current - 1) * pageSize,
     id: item.id,
     shop_name: item.shop_name || "-",
-    reward_code: item.reward_code || "-",
+    transaction_id: item.transaction_id || item.transection_id || item.id || "-",
     reward_name: item.reward_name || "-",
     address: item.address || "-",
     qty: item.qty !== undefined ? fmtNum(item.qty) : "-",
