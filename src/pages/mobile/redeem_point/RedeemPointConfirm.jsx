@@ -19,6 +19,7 @@ export default function RedeemPointConfirm() {
     const location = useLocation();
     const [isPointModalVisible, setIsPointModalVisible] = useState(false);
     const [isPointModalVisibleFalse, setIsPointModalVisibleFalse] = useState(false);
+    const [redeemCheck, setRedeemCheck] = useState(null);
     const [isPointModalVisibleComfirm, setIsPointModalVisibleComfirm] = useState(false);
     const [earnedPoints, setEarnedPoints] = useState(0);
     console.log('location : ', location)
@@ -92,21 +93,24 @@ export default function RedeemPointConfirm() {
             );
 
             // ปรับตามรูปแบบ response ของระบบคุณได้เลย
-            if (res.status === 200 || res.result === true) {
+            const result = res?.data ?? {};
+            const canRedeem = result.can_redeem === true || result.can_redeem === "true" || result.can_redeem === 1;
+            const notEnough = result.insufficient_points === true || result.insufficient_points === "true" || result.insufficient_points === 1;
 
-                if (res.data.status == false) {
-                    setIsPointModalVisibleFalse(true)
-
-                } else {
-                    setEarnedPoints(res.data.targets.point);
-
-                    setIsPointModalVisibleComfirm(true);
-                }
-
-            } else {
-                setIsPointModalVisibleFalse(true)
-
+            if (res?.result !== true) {
+                alert(res?.message || "ไม่สามารถตรวจสอบคะแนนได้");
+                return;
             }
+
+            setRedeemCheck(result);
+
+            if (canRedeem && !notEnough) {
+                setEarnedPoints(result?.targets?.point ?? result?.required_point);
+                setIsPointModalVisibleComfirm(true);
+                return;
+            }
+
+            setIsPointModalVisibleFalse(true);
         } catch (err) {
             console.error("Redeem error:", err);
             alert("เกิดข้อผิดพลาดในการแลกคะแนน");
@@ -272,8 +276,8 @@ export default function RedeemPointConfirm() {
                 }}
                 src="/img/icons/warning-yellow.png"
                 text={`<div class='text-center'>
-                <p class='text-yellow-500 text-[20px] font-bold mt-1 sarabun-font mb-4'>คุณมีคะแนนไม่เพียงพอสำหรับรางวัลนี้</p>
-                <p class='text-[#4A4A4A] text-[16px] mt-1 sarabun-font mb-4'>ต้องใช้ ${Number(target?.[0]?.point??0).toLocaleString()} คะแนนสำหรับแลกรางวัลนี้</p>
+                <p class='text-yellow-500 text-[20px] font-bold mt-1 sarabun-font mb-4'>${redeemCheck?.message || "คุณมีคะแนนไม่เพียงพอสำหรับรางวัลนี้"}</p>
+                <p class='text-[#4A4A4A] text-[16px] mt-1 sarabun-font mb-4'>ต้องใช้ ${Number(redeemCheck?.required_point ?? target?.[0]?.point ?? 0).toLocaleString()} คะแนนสำหรับแลกรางวัลนี้</p>
             </div>`}
                 confirmText="ปิด"
             />
@@ -306,7 +310,7 @@ export default function RedeemPointConfirm() {
                 src="/img/icons/point.png"
                 text={`<div class='text-center'>
                 <p class='text-green-700 text-[24px] font-bold mt-1 sarabun-font mb-4'>แลกของรางวัล</p>
-                <p class='text-[#4A4A4A] text-[16px] mt-1 sarabun-font'>ใช้ ${Number(target?.[0]?.point ?? 0).toLocaleString("th-TH")} คะแนนสำหรับแลกของรางวัลนี้</p>
+                <p class='text-[#4A4A4A] text-[16px] mt-1 sarabun-font'>ใช้ ${Number(redeemCheck?.required_point ?? redeemCheck?.targets?.point ?? target?.[0]?.point ?? 0).toLocaleString("th-TH")} คะแนนสำหรับแลกของรางวัลนี้</p>
                 
                 </div>`}
                 confirmText="ยืนยัน"
