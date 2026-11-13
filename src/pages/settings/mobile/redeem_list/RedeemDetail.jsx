@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState, useContext } from "react";
 import { Form, Input, Modal } from "antd"; // ⬅️ เพิ่ม Modal
+import { FilePdfOutlined } from "@ant-design/icons";
 import dayjs from "dayjs";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 
@@ -120,10 +121,10 @@ export default function RedeemDetail() {
           shop_name: d.user?.shop_name || "-",
           customer_name: d.user?.name_en || d.user?.name_th || "-",
           contact_number: d.user?.phone_number || "-",
-          stock: d.reward.value || 0,
+          stock: d.reward?.value || 0,
           approve_by: d.approve_by || "-",
           reject_by: d.reject_by || "-",
-          address: d.tranUserAddress.address || "-",
+          address: d.tranUserAddress?.address || "-",
           items: [
             {
               reward_code: d.reward?.code || "-",
@@ -297,6 +298,7 @@ export default function RedeemDetail() {
   const currentMode = (detail?.status_code || location?.state?.mode || "").toUpperCase();
   const isRFW = currentMode === "RFW";
   const canSendToPurchase = [1, 2, 20].includes(Number(userInfo?.role_id));
+  const isFarmer = Boolean(location?.state?.is_farmer) || location.pathname.includes("farmer-redeem");
 
   return (
     <MainLayout loading={loading}>
@@ -324,16 +326,18 @@ export default function RedeemDetail() {
       </BoxPrimary>
 
       <div className="flex justify-end gap-3 mt-4">
-        <ActionButton
-          mode="saveDraft"
-          text="Print PR"
-          onClick={() => {
-            const id = location?.state?.id || detail?.id;
-            if (!id) return;
-            const farmer = location.pathname.includes("farmer-redeem") ? "&mode=farmer" : "";
-            window.open(`/points/line/pdf/purchase-request?id=${id}${farmer}`, "_blank", "noopener,noreferrer");
-          }}
-        />
+        {!isFarmer && (
+          <ActionButton
+            mode="saveDraft"
+            text="Print PR"
+            icon={<FilePdfOutlined />}
+            onClick={() => {
+              const id = location?.state?.id || detail?.id;
+              if (!id) return;
+              window.open(`/points/line/pdf/purchase-request?id=${id}`, "_blank", "noopener,noreferrer");
+            }}
+          />
+        )}
         <ActionButton
           mode="back"
           text="Back"

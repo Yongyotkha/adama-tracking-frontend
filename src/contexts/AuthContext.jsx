@@ -36,20 +36,18 @@ export const AuthProvider = ({ children }) => {
     });
   };
 
-  const showNotification = (type, title, line, duration = 1) => {
-    // type 'success' | 'info' | 'warning' | 'error';
-
+  const showNotification = (type, title, line, duration = 3) => {
     const description = Array.isArray(line)
-      ? line.map((text) => `<span>${text}</span>`).join("<br>") // ใช้ HTML <br> เพื่อเว้นบรรทัด
+      ? line.map((text) => `<span>${text}</span>`).join("<br>")
       : line;
 
     return new Promise((resolve) => {
       api[type]({
         message: title,
         description: <div dangerouslySetInnerHTML={{ __html: description }} />,
-        duration: duration,
+        duration,
         showProgress: true,
-        pauseOnHover: false,
+        pauseOnHover: true,
         onClose: resolve,
       });
     });

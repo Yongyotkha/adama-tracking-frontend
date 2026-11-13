@@ -12,29 +12,41 @@ Font.register({
   ],
 });
 
+const ink = "#000";
+
 const styles = StyleSheet.create({
-  page: { padding: 28, fontFamily: "Sarabun", fontSize: 10 },
-  title: { textAlign: "center", fontSize: 16, fontWeight: "bold", marginBottom: 14 },
-  row: { flexDirection: "row", marginBottom: 4 },
-  label: { width: 150, fontWeight: "bold" },
-  value: { flex: 1 },
-  split: { flexDirection: "row", gap: 16, marginBottom: 4 },
-  col: { flex: 1, flexDirection: "row" },
-  table: { borderWidth: 1, borderColor: "#000", marginTop: 12 },
-  tr: { flexDirection: "row", borderBottomWidth: 1, borderColor: "#000" },
-  th: { padding: 4, fontWeight: "bold", borderRightWidth: 1, borderColor: "#000", textAlign: "center" },
-  td: { padding: 4, borderRightWidth: 1, borderColor: "#000" },
+  page: { padding: 28, fontFamily: "Sarabun", fontSize: 10, color: ink },
+  title: { textAlign: "center", fontSize: 16, fontWeight: "bold", marginBottom: 10 },
+  headBox: { borderWidth: 1, borderColor: ink, marginBottom: 10 },
+  headTop: { flexDirection: "row", borderBottomWidth: 1, borderColor: ink },
+  headCol: { width: "50%", paddingHorizontal: 6, paddingVertical: 4, justifyContent: "center" },
+  headColLeft: { borderRightWidth: 1, borderColor: ink },
+  headLine: { flexDirection: "row", alignItems: "center", minHeight: 16, marginBottom: 2 },
+  hLabel: { width: 132, fontWeight: "bold" },
+  hValue: { flex: 1 },
+  full: { flexDirection: "row", alignItems: "center", minHeight: 20, paddingHorizontal: 6, paddingVertical: 3, borderBottomWidth: 1, borderColor: ink },
+  table: { borderWidth: 1, borderColor: ink },
+  tr: { flexDirection: "row", borderBottomWidth: 1, borderColor: ink, minHeight: 18, alignItems: "center" },
+  td: { borderRightWidth: 1, borderColor: ink, paddingHorizontal: 4, paddingVertical: 3, justifyContent: "center" },
   last: { borderRightWidth: 0 },
-  cNo: { width: 50 },
+  label: { fontWeight: "bold", fontSize: 8 },
+  lab: { width: 118 },
+  val: { flex: 1 },
+  cNo: { width: 36, textAlign: "center" },
   cDesc: { flex: 1 },
-  cQty: { width: 60, textAlign: "right" },
-  cPrice: { width: 80, textAlign: "right" },
-  cTotal: { width: 90, textAlign: "right" },
-  totals: { marginTop: 6, alignItems: "flex-end" },
-  totalRow: { flexDirection: "row", width: 220, justifyContent: "space-between", marginBottom: 2 },
-  signRow: { flexDirection: "row", marginTop: 36, justifyContent: "space-between" },
-  signCol: { width: "30%" },
-  line: { borderBottomWidth: 1, borderColor: "#000", marginBottom: 4, height: 18 },
+  cQty: { width: 40, textAlign: "right" },
+  cPrice: { width: 70, textAlign: "right" },
+  cTotal: { width: 74, textAlign: "right" },
+  sumGap: { flex: 1 },
+  sumLabel: { width: 110, textAlign: "right", fontWeight: "bold" },
+  note: { marginTop: 8, paddingVertical: 4 },
+  signPush: { flexGrow: 1 },
+  signRow: { flexDirection: "row", justifyContent: "space-between", marginBottom: 8 },
+  signCol: { width: "30%", alignItems: "center" },
+  line: { borderBottomWidth: 1, borderColor: ink, height: 28, width: "100%", marginBottom: 4 },
+  signText: { textAlign: "center" },
+  dateRow: { flexDirection: "row", justifyContent: "center", marginTop: 12 },
+  dateSlot: { width: 62, borderBottomWidth: 1, borderColor: ink, height: 11, marginLeft: 4 },
 });
 
 const money = (n) =>
@@ -49,111 +61,107 @@ const dmy = (s) => {
 
 const FormDoc = ({ data }) => {
   const reward = data?.reward || {};
-  const qty = Number(data?.qty || 1);
-  const price = Number(reward.cost || 0);
-  const lineTotal = qty * price;
+  const user = data?.user || {};
+  const lines = Array.isArray(data?.items) && data.items.length
+    ? data.items
+    : [{ name: reward.name || data?.reward_name || "", qty: data?.qty || 1, price: reward.cost || 0 }];
+  const priced = lines.map((line) => {
+    const qty = Number(line.qty || 1);
+    const price = Number(line.price ?? line.cost ?? reward.cost ?? 0);
+    return { name: line.name || line.reward_name || reward.name || "", qty, price, total: qty * price };
+  });
+  const lineTotal = priced.reduce((sum, line) => sum + line.total, 0);
   const vat = lineTotal * 0.07;
   const grand = lineTotal + vat;
-  const user = data?.user || {};
+  const shopName = user.shop_name || data?.shop_name || "";
+
+  const Cell = ({ children, style, bold }) => (
+    <View style={[styles.td, style]}>
+      <Text style={bold ? styles.label : undefined}>{children}</Text>
+    </View>
+  );
 
   return (
     <Document>
-      <Page size="A4" style={styles.page}>
+      <Page size="A4" style={styles.page} wrap>
         <Text style={styles.title}>PURCHASE REQUEST FORM</Text>
 
-        <View style={styles.split}>
-          <View style={styles.col}>
-            <Text style={styles.label}>DATE OF REQUESTED :</Text>
-            <Text>{dmy(data?.created_at)}</Text>
+        <View style={styles.headBox}>
+          <View style={styles.headTop}>
+            <View style={[styles.headCol, styles.headColLeft]}>
+              <View style={styles.headLine}><Text style={styles.hLabel}>DATE OF REQUESTED :</Text><Text style={styles.hValue}>{dmy(data?.created_at)}</Text></View>
+              <View style={styles.headLine}><Text style={styles.hLabel}>EXPECT DELIVERY DATE :</Text><Text style={styles.hValue}>{data?.expect_delivery_date ? dmy(data.expect_delivery_date) : ""}</Text></View>
+              <View style={[styles.headLine, { marginBottom: 0 }]}><Text style={styles.hLabel}>REQUESTED BY :</Text><Text style={styles.hValue}>{shopName}</Text></View>
+            </View>
+            <View style={styles.headCol}>
+              <View style={styles.headLine}><Text style={styles.hLabel}>SUGGESTION VENDER :</Text><Text style={styles.hValue}>{""}</Text></View>
+              <View style={styles.headLine}><Text style={styles.hLabel}>ATTN :</Text><Text style={styles.hValue}>{""}</Text></View>
+              <View style={[styles.headLine, { marginBottom: 0 }]}><Text style={styles.hLabel}>PHONE NO. :</Text><Text style={styles.hValue}>{user.phone_number || data?.vendor_phone || ""}</Text></View>
+            </View>
           </View>
-          <View style={styles.col}>
-            <Text style={styles.label}>SUGGESTION VENDER :</Text>
-            <Text>{data?.vendor_name || "-"}</Text>
+          <View style={styles.full}>
+            <Text style={styles.hLabel}>DEPARTMENT :</Text>
+            <Text style={styles.hValue}>{data?.department || "Marketing"}</Text>
           </View>
-        </View>
-        <View style={styles.split}>
-          <View style={styles.col}>
-            <Text style={styles.label}>EXPECT DELIVERY DATE :</Text>
-            <Text>{dmy(data?.expect_delivery_date) === "-" ? "-" : dmy(data?.expect_delivery_date)}</Text>
+          <View style={styles.full}>
+            <Text style={styles.hLabel}>PURCHASE FOR :</Text>
+            <Text style={styles.hValue}>{reward.name || data?.reward_name || ""}</Text>
           </View>
-          <View style={styles.col}>
-            <Text style={styles.label}>ATTN :</Text>
-            <Text>{data?.attn || "-"}</Text>
+          <View style={[styles.full, { borderBottomWidth: 0 }]}>
+            <Text style={styles.hLabel}>SHIP TO ADDRESS :</Text>
+            <Text style={styles.hValue}>{data?.tranUserAddress?.address || data?.address || ""}</Text>
           </View>
-        </View>
-        <View style={styles.split}>
-          <View style={styles.col}>
-            <Text style={styles.label}>REQUESTED BY :</Text>
-            <Text>{user.name_en || user.name_th || data?.approve_by || "-"}</Text>
-          </View>
-          <View style={styles.col}>
-            <Text style={styles.label}>PHONE NO. :</Text>
-            <Text>{data?.vendor_phone || user.phone_number || "-"}</Text>
-          </View>
-        </View>
-        <View style={styles.row}>
-          <Text style={styles.label}>DEPARTMENT :</Text>
-          <Text style={styles.value}>{data?.department || "Marketing"}</Text>
-        </View>
-        <View style={styles.row}>
-          <Text style={styles.label}>PURCHASE FOR :</Text>
-          <Text style={styles.value}>{reward.name || data?.reward_name || "-"}</Text>
-        </View>
-        <View style={styles.row}>
-          <Text style={styles.label}>SHIP TO ADDRESS :</Text>
-          <Text style={styles.value}>{data?.tranUserAddress?.address || data?.address || "-"}</Text>
         </View>
 
         <View style={styles.table}>
-          <View style={styles.tr}>
-            <Text style={[styles.th, styles.cNo]}>ITEM NO.</Text>
-            <Text style={[styles.th, styles.cDesc]}>DESCRIPTION</Text>
-            <Text style={[styles.th, styles.cQty]}>QTY</Text>
-            <Text style={[styles.th, styles.cPrice]}>PRICE EACH</Text>
-            <Text style={[styles.th, styles.cTotal, styles.last]}>TOTAL PRICE</Text>
+          <View wrap={false} style={styles.tr}>
+            <Cell style={styles.cNo} bold>NO.</Cell>
+            <Cell style={styles.cDesc} bold>DESCRIPTION</Cell>
+            <Cell style={styles.cQty} bold>QTY</Cell>
+            <Cell style={styles.cPrice} bold>PRICE EACH</Cell>
+            <Cell style={[styles.cTotal, styles.last]} bold>TOTAL</Cell>
           </View>
-          <View style={styles.tr}>
-            <Text style={[styles.td, styles.cNo]}>1</Text>
-            <Text style={[styles.td, styles.cDesc]}>{reward.name || "-"}</Text>
-            <Text style={[styles.td, styles.cQty]}>{qty.toLocaleString()}</Text>
-            <Text style={[styles.td, styles.cPrice]}>{money(price)}</Text>
-            <Text style={[styles.td, styles.cTotal, styles.last]}>{money(lineTotal)}</Text>
-          </View>
+          {priced.map((line, index) => (
+            <View wrap={false} key={index} style={styles.tr}>
+              <Cell style={styles.cNo}>{index + 1}</Cell>
+              <Cell style={styles.cDesc}>{line.name}</Cell>
+              <Cell style={styles.cQty}>{line.qty.toLocaleString()}</Cell>
+              <Cell style={styles.cPrice}>{money(line.price)}</Cell>
+              <Cell style={[styles.cTotal, styles.last]}>{money(line.total)}</Cell>
+            </View>
+          ))}
+          {[
+            ["Total", lineTotal],
+            ["Vat 7%", vat],
+            ["Total Amount", grand],
+          ].map(([name, amount], index, rows) => (
+            <View wrap={false} key={name} style={[styles.tr, index === rows.length - 1 ? { borderBottomWidth: 0 } : null]}>
+              <View style={styles.sumGap} />
+              <Cell style={styles.sumLabel} bold>{name}</Cell>
+              <Cell style={[styles.cTotal, styles.last]}>{money(amount)}</Cell>
+            </View>
+          ))}
         </View>
 
-        <View style={styles.totals}>
-          <View style={styles.totalRow}>
-            <Text>Total</Text>
-            <Text>{money(lineTotal)}</Text>
-          </View>
-          <View style={styles.totalRow}>
-            <Text>Vat 7%</Text>
-            <Text>{money(vat)}</Text>
-          </View>
-          <View style={styles.totalRow}>
-            <Text>Total Amount</Text>
-            <Text>{money(grand)}</Text>
-          </View>
-        </View>
+        <Text style={styles.note}>Remark : {data?.remark && data.remark !== "-" ? data.remark : ""}</Text>
+        <Text style={{ marginTop: 4 }}>Transaction ID : {data?.transaction_id || data?.transection_id || data?.id || ""}</Text>
 
-        <Text style={{ marginTop: 10 }}>Remark : {data?.remark || "-"}</Text>
-        <Text style={{ marginTop: 4 }}>Transaction ID : {data?.transaction_id || data?.transection_id || data?.id || "-"}</Text>
-
+        <View style={styles.signPush} />
         <View style={styles.signRow}>
           <View style={styles.signCol}>
             <View style={styles.line} />
-            <Text>Requested by</Text>
-            <Text>Date : {dmy(data?.created_at)}</Text>
+            <Text style={styles.signText}>Requested by</Text>
+            <View style={styles.dateRow}><Text>Date :</Text><View style={styles.dateSlot} /></View>
           </View>
           <View style={styles.signCol}>
             <View style={styles.line} />
-            <Text>Approved by</Text>
-            <Text>Date ........................</Text>
+            <Text style={styles.signText}>Approved by</Text>
+            <View style={styles.dateRow}><Text>Date :</Text><View style={styles.dateSlot} /></View>
           </View>
           <View style={styles.signCol}>
             <View style={styles.line} />
-            <Text>Approved by</Text>
-            <Text>Date ........................</Text>
+            <Text style={styles.signText}>Approved by</Text>
+            <View style={styles.dateRow}><Text>Date :</Text><View style={styles.dateSlot} /></View>
           </View>
         </View>
       </Page>
